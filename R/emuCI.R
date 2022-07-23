@@ -1,4 +1,4 @@
-
+#' @export
 emuCI <- function(emuMod,
                   nboot,
                   conf_level = 0.95,

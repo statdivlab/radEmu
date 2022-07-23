@@ -20,6 +20,8 @@
 #' @return \item{emuMod}{An emuMod object specifying the model fit and providing
 #' point estimates for effects included in model.}
 #' @author David Clausen
+#'
+#' @export
 emuFit <-  function(formula_rhs = NULL,
                     Y,
                     X = NULL,
