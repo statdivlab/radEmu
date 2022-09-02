@@ -18,13 +18,12 @@ prefitted_to_weights <- function(Y,
                           weight_stabilization)/
                          (prefitted_long[prefitted_order] +
                             weight_stabilization),
-                       w= 1/(prefitted_long[prefitted_order]^2 +
-                               .1*square_resids_long[prefitted_order] +
-                                    weight_stabilization))
-                       # w= sqrt(prefitted_long[prefitted_order] +
-                       #            weight_stabilization)/
-                       #   sqrt(square_resids_long[prefitted_order] +
-                       #          weight_stabilization))#+
+                       # w= 1/(prefitted_long[prefitted_order]^2 +
+                       #              weight_stabilization))
+                       w= sqrt(prefitted_long[prefitted_order] +
+                                  weight_stabilization)/
+                         sqrt(square_resids_long[prefitted_order] +
+                                weight_stabilization))#+
                          # prefitted_long[prefitted_order]^2 +
                          #           weight_stabilization
                          # )))
@@ -76,9 +75,9 @@ prefitted_to_weights <- function(Y,
   #   monotone::monotone(reweights_long[order(prefitted_long,decreasing = TRUE)])
 
 
-#
+  #
   # plot(log(prefitted_long)[prefitted_order],log(reweights_long)[prefitted_order],
-  # type = "s")
+       # type = "s")
 
 
 #

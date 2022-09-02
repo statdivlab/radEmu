@@ -1,4 +1,4 @@
-#' @export
+
 emuCI <- function(emuMod,
                   nboot,
                   conf_level = 0.95,
@@ -6,9 +6,8 @@ emuCI <- function(emuMod,
                   parallel = FALSE,
                   blocks = NULL,
                   verbose = FALSE,
-                  type = "bayesian_subsample",
+                  type = "bootstrap_percentile",
                   nsim = 1000,
-                  seed = 0,
                   ncore = 1){
 
 J <- ncol(emuMod$Y)
@@ -36,9 +35,7 @@ boot_sds <- emuSD(emuMod = emuMod,
 if(type == "bayesian_subsample"){
   cis <- emuBayesSub(emuMod,
               nboot = nboot,
-              parallel = parallel,
-              ncore = ncore,
-              seed = seed)
+              )
   return(cis)
 }
 

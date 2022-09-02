@@ -8,7 +8,6 @@ emuFit_one <- function(Y,
                        z,
                        method,
                        maxit_glm,
-                       stop_on_error = FALSE,
                        WD,
                        info_inv){
   n <- nrow(Y)
@@ -19,7 +18,7 @@ emuFit_one <- function(Y,
       # glmfit <- suppressWarnings(try(glm(y~X - 1,
       #                                    offset = z,
       #                                    family = "poisson",
-      #                                    start = B[,j],
+      #                                    # start = B[,j],
       #                                    # mustart =
       #                                    # weights = rect_weights[,j],
       #                                    control = list(
@@ -28,8 +27,6 @@ emuFit_one <- function(Y,
       #                                    )),
       #                                silent = TRUE))
 
-
-      # if(!is.list(glmfit)){
       glmfit <- suppressWarnings(try(fastglm::fastglm(x = X,
                                                       offset = z,
                                                       family = "poisson",
@@ -43,23 +40,12 @@ emuFit_one <- function(Y,
       ),
       silent = TRUE))
 
-
-
-    if(inherits(glmfit,"try-error")){
-      if(stop_on_error){
-        stop("GLM fitting failed")
-      } else{
-        return(0*B[,j])
-      }
-    }
-
       glmfit$coef <- glmfit$coefficients
-      # }
     } else{
     # glmfit <- suppressWarnings(try(glm(y~X - 1,
     #                                    offset = z,
     #                                    family = "poisson",
-    #                                    start = B[,j],
+    #                                    # start = B[,j],
     #                                    # mustart =
     #                                    weights =
     #                                      rect_weights[,j]/mean(rect_weights[,j]),
@@ -68,8 +54,6 @@ emuFit_one <- function(Y,
     #                                    data = data.frame(y = Y[,j]
     #                                    )),
     #                                silent = TRUE))
-
-    # if(!is.list(glmfit)){
       glmfit <- suppressWarnings(try(fastglm::fastglm(x = X,
                                          offset = z,
                                          family = "poisson",
@@ -83,16 +67,7 @@ emuFit_one <- function(Y,
                                          ),
                                      silent = TRUE))
 
-      if(inherits(glmfit,"try-error")){
-        if(stop_on_error){
-          stop("GLM fitting failed")
-        } else{
-          return(0*B[,j])
-        }
-      }
-
       glmfit$coef <- glmfit$coefficients
-      #}
     }
 
 
@@ -120,14 +95,6 @@ emuFit_one <- function(Y,
                                  data = data.frame(y = Y[,j]
                                  )),
                              silent = TRUE))
-
-      if(inherits(glmfit,"try-error")){
-        if(stop_on_error){
-          stop("GLM fitting failed")
-        } else{
-          return(0*B[,j])
-        }
-      }
     }
 
 
@@ -168,25 +135,6 @@ emuFit_one <- function(Y,
   #                                        ))))
   #   }
   #
-  # }
-# if(allow_adjustment){
-#   if(max(abs(glmfit$coef))>=cutoff){
-    # glmfit <- glmnet::glmnet(x = X,
-    #                offset = z,
-    #                intercept = FALSE,
-    #                family = "poisson",
-    #                # start = B[,j],
-    #                # mustart =
-    #                alpha = 0,
-    #                lambda = 10,
-    #                weights =
-    #                  rect_weights[,j]/mean(rect_weights[,j]),
-    #                control = list(
-    #                  maxit = maxit_glm),
-    #                y = Y[,j]
-    #                )
-    # glmfit$coef <- as.numeric(glmfit$beta)
-  # }
   # }
   if(is.list(glmfit)){
   return(glmfit$coef)

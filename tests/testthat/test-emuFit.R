@@ -1,32 +1,3 @@
-test_that("Formulas work", {
-  set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 20))
-  covariate_data <- data.frame("group" = rep(c(0,1),each = 20))
-  z <- rnorm(40) +8
-  b0 <- rnorm(10)
-  b1 <- 1:10
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = 10, nrow = 40)
-
-  for(i in 1:40){
-    for(j in 1:10){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-      Y[i,j] <- rpois(1, lambda = temp_mean)
-    }
-  }
-  ml_fit <- emuFit(formula_rhs = ~group,
-                   Y = Y,
-                   covariate_data = covariate_data,
-                   method = "ML",
-                   tolerance = 0.01)
-
-
-
-  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
-})
-
-
-
 test_that("ML fit to simple example give reasonable output", {
   set.seed(4323)
   X <- cbind(1,rep(c(0,1),each = 20))
@@ -45,32 +16,13 @@ test_that("ML fit to simple example give reasonable output", {
   ml_fit <- emuFit(X = X, Y = Y,method = "ML",
                                      tolerance = 0.01)
 
+  lin_pred <- ml_fit$X%*%ml_fit$B + matrix(ml_fit$z,nrow = 40,ncol = 1)%*%
+    matrix(1,nrow = 1, ncol = 10)
+
+  prefitted <- exp(lin_pred)
 
 
-  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
-})
-
-test_that("ML fit to with multiple covariates give reasonable output", {
-  set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 20),rnorm(20))
-  z <- rnorm(40) +8
-  b0 <- rnorm(10)
-  b1 <- 1:10
-  b2 <- 1:10
-  b <- rbind(b0,b1,b2)
-  Y <- matrix(NA,ncol = 10, nrow = 40)
-
-  for(i in 1:40){
-    for(j in 1:10){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-      Y[i,j] <- rpois(1, lambda = temp_mean)
-    }
-  }
-  ml_fit <- emuFit(X = X, Y = Y,method = "ML",
-                   tolerance = 0.01)
-
-  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.05)
-  expect_true(max(abs(ml_fit$B[3,] - seq(-4.5,4.5,1)))<.01)
+  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.01)
 })
 
 test_that("reweighted ML fit to simple example give reasonable output", {
@@ -91,7 +43,7 @@ test_that("reweighted ML fit to simple example give reasonable output", {
   ml_fit <- fitted_model_ml<- emuFit(X = X, Y = Y,method = "ML",
                                      reweight = TRUE,
                                      tolerance = 0.01)
-  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
+  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.01)
 })
 
 
@@ -111,7 +63,7 @@ test_that("FL fit to simple example give reasonable output", {
     }
   }
   fl_fit <- fitted_model_fl <- emuFit(X = X, Y = Y,method = "FL")
-  expect_true(max(abs(fl_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
+  expect_true(max(abs(fl_fit$B[2,] - seq(-4.5,4.5,1)))<.01)
 })
 
 test_that("Reweighted FL fit to simple example give reasonable output", {
@@ -130,7 +82,7 @@ test_that("Reweighted FL fit to simple example give reasonable output", {
     }
   }
   fl_fit <- fitted_model_fl <- emuFit(X = X, Y = Y,method = "FL",reweight= TRUE)
-  expect_true(max(abs(fl_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
+  expect_true(max(abs(fl_fit$B[2,] - seq(-4.5,4.5,1)))<.01)
 })
 
 #
@@ -240,7 +192,7 @@ test_that("Reweighted ML fit to simple example give reasonable output", {
   ml_fit <- fitted_model_ml<- emuFit(X = X, Y = Y,method = "ML",
                                      tolerance = 0.01,
                                      reweight = TRUE)
-  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
+  expect_true(max(abs(ml_fit$B[2,] - seq(-4.5,4.5,1)))<.01)
 })
 
 
@@ -261,7 +213,7 @@ test_that("Reweighted FL fit to simple example give reasonable output", {
   }
   fl_fit <- fitted_model_fl <- emuFit(X = X, Y = Y,method = "FL",
                                       reweight = TRUE)
-  expect_true(max(abs(fl_fit$B[2,] - seq(-4.5,4.5,1)))<.02)
+  expect_true(max(abs(fl_fit$B[2,] - seq(-4.5,4.5,1)))<.01)
 })
 
 
@@ -282,8 +234,8 @@ test_that("FL fit in case with separation yields finite estimates", {
   }
   Y[1:20,10] <- 0
   fl_fit <- fitted_model_fl <- emuFit(X = X, Y = Y,method = "FL")
-  expect_true(max(abs(fl_fit$B[2,1:9] - seq(-4.5,3.5,1)))<.03)
-  # expect_true(fl_fit$B[2,10]<17)
+  expect_true(max(abs(fl_fit$B[2,1:9] - seq(-4.5,3.5,1)))<.01)
+  expect_true(fl_fit$B[2,10]<15)
 })
 
 test_that("Directly computing hat matrix yields same data augmentation
@@ -333,57 +285,4 @@ and otherwise is similar to ML fit", {
                    tolerance = 0.01)
   expect_equal(ml_fit$B[,-c(4:6)],fl_fit$B[,-c(4:6)],tolerance = 0.1)
   expect_true(sum(abs(ml_fit$B[,4:6]))/sum(abs(fl_fit$B[,4:6]))>2)
-})
-
-test_that("FL fit in case with separation actually maximizes PL", {
-  set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 20))
-  z <- rnorm(40) +8
-  b0 <- rnorm(10)
-  b1 <- 1:10
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = 10, nrow = 40)
-  n <- 40
-  J <- 10
-  p <- 2
-
-  for(i in 1:40){
-    for(j in 1:10){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-      Y[i,j] <- rpois(1, lambda = temp_mean)
-    }
-  }
-  Y[1:20,10] <- 0
-  fl_fit <- fitted_model_fl <- emuFit(X = X, Y = Y,method = "FL",
-                                      tolerance = 1e-3)
-
-  X_tilde <- X_to_X_tilde(X,J)
-  S <-  S <- Matrix::sparseMatrix(i = 1:(n*J),
-                                  j = rep(1:n,each = J),
-                                  x = rep(1, n*J))
-  D_tilde <- cbind(X_tilde,S)
-  pl_fn <- function(x){
-    B_temp <- fl_fit$B
-    B_temp[2,10] <-     B_temp[2,10] + x
-  B_tilde <- B_to_B_tilde(B_temp)
-  theta <- rbind(B_tilde,Matrix::Matrix(z,ncol = 1))
-
-  return(log_likelihood_wide(Y,
-                             fl_fit$weights,
-                             X,
-                             B_temp,
-                             fl_fit$z) +
-    calculate_firth_penalty(D_tilde = D_tilde,
-                            W = Matrix::Diagonal(x =
-                                                   as.numeric(
-                                                     exp(D_tilde%*%theta))),
-                            n_skip = 2))
-  }
-
-  ds <- seq(-.5,.5,by = .01)
-  pls <- sapply(ds,pl_fn)
-
-  expect_equal(ds[which.max(pls)],0)
-
-
 })

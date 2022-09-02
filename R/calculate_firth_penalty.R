@@ -1,10 +1,10 @@
-calculate_firth_penalty <- function(D_tilde,
+calculate_firth_penalty <- function(D_tilde_repar,
                                     W,
                                     n_skip){
 
 
-  info <- Matrix::crossprod(D_tilde,
-                            Matrix::crossprod(W,D_tilde))
+  info <- Matrix::crossprod(D_tilde_repar,
+                            Matrix::crossprod(W,D_tilde_repar))
   penalty <- as.numeric(0.5*Matrix::determinant(info +
                                                   Matrix::Diagonal(
                                                     x = rep(1e-4,

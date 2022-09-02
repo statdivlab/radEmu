@@ -1,31 +1,7 @@
 
 
-#' Fit partially identified log-linear model to 'relative abundance' data
-#'
-#' This function fits a radEmu model to multivariate outcome data Y. Predictors
-#' are specified either via a formula, in which case covariate data must be
-#' included as a data frame, or via an already formed model matrix X.
-#'
-#'
-#' @param formula_rhs The right-hand side of a formula specifying which
-#' predictors should be included in model
-#' @param Y A matrix of outcome data with rows corresponding to samples and
-#' columns corresponding to outcome categories (e.g., microbial taxon)
-#' @param constraint_fn The function to be used as a constraint -- namely,
-#' we enforce constraint_fn(B_k) = 0 for all rows k = 1, ..., p of B. This
-#' defaults to median().
-#' @param reweight Refit model using weights derived from estimated mean-
-#' variance relationship? Default is FALSE.
-#
-#' @return \item{emuMod}{An emuMod object specifying the model fit and providing
-#' point estimates for effects included in model.}
-#' @author David Clausen
-#'
-#' @export
-emuFit <-  function(formula_rhs = NULL,
+emuFit <-  function(X,
                     Y,
-                    X = NULL,
-                    covariate_data = NULL,
                     B = NULL,
                     B_cutoff = 20,
                     tolerance = 1e-1,
@@ -33,9 +9,7 @@ emuFit <-  function(formula_rhs = NULL,
                     verbose = TRUE,
                     constraint_fn = NULL,
                     maxit_glm = 100,
-                    optim_only = TRUE,
                     method = "ML",
-                    guarded =TRUE,
                     linesearch = FALSE, #only for ML; FL automatically does linesearch
                     reweight = FALSE,
                     reweight_blocks = NULL,
@@ -43,22 +17,6 @@ emuFit <-  function(formula_rhs = NULL,
                     test_firth = FALSE,
                     return_a_lot = TRUE,
                     prefit = TRUE){
-
-  if(!is.null(formula_rhs)){
-    if(is.null(covariate_data)){
-      stop("If formula_rhs is provided, covariates named in formula must be
-           provided inside covariate_data.")
-    }
-    if(!is.data.frame(covariate_data)){
-      stop("Argument covariate_data must be a data frame.")
-    }
-    if(!inherits(formula_rhs,"formula")){
-      formula_rhs <- as.formula(formula_rhs)
-    }
-    X <- model.matrix(formula_rhs,covariate_data)
-  }
-
-
 
   if(is.null(constraint_fn)){
     constraint_fn <- function(x){ median(x)}
@@ -91,7 +49,7 @@ used to estimate weights if you wish to skip the initial fitting step.")
                        tolerance = tolerance,
                        maxit = maxit,
                        constraint_fn = constraint_fn,
-                       verbose = verbose,
+                       verbose = FALSE,
                        method = method,
                        reweight = FALSE,
                        weights = weights
@@ -163,10 +121,9 @@ using input B; to estimate B prior to reweighting, set prefit = TRUE.")
                                X,
                                B,
                                z) +
-      calculate_firth_penalty(D_tilde = D_tilde,
+      calculate_firth_penalty(D_tilde_repar = D_tilde,
                               W = W,
                               n_skip = p)
-
 
     converged <- FALSE
     lilstep <- 0
@@ -316,38 +273,7 @@ larger datasets.")}
         #                                           (as.matrix(seconds)))/2
         #
       }
-
       Y_augmented <- Y_tilde_to_Y(Y_tilde + augmentations,J = J)
-      curr_der <-
-        emuDeriv(D_tilde = D_tilde,
-                 theta = theta,
-                 Y_tilde = Y_tilde + augmentations,
-                 weights = weights)
-
-      # ll_fn <- function(theta){
-      #   theta <- Matrix(theta,ncol= 1)
-      #   sum(Matrix::Diagonal(x = weights)%*%((Y_tilde + augmentations)*(D_tilde%*%theta) -
-      #                                      exp(D_tilde%*%theta)))
-      # }
-      #
-      #
-      # prop_ll <- log_likelihood_wide(Y = Y_augmented,
-      #                                rect_weights = rect_weights,
-      #                                X = X,
-      #                                B = B_tilde_to_B(theta[,1:20,
-      #                                                       drop = FALSE],J = 10),
-      #                                z = prop_z) +
-      #   calculate_firth_penalty(D_tilde_repar = D_tilde,
-      #                           W = prop_W,
-      #                           n_skip = p)
-      # num_der <- numDeriv::grad(ll_fn, as.numeric(theta))
-
-      message(paste("Norm of gradient",
-                    round(sqrt(sum(as.numeric(as.matrix(curr_der))^2)),2)))
-
-      # plot(asinh(curr_der)[order(as.numeric(as.matrix(curr_der)))],pch = ".")
-      # points(as.numeric(matrix(theta))[order(as.numeric(as.matrix(curr_der)))],pch = ".",col = "red")
-      # message(which.max(abs(as.numeric(as.matrix(curr_der)))))
 
       if(test_firth){
         augmentations_also <- diag(
@@ -373,9 +299,6 @@ larger datasets.")}
                        reweight = FALSE,
                        weights = rect_weights)
 
-      # message(paste("Norm of update step",
-      #               round(sqrt(sum((ml_fit$B - B)^2)),4)))
-
       B_direction <- ml_fit$B - B
       z_direction <- ml_fit$z - z
       stepsize <- 2
@@ -388,43 +311,29 @@ larger datasets.")}
           prop_B[k,] <- prop_B[k,] - constraint_fn(prop_B[k,])
         }
         prop_z <- z + stepsize*z_direction
-      #
-      ##################
-      # prop_B <- ml_fit$B
-      # prop_z <- ml_fit$z
-      ##################
+
         prop_B_tilde <- B_to_B_tilde(prop_B)
         prop_theta <- rbind(prop_B_tilde,Matrix::Matrix(prop_z,ncol = 1))
         prop_W <- Matrix::Diagonal(x = weights*as.numeric(exp((D_tilde%*%prop_theta))))
-      #
 
-        firth_pen <-  calculate_firth_penalty(D_tilde = D_tilde,
-                                              W = prop_W,
-                                              n_skip = p)
         prop_ll <- log_likelihood_wide(Y = Y,
                                        rect_weights = rect_weights,
                                        X = X,
                                        B = prop_B,
-                                       z = prop_z) + firth_pen
+                                       z = prop_z) +
+          calculate_firth_penalty(D_tilde_repar = D_tilde,
+                                  W = prop_W,
+                                  n_skip = p)
 
-        # message(paste("Firth penalty term",firth_pen))
-      #
-        if((prop_ll >= lls[iter])|stepsize <= 1e-6){
+        if(prop_ll >= lls[iter]){
           accepted <- TRUE
         }
-        accepted <- TRUE
       }
-      #
+
       lls <- c(lls,
                prop_ll)
       B <- prop_B
       z <- prop_z
-
-      # plot(asinh(as.numeric(B)),cex = .3)
-
-      # plot(do.call(c,lapply(1:nrow(B), function(k) B[k,])))
-
-      stepsize <- 1
       if(stepsize ==1){
         lilstep <- 0
       } else{
@@ -434,9 +343,8 @@ larger datasets.")}
       step_criterion <- ifelse(stepsize ==1,TRUE,
                                lilstep >2)
 
-      if((abs(lls[iter + 1] - lls[iter]) < tolerance)#&
-         # (max(lls[1:iter] - lls[iter + 1]) < tolerance)
-          &
+      if((abs(lls[iter + 1] - lls[iter]) < tolerance)&
+         (max(lls[1:iter] - lls[iter + 1]) < tolerance)&
          step_criterion
       ){
         converged <- TRUE
@@ -503,7 +411,6 @@ larger datasets.")}
     for(j in update_order){
       # message(j)
 
-      if(!optim_only){
       Bj_update <- emuFit_one(Y = Y,
                               X = X,
                               rect_weights = rect_weights,
@@ -518,94 +425,17 @@ larger datasets.")}
       if(is.null(Bj_update)){
         stop("glm update failed!")
       }
-      #
-      # Bj_update[abs(Bj_update)>B_cutoff] <-
-      #   B_cutoff*sign(Bj_update[abs(Bj_update)>B_cutoff])
-      #
-      # step_dir <-  Bj_update - B[,j]
-      old_lj <- sum(
-      (Y[,j]*(X%*%B[,j] + z) - exp(X%*%B[,j] + z))*rect_weights[,j])
 
-      new_lj <- sum(
-        (Y[,j]*(X%*%Bj_update  + z) - exp(X%*%Bj_update + z))*rect_weights[,j])
-      } else{
-        new_lj <- 0
-        old_lj <- 1
-      }
-      #
-      if(new_lj + 1e-4 < old_lj){
-        if(verbose & !optim_only){
-        message(paste("Update for taxon", j, "does not increase likelihood;",
-                      "recomputing with optim."))
-          }
-
-        opt_fun <- function(b){
-          -1*sum(
-          (Y[,j]*(X%*%matrix(b,ncol = 1)  + z) -
-             exp(X%*%matrix(b,ncol = 1) + z))*rect_weights[,j])
-          }
-
-        gr_fun <- function(b){
-          -1*as.numeric(crossprod(X,rect_weights[,j]*(Y[,j] -
-             exp(X%*%matrix(b,ncol = 1) + z))))}
-
-
-        opt_result <- try(optim(B[,j],
-                            opt_fun,
-                            gr = gr_fun,
-                            method = "BFGS"),
-                          silent = TRUE)
-
-        if(inherits(opt_result,"try-error")){
-          opt_result <- try(optim(B[,j],
-                                  opt_fun,
-                                  # gr = gr_fun,
-                                  method = "BFGS"))
-        }
-
-        B[,j] <- opt_result$par
-        # message(paste(paste("Beta", j, "updated to"), paste(round(B[,j],2),
-        #                                                     collapse = " "),
-        #               collapse = ""))
-
-      } else{
-        B[,j] <- Bj_update
-      }
-
-      # new_lj <- old_lj - 1e4
+      Bj_update[abs(Bj_update)>B_cutoff] <-
+        B_cutoff*sign(Bj_update[abs(Bj_update)>B_cutoff])
 
 
       # if(!is.null(Bj_update)){
-      # linesearch_counter <- 1
-      # stepsize <- 1
-      # while((new_lj < old_lj)& linesearch_counter<8){
-      #   prop_Bj <- B[,j] + step_dir*stepsize
-        # new_lj <- sum(
-        #   (Y[,j]*(X%*%prop_Bj  + z) - exp(X%*%prop_Bj + z))*rect_weights[,j])
-#
-#
-#
-#       if(new_lj >= old_lj){
-#       B[,j] <- prop_Bj} else{
-#         # stop()
-#         # if(j == 760){
-#         message(paste("Step too large for outcome ",
-#                       j, "; setting step size to ",
-#                       stepsize/2,
-#                       collapse = "",
-#                       sep = ""))
-#         # }
-#       }
-#         linesearch_counter <- linesearch_counter + 1
-#         stepsize <- stepsize/2
-#       }
-#
-#       if(new_lj + 1e-4 < old_lj){
-#         # stop()s
-#       # } else{
-#         # message(paste("Skipping update for outcome ", j, "; glm fit failed.",
-#         #               sep = "",collapse = ""))
-#       }
+      B[,j] <- Bj_update
+      # } else{
+      #   message(paste("Skipping update for outcome ", j, "; glm fit failed.",
+      #                 sep = "",collapse = ""))
+      # }
 
       z <- update_z(Y = Y,
                     rect_weights = rect_weights,
@@ -620,70 +450,42 @@ larger datasets.")}
     z <- log(Matrix::rowSums(Y*rect_weights)) -
       log(Matrix::rowSums(exp(X%*%B)*rect_weights))
 
-    stepsize <- 1
-    # if(linesearch){
-    # B_direction <- B - B_old
-    # z_direction <- z - z_old
-    # stepsize <- 2
-    #
-    # accepted <- FALSE
-    # while(!accepted){
-    #   stepsize <- stepsize/2
-    #   message(stepsize)
-    #   prop_B <- B_old + stepsize*B_direction
-    #
-    #   for(k in 1:p){
-    #     prop_B[k,] <- prop_B[k,] - constraint_fn(prop_B[k,])
-    #   }
-    #
-    #   prop_z <- log(Matrix::rowSums(Y*rect_weights)) -
-    #     log(Matrix::rowSums(exp(X%*%prop_B)*rect_weights))
-    #
-      # prop_ll <- log_likelihood_wide(Y = Y,
-      #                                rect_weights = rect_weights,
-      #                                X = X,
-      #                                B = prop_B,
-      #                                z = prop_z)
 
-      # B_tilde_current <- B_to_B_tilde(B)
-      #
-      # ll_fn <-function(x){ log_likelihood_wide(Y = Y,
-      #                                               rect_weights = rect_weights,
-      #                                               X = X,
-      #                                               B = B_tilde_to_B(x,
-      #                                                                p = p,
-      #                                                                J = J),
-      #                                               z = z)}
-      # #
-      # nd <- numDeriv::grad(ll_fn,
-      #                      x = as.numeric(B_to_B_tilde(B)))
-      #
-      # X_tilde <- X_to_X_tilde(X,J)
-      # S <- Matrix::sparseMatrix(i = 1:(n*J),
-      #                           j = rep(1:n,each = J),
-      #                           x = rep(1, n*J))
-      # D_tilde <- cbind(X_tilde,S)
-      # B_tilde <- B_to_B_tilde(B)
-      # theta <- rbind(B_tilde,matrix(z,ncol = 1))
-      # Y_tilde <- Y_to_Y_tilde(Y)
-      # plot(log(Y_tilde), D_tilde%*%theta)
-      #
-      # plot(nd, as.matrix(crossprod(Y_tilde - exp(D_tilde%*%theta),D_tilde))[,1:(p*J)])
-      # abline(a = 0, b= 1)
-      #
-      # nd_wide <-
-    #
-    #   if(prop_ll >= lls[iter]){
-    #     accepted <- TRUE
-    #   }
-    # }
-    #
-    # lls <- c(lls,
-    #          prop_ll)
-    #
-    # B <- prop_B
-    # z <- prop_z
-    # }
+    if(linesearch){
+    B_direction <- B - B_old
+    z_direction <- z - z_old
+    stepsize <- 2
+
+    accepted <- FALSE
+    while(!accepted){
+      stepsize <- stepsize/2
+      message(stepsize)
+      prop_B <- B_old + stepsize*B_direction
+
+      for(k in 1:p){
+        prop_B[k,] <- prop_B[k,] - constraint_fn(prop_B[k,])
+      }
+
+      prop_z <- log(Matrix::rowSums(Y*rect_weights)) -
+        log(Matrix::rowSums(exp(X%*%prop_B)*rect_weights))
+
+      prop_ll <- log_likelihood_wide(Y = Y,
+                                     rect_weights = rect_weights,
+                                     X = X,
+                                     B = prop_B,
+                                     z = prop_z)
+
+      if(prop_ll >= lls[iter]){
+        accepted <- TRUE
+      }
+    }
+
+    lls <- c(lls,
+             prop_ll)
+
+    B <- prop_B
+    z <- prop_z
+    }
 
 
 
@@ -709,9 +511,6 @@ larger datasets.")}
 
 
     iter <- iter + 1
-    # par(mfrow =  c(2,1))
-    # plot(asinh(lls[1:(iter)]),type = "l")
-    # plot(asinh(lls[1:(iter)] - lls[iter]),type = "l")
   }
 
   if(verbose){
