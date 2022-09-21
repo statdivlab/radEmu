@@ -16,9 +16,7 @@ emuFit(
   verbose = TRUE,
   constraint_fn = NULL,
   maxit_glm = 100,
-  optim_only = TRUE,
   method = "ML",
-  guarded = TRUE,
   linesearch = FALSE,
   reweight = FALSE,
   reweight_blocks = NULL,
@@ -30,10 +28,17 @@ emuFit(
 }
 \arguments{
 \item{formula_rhs}{The right-hand side of a formula specifying which
-predictors should be included in model}
+predictors should be included in model. Either \code{formula_rhs} and
+\code{covariate_data} or \code{X} must be specified.}
 
 \item{Y}{A matrix of outcome data with rows corresponding to samples and
 columns corresponding to outcome categories (e.g., microbial taxon)}
+
+\item{X}{A design matrix. This is an alternative to using \code{formula_rhs}
+and \code{covariate_data} arguments.}
+
+\item{covariate_data}{A data frame including the predictors specified in
+\code{formula_rhs}.}
 
 \item{constraint_fn}{The function to be used as a constraint -- namely,
 we enforce constraint_fn(B_k) = 0 for all rows k = 1, ..., p of B. This
