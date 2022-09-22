@@ -1,5 +1,3 @@
-
-
 emuBayesSub <- function(emuMod,
                         nboot,
                         m = NULL,

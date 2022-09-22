@@ -1,7 +1,33 @@
-
-
-emuFit <-  function(X,
+#' Fit partially identified log-linear model to 'relative abundance' data
+#'
+#' This function fits a radEmu model to multivariate outcome data Y. Predictors
+#' are specified either via a formula, in which case covariate data must be
+#' included as a data frame, or via an already formed model matrix X.
+#'
+#' @param formula_rhs The right-hand side of a formula specifying which
+#' predictors should be included in model. Either \code{formula_rhs} and 
+#' \code{covariate_data} or \code{X} must be specified. 
+#' @param Y A matrix of outcome data with rows corresponding to samples and
+#' columns corresponding to outcome categories (e.g., microbial taxon)
+#' @param covariate_data A data frame including the predictors specified in 
+#' \code{formula_rhs}.
+#' @param X A design matrix. This is an alternative to using \code{formula_rhs}
+#' and \code{covariate_data} arguments. 
+#' @param constraint_fn The function to be used as a constraint -- namely,
+#' we enforce constraint_fn(B_k) = 0 for all rows k = 1, ..., p of B. This
+#' defaults to median().
+#' @param reweight Refit model using weights derived from estimated mean-
+#' variance relationship? Default is FALSE.
+#
+#' @return \item{emuMod}{An emuMod object specifying the model fit and providing
+#' point estimates for effects included in model.}
+#' @author David Clausen
+#'
+#' @export
+emuFit <-  function(formula_rhs = NULL,
                     Y,
+                    X = NULL,
+                    covariate_data = NULL,
                     B = NULL,
                     B_cutoff = 20,
                     tolerance = 1e-1,
@@ -18,6 +44,20 @@ emuFit <-  function(X,
                     return_a_lot = TRUE,
                     prefit = TRUE){
 
+  if(!is.null(formula_rhs)){
+    if(is.null(covariate_data)){
+      stop("If formula_rhs is provided, covariates named in formula must be
+           provided inside covariate_data.")
+    }
+    if(!is.data.frame(covariate_data)){
+      stop("Argument covariate_data must be a data frame.")
+    }
+    if(!inherits(formula_rhs,"formula")){
+      formula_rhs <- as.formula(formula_rhs)
+    }
+    X <- model.matrix(formula_rhs,covariate_data)
+  }
+  
   if(is.null(constraint_fn)){
     constraint_fn <- function(x){ median(x)}
   }
