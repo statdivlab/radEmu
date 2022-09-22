@@ -17,7 +17,7 @@ generate_sim_setting <- function(J,
   }
 
   cor_structs <- lapply(1:n_correlations,
-                        function(x) sample(1:J,sample(2:max_no_correlated)) %>%
+                        function(x) sample(1:J,sample(2:max_no_correlated, size = 1)) %>% # size arg added by Amy 
                           (function(y)
                             as.data.frame(cbind("j" = y,
                                                "sgn" = 1- 2*rbinom(length(y),
