@@ -16,6 +16,9 @@ Depends:
     logsum,
     cir,
     fastglm
+Imports: 
+    tidyr,
+    dplyr
 Suggests: 
     testthat (>= 3.0.0),
     parallel,
