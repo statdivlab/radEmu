@@ -58,6 +58,29 @@ emuFit <-  function(formula_rhs = NULL,
     X <- model.matrix(formula_rhs,covariate_data)
   }
   
+  # check for perfect separation, warn if "ML" method is chosen 
+  if (method == "ML") {
+    # check if single covariate 
+    if (ncol(X) == 2) {
+      # check if covariate is categorical with fewer than the minimum of n and 10 categories
+      if (length(unique(X[, 2])) < min(nrow(X), 10)) {
+        # check for perfect separation 
+        sep_df <- cbind(X[, 2], as.data.frame(Y))
+        colnames(sep_df) <- c("covariate", paste0("t", 1:ncol(Y)))
+        sep_df <- tidyr::pivot_longer(data = sep_df, cols = paste0("t", 1:ncol(Y)))
+        sep_df <- dplyr::group_by(sep_df, covariate, name)
+        sep_df <- dplyr::summarise(sep_df, tot_cov = sum(value), .groups = "drop_last")
+        sep_df <- dplyr::filter(sep_df, tot_cov == 0)
+        sep_groups <- dplyr::pull(sep_df, name)
+        if (length(sep_groups) > 0) {
+          warning("Some of your taxa are unobserved for some level of your covariate, 
+                  which can cause problems with the 'ML' method. Please investigate 
+                  carefully and consider using the 'FL' method.")
+        }
+      }
+    }
+  }
+  
   if(is.null(constraint_fn)){
     constraint_fn <- function(x){ median(x)}
   }
@@ -396,6 +419,11 @@ larger datasets.")}
       iter <- iter + 1
     }
 
+    if (iter >= maxit & lls[length(lls)] != max(lls)) {
+      warning("maxit was reached and the final value of the objective function was not the highest.
+              Results may not be reliable; please investigate carefully.")
+    }
+    
     if(return_a_lot){
       return(list("B" = B,
                   "z" = z,
@@ -557,7 +585,12 @@ larger datasets.")}
     message(paste("Iteration ", iter,"; log likelihood ", lls[iter],
                   sep ="", collapse = ""))
   }
-
+  if ((maxit > 1) & (iter >= maxit) & (lls[iter - 1] != max(lls[1:(iter - 1)]))) {
+    warning("maxit was reached and an intermediate value of the objective function was larger than 
+              the final value of the objective function. Results may not be reliable; please 
+              investigate carefully.")
+  }
+  
   if(return_a_lot){
     return(list("B" = B,
                 "z" = z,

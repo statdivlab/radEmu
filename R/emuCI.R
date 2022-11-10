@@ -8,7 +8,7 @@
 #' @param type The type of standard error estimation approach. Options are 
 #' \code{bayesian_subsample}, \code{sandwich}, and \code{bootstrap_percentile}.
 #
-#' @return A confidence interval for each \code{\beta} parameter estimated
+#' @return A confidence interval for each \code{beta} parameter estimated
 #' in the \code{emuMod}.
 #' @author David Clausen
 #'

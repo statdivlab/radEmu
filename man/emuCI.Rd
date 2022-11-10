@@ -24,7 +24,7 @@ emuCI(
 \code{bayesian_subsample}, \code{sandwich}, and \code{bootstrap_percentile}.}
 }
 \value{
-A confidence interval for each \code{\beta} parameter estimated
+A confidence interval for each \code{beta} parameter estimated
 in the \code{emuMod}.
 }
 \description{
