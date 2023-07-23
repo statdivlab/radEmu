@@ -1,585 +1,226 @@
-#' Fit partially identified log-linear model to 'relative abundance' data
+#' Fit radEmu model
 #'
-#' This function fits a radEmu model to multivariate outcome data Y. Predictors
-#' are specified either via a formula, in which case covariate data must be
-#' included as a data frame, or via an already formed model matrix X.
-#'
-#' @param formula_rhs The right-hand side of a formula specifying which
-#' predictors should be included in model. Either \code{formula_rhs} and 
-#' \code{covariate_data} or \code{X} must be specified. 
-#' @param Y A matrix of outcome data with rows corresponding to samples and
-#' columns corresponding to outcome categories (e.g., microbial taxon)
-#' @param covariate_data A data frame including the predictors specified in 
-#' \code{formula_rhs}.
-#' @param X A design matrix. This is an alternative to using \code{formula_rhs}
-#' and \code{covariate_data} arguments. 
-#' @param constraint_fn The function to be used as a constraint -- namely,
-#' we enforce constraint_fn(B_k) = 0 for all rows k = 1, ..., p of B. This
-#' defaults to median().
-#' @param reweight Refit model using weights derived from estimated mean-
-#' variance relationship? Default is FALSE.
-#
-#' @return \item{emuMod}{An emuMod object specifying the model fit and providing
-#' point estimates for effects included in model.}
-#' @author David Clausen
-#'
+#' @param Y an n x J matrix of nonnegative observations
+#' @param formula a one-sided formula specifying the form of the mean model to be fit
+#' @param data an n x p data frame containing variables given in \code{formula}
+#' @param B starting value of coefficient matrix (p x J). If not provided,
+#' B will be initiated as a zero matrix.
+#' @param test_kj a data frame whose rows give coordinates (in category j and
+#' covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
+#' is not provided, all elements of B save the intercept row will be tested.
+#' @param verbose provide updates as model is being fitted? Defaults to TRUE.
+#' @param tolerance tolerance on squared norm of gradient of likelihood to be used
+#' as a stopping condition in model fitting
+#' @param maxit maximum number of coordinate descent cycles to perform before
+#' exiting optimization
+#' @return A p x J matrix containing regression coefficients (under constraint
+#' g(B_k) = 0)
+#' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
+#' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
+#' pseudohuber loss).
+#' @param constraint_grad_fn derivative of constraint_fn with respect to its
+#' arguments (i.e., elements of a row of B)
+#' @param constraint_param If pseudohuber centering is used (this is the default),
+#' parameter controlling relative weighting of elements closer and further from center.
+#' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
+#' the minimizer of the pseudo-Huber loss approaches the median.)
+#' 
+#' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
+#' @import Matrix
+#' @import MASS
+#' 
 #' @export
-emuFit <-  function(formula_rhs = NULL,
-                    Y,
-                    X = NULL,
-                    covariate_data = NULL,
-                    B = NULL,
-                    B_cutoff = 20,
-                    tolerance = 1e-1,
-                    maxit = 100,
-                    verbose = TRUE,
-                    constraint_fn = NULL,
-                    maxit_glm = 100,
-                    method = "ML",
-                    linesearch = FALSE, #only for ML; FL automatically does linesearch
-                    reweight = FALSE,
-                    reweight_blocks = NULL,
-                    weights = NULL,
-                    test_firth = FALSE,
-                    return_a_lot = TRUE,
-                    prefit = TRUE){
-
-  if(!is.null(formula_rhs)){
-    if(is.null(covariate_data)){
-      stop("If formula_rhs is provided, covariates named in formula must be
-           provided inside covariate_data.")
+#' 
+emuFit <- function(Y,
+                   formula,
+                   data,
+                   penalize = TRUE,
+                   B = NULL,
+                   test_kj = NULL,
+                   verbose = TRUE,
+                   tolerance = 1e-2,
+                   maxit = 500,
+                   tol_factor = 1e-2,
+                   min_tol = 1e-2,
+                   constraint_fn = pseudohuber_center,
+                   constraint_grad_fn = dpseudohuber_center_dx,
+                   constraint_param = 1,
+                   alpha = 0.05,
+                   return_wald_p = FALSE,
+                   run_score_tests = TRUE,
+                   rho_init = 1,
+                   rho_scaling = 2,
+                   gap_tolerance = 1e-6
+){
+  X <- model.matrix(formula,data)
+  
+  n <- nrow(Y)
+  J <- ncol(Y)
+  p <- ncol(X)
+  
+  
+  if(all.equal(constraint_fn,pseudohuber_center)==TRUE){
+    if(verbose){
+      message("Centering rows of B with pseudo-Huber smoothed median with smoothing parameter ",constraint_param,".")
     }
-    if(!is.data.frame(covariate_data)){
-      stop("Argument covariate_data must be a data frame.")
-    }
-    if(!inherits(formula_rhs,"formula")){
-      formula_rhs <- as.formula(formula_rhs)
-    }
-    X <- model.matrix(formula_rhs,covariate_data)
   }
   
-  if(is.null(constraint_fn)){
-    constraint_fn <- function(x){ median(x)}
-  }
-
-  p <- ncol(X)
-  if(p<2){
-    stop("X must contain an intercept column and at least one other (linearly
-independent) column")
-  }
-  J <- ncol(Y)
-  n <- nrow(X)
-  if(is.null(B)){
-    B <- matrix(0, nrow = p,ncol = J)
-  }
-
-  if(reweight){
-    if(is.null(B) | prefit){
-      if(verbose){
-        message("Fitting initial model")
-      }
-      if(!prefit){
-        warning("Ignoring prefit = FALSE; provide value of B to be
-used to estimate weights if you wish to skip the initial fitting step.")
-      }
-      prefit <- emuFit(X = X,
-                       Y = Y,
-                       B = B,
-                       B_cutoff = B_cutoff,
-                       tolerance = tolerance,
-                       maxit = maxit,
-                       constraint_fn = constraint_fn,
-                       verbose = FALSE,
-                       method = method,
-                       reweight = FALSE,
-                       weights = weights
-      )
-    } else{
-      message("Computing fitted values for reweighting
-using input B; to estimate B prior to reweighting, set prefit = TRUE.")
-      if(is.null(weights)){
-        weights <- 0*Y + 1
-      }
-      prefit <- list("B" = B,
-                     "z" = update_z(Y, weights, X, B))
+  
+  if(constraint_param != 1){
+    if(all.equal(constraint_fn,pseudohuber_center)==TRUE){
+      constraint_fn <- (function(x) pseudohuber_center(x,d = constraint_param))
+      constraint_grad_fn <- (function(x) dpseudohuber_center_dx(x,d = constraint_param))
+      
     }
-
-    prefitted <- exp(X%*%prefit$B +
-                       matrix(prefit$z,ncol = 1)%*%matrix(1,nrow = 1, ncol = J))
-
-    if(is.null(reweight_blocks)){
-    weights <- prefitted_to_weights(Y = Y,
-                                    prefitted = prefitted)
-    } else{
-      weights <- 1 + 0*Y
-      rw_block_uni <- unique(reweight_blocks)
-
-      for(rw_block in rw_block_uni){
-        which_rw <- which(reweight_blocks == rw_block)
-        weights[which_rw,] <-
-          prefitted_to_weights(Y = Y[which_rw,],
-                               prefitted = prefitted[which_rw,])
-      }
+    else{
+      warning("Argument constraint_param is currently only supported for centering with
+pseudohuber_center() function; constraint_param input is otherwise ignored. Please directly
+feed your choice of constraint function, including any necessary parameters, to constraint_fn argument
+and the corresponding gradient function to constraint_grad_fn.")
     }
-
-
   }
-
-  if(is.null(weights)){
-    weights <- rep(1,n*J)
-    rect_weights <- 1.0 + 0.0*Y
+  
+  
+  
+  
+  if(penalize){
+    #fit penalized_model
+    fitted_model <-
+      emuFit_micro_penalized(X = X,
+                             Y = Y,
+                             B = B,
+                             constraint_fn = constraint_fn,
+                             maxit = maxit,
+                             tolerance = tolerance,
+                             verbose = verbose)
+    Y_test <- fitted_model$Y_augmented
+    fitted_B <- fitted_model$B
   } else{
-    rect_weights <- weights
-    weights <- as.numeric(Y_to_Y_tilde(weights))
+    #fit ML model
+    fitted_model <-
+      emuFit_micro(X = X,
+                   Y = Y,
+                   B = B,
+                   constraint_fn = NULL,
+                   maxit = maxit,
+                   tolerance = tolerance)
+    fitted_B <- fitted_model
+    Y_test <- Y
   }
-
-  if(method == "FL"){
-
-    X_tilde <- X_to_X_tilde(X,J)
-    Y_tilde <- Y_to_Y_tilde(Y)
-    S <- Matrix::sparseMatrix(i = 1:(n*J),
-                              j = rep(1:n,each = J),
-                              x = rep(1, n*J))
-    D_tilde <- cbind(X_tilde,S)
-
-    z <- apply(Y*rect_weights,1,function(x) log(sum(x))) -
-      apply(exp(X%*%B)*rect_weights,1,function(x) log(sum(x)))
-
-    rownames(D_tilde) <- 1:(n*J)
-    B_tilde <- B_to_B_tilde(B)
-    theta <- rbind(B_tilde,Matrix::Matrix(z,ncol = 1))
-    X_tilde_repar <- X_tilde
-    X_tilde_repar <- X_tilde_repar[,-((2:p)*J)]
-    D_tilde_repar <- cbind(X_tilde_repar,S[,-n])
-
-    B_tilde <- B_to_B_tilde(B)
-    theta <- rbind(B_tilde,Matrix::Matrix(z,ncol = 1))
-    W <- Matrix::Diagonal(x = weights*as.numeric(exp((D_tilde%*%theta))))
-
-    lls <- log_likelihood_wide(Y,
-                               rect_weights,
-                               X,
-                               B,
-                               z) +
-      calculate_firth_penalty(D_tilde_repar = D_tilde,
-                              W = W,
-                              n_skip = p)
-
-    converged <- FALSE
-    lilstep <- 0
-    iter <- 1
-    while(!converged){
+  
+  
+  if(is.null(test_kj)){
+    test_kj <- expand.grid(1:J, 2:p)
+    test_kj <- data.frame(j = test_kj[,1],
+                          k = test_kj[,2])
+  }
+  
+  ntests <- nrow(test_kj)
+  
+  test_kj$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
+  test_kj$lower <- NA
+  test_kj$upper <- NA
+  test_kj$pval <- test_kj$score_stat <- NA
+  
+  test_kj <- micro_wald(Y = Y,
+                        X = X,
+                        B = fitted_B,
+                        test_kj = test_kj,
+                        constraint_fn = constraint_fn,
+                        constraint_grad_fn = constraint_grad_fn,
+                        nominal_coverage = 1 - alpha)
+  
+  if(return_wald_p){
+    test_kj$wald_p <- test_kj$p
+  }
+  test_kj <- test_kj[,colnames(test_kj) != "p"]
+  
+  
+  
+  for(test_ind in 1:ntests){
+    if(run_score_tests){
       if(verbose){
-        message(paste("Iteration ", iter,"; penalized log likelihood ", lls[iter],
-                      sep ="", collapse = ""))
+        print(paste("Running score test ", test_ind, " of ", ntests," (row of B k = ", test_kj$k[test_ind],"; column of B j = ",
+                    test_kj$j[test_ind],").",sep = ""))
       }
-
-      B_tilde <- B_to_B_tilde(B)
-      theta <- rbind(B_tilde,Matrix::Matrix(z,ncol = 1))
-      W_half <- Matrix::Diagonal(x =
-                                   sqrt(as.numeric(weights*exp((D_tilde%*%theta)))))
-      # info <- Matrix::crossprod(D_tilde_repar,W_half)%*%W_half%*%D_tilde_repar
-      info <- Matrix::crossprod(D_tilde_repar,W_half)
-      info <- Matrix::tcrossprod(info)
-
-      # message("Computing LU decomposition of information")
-      # info_lu <- Matrix::lu(info)
-      info_chol <- suppressWarnings(
-        try(Matrix::chol(info),silent = TRUE)
-      )
-      # info_chol <- Matrix::Cholesky(info,pivot = TRUE)
-      # info_chol_inv <- Matrix::solve(info_chol)
-      if(!inherits(info_chol,"Matrix")){
-        perturb <- 1e-8
-      while(!inherits(info_chol,"Matrix")){
-        # stop("Cholesky decomposition failed")
-        message("Reattempting Cholesky decomposition")
-        info_chol <- suppressWarnings(
-          try(Matrix::chol(info +
-                                        Matrix::Diagonal(
-                                          x = rep(perturb*max(info),
-                                                          nrow(info)),
-                                        )),silent = TRUE)
-        )
-        perturb <- perturb*10
-      }
-      }
-      info_chol_inv <- Matrix::solve(info_chol)
-      # WD_qr <- Matrix::qr(W_half%*%D_tilde)
-      # info_lu <- Matrix::expand(info_lu)
-      # wx_svd <- svd(W_half%*%D_tilde_repar)
-
-      # tergit <- crossprod(crossprod(
-      #   D_tilde_repar,
-      #   W_half
-      # ),solve(info))%*%
-      #                crossprod(
-      #                  D_tilde_repar,
-      #                  W_half
-      #                )
-      #
-      #
-      #
-      # terg_aug <- diag(as.matrix(tergit))
-
-
-      # message("Inverting L and U")
-      #
-      #     Z1 <- Matrix::solve(a = info_lu$P%*%info_lu$L,
-      #                         b = Matrix::t(D_tilde_repar)%*%W_half,
-      #                         sparse = FALSE)
-      #
-      #     Z2 <- Matrix::solve(
-      #       a = Matrix::t(info_lu$U%*%info_lu$Q),
-      #       b = Matrix::t(D_tilde_repar)%*%W_half,
-      #       sparse = FALSE)
-      #
-      #     augmentations <- Matrix::colSums(Z1*Z2)/2
-
-
-
-      # info_eigen <- eigen(info, symmetric = TRUE)
-      # info_V <- Matrix::Matrix(info_eigen$vectors)
-      # info_inv <- info_V%*%Matrix::tcrossprod(
-      #   Matrix::Diagonal(x = sapply(info_eigen$values,
-      #                               function(x) ifelse(x>1e-6,1/x,0))),
-      #   info_V
-      # )
-      #
-      # info_half_inv <- info_V%*%Matrix::tcrossprod(
-      #   Matrix::Diagonal(x = sapply(info_eigen$values,
-      #                               function(x) ifelse(x>1e-6,1/sqrt(x),0))),
-      #   info_V
-      # )
-
-      augmentations <- numeric(nrow(D_tilde))
-      # L_inv <- Matrix::solve(Matrix::t(info_lu$P)%*%info_lu$L)
-      # U_inv <- Matrix::solve(info_lu$U%*%info_lu$Q)
-
-      # max(abs(with(info_lu,t(P)%*%L%*%U%*%Q) - info))
-
-      # info_inv <- with(info_lu,
-      #                  Matrix::solve(info_lu@U[,info_lu@q + 1])%*%
-      #                    Matrix::solve(info_lu@L[info_lu@p + 1,])
-      # )
-      if(verbose){ message("Computing data augmentation. This may take a moment on
-larger datasets.")}
+      
+      H <- matrix(0,nrow = p, ncol = J)
       for(j in 1:J){
-        # message(paste("Hat diagonals for taxon",j,"of",J))
-        rel_indices <- sapply(1:n, function(i) (i - 1)*J + j)
-
-        # Z1 <- Matrix::solve(a = info_lu$P%*%info_lu$L,
-        #                     b = Matrix::t(D_tilde_repar[rel_indices,])%*%
-        #                       W_half[rel_indices,
-        #                              rel_indices],
-        #                     sparse = FALSE)
-        DW <- Matrix::crossprod(D_tilde_repar[rel_indices,],
-                                W_half[rel_indices,rel_indices])
-        # Z1 <- L_inv%*%DW
-        # Z2 <- U_inv%*%DW
-        # Z2 <- info_inv%*%DW
-        hmm <- Matrix::crossprod(info_chol_inv,DW)
-
-        # info_inv_alt <- get_info_inv(X_tilde_repar,S,J,n,weights)
-
-
-
-        # Z2 <- Matrix::solve(
-        #   a = Matrix::t(info_lu$U%*%info_lu$Q),
-        #   b = Matrix::t(D_tilde_repar[rel_indices,])%*%
-        #     W_half[rel_indices,rel_indices],
-        #   sparse = FALSE)
-
-
-        augmentations[rel_indices] <- #pmax(Matrix::colSums(DW*Z2)/2,0)
-          pmax(Matrix::colSums(hmm*hmm)/2,0)
-        #   # augmentations[rel_indices] <-
-        #   # Matrix::diag(
-        #   #   W_half[rel_indices,
-        #   #          rel_indices]%*%D_tilde_repar[rel_indices,,drop = FALSE] %*%
-        #   #     Matrix::tcrossprod(info_inv + Matrix::Diagonal(x = rep(1e-5,nrow(info_inv))),
-        #   #                      W_half[rel_indices,rel_indices]%*%
-        #   #                        D_tilde_repar[rel_indices,,drop = FALSE]))
-        #   starter <-  Matrix::crossprod(D_tilde_repar[rel_indices,,drop = FALSE],
-        #                                 W_half[rel_indices,rel_indices])
-        #   seconds <- Matrix::solve(info,
-        #                   starter)
-        #     #
-        #     # W_half[rel_indices,
-        #     #                       rel_indices]%*%D_tilde_repar[rel_indices,,drop = FALSE] %*%
-        #     # info_half_inv
-        #
-        #   augmentations[rel_indices] <- colSums(as.matrix(starter)*
-        #                                           (as.matrix(seconds)))/2
-        #
+        H[null_k,j] <- constraint_grad_fn(fitted_B[test_kj$k[test_ind],])[j]
       }
-      Y_augmented <- Y_tilde_to_Y(Y_tilde + augmentations,J = J)
-
-      if(test_firth){
-        augmentations_also <- diag(
-          as.matrix(W_half%*%D_tilde_repar%*%Matrix::solve(info)%*%
-                      Matrix::t(W_half%*%D_tilde_repar))
-        )/2
-        return(list("augmentations_chol" = augmentations,
-                    "augmentations_naive" = augmentations_also))
-      }
-      if(verbose){
-      message("Computing ML fit on augmented data")}
-      ml_fit <- emuFit(X = X,
-                       Y = Y_augmented,
-                       B = B,
-                       B_cutoff = B_cutoff,
-                       tolerance = tolerance,
-                       maxit = 1,
-                       verbose = FALSE,
-                       # verbose = TRUE,
-                       maxit_glm = maxit_glm,
-                       constraint_fn = constraint_fn,
-                       method = "ML",
-                       reweight = FALSE,
-                       weights = rect_weights)
-
-      B_direction <- ml_fit$B - B
-      z_direction <- ml_fit$z - z
-      stepsize <- 2
-
-      accepted <- FALSE
-      while(!accepted){
-        stepsize <- stepsize/2
-        prop_B <- B + stepsize*B_direction
-        for(k in 1:p){
-          prop_B[k,] <- prop_B[k,] - constraint_fn(prop_B[k,])
-        }
-        prop_z <- z + stepsize*z_direction
-
-        prop_B_tilde <- B_to_B_tilde(prop_B)
-        prop_theta <- rbind(prop_B_tilde,Matrix::Matrix(prop_z,ncol = 1))
-        prop_W <- Matrix::Diagonal(x = weights*as.numeric(exp((D_tilde%*%prop_theta))))
-
-        prop_ll <- log_likelihood_wide(Y = Y,
-                                       rect_weights = rect_weights,
-                                       X = X,
-                                       B = prop_B,
-                                       z = prop_z) +
-          calculate_firth_penalty(D_tilde_repar = D_tilde,
-                                  W = prop_W,
-                                  n_skip = p)
-
-        if(prop_ll >= lls[iter]){
-          accepted <- TRUE
-        }
-      }
-
-      lls <- c(lls,
-               prop_ll)
-      B <- prop_B
-      z <- prop_z
-      if(stepsize ==1){
-        lilstep <- 0
-      } else{
-        lilstep <- lilstep + 1
-      }
-
-      step_criterion <- ifelse(stepsize ==1,TRUE,
-                               lilstep >2)
-
-      if((abs(lls[iter + 1] - lls[iter]) < tolerance)&
-         (max(lls[1:iter] - lls[iter + 1]) < tolerance)&
-         step_criterion
-      ){
-        converged <- TRUE
-      }
-
-      if(iter>=maxit){
-        converged <- TRUE
-      }
-      iter <- iter + 1
+      H[test_kj$k[test_ind],test_kj$j[test_ind]] <-  H[test_kj$k[test_ind],test_kj$j[test_ind]] - 1
+      H_cup <- B_cup_from_B(H)
+      H_cup[] <- as.numeric(H_cup[]!=0)
+      
+      
+      
+      
+      
+      test_result <- micro_score_test(Y = Y_test,
+                                      X = X,
+                                      B = fitted_B,
+                                      constraint_fn = constraint_fn,
+                                      constraint_grad_fn = constraint_grad_fn,
+                                      null_k = test_kj$k[test_ind],
+                                      null_j = test_kj$j[test_ind],
+                                      rho_init = rho_init,
+                                      rho_scaling = rho_scaling,
+                                      gap_tolerance = gap_tolerance,
+                                      maxit = 500,
+                                      tolerance = tolerance,
+                                      # step_ratio = 0.1,
+                                      verbose = verbose)
     }
-
-    if(return_a_lot){
-      return(list("B" = B,
-                  "z" = z,
-                  "ll" = lls[iter - 1],
-                  "Y" = Y,
-                  "X" = X,
-                  "tolerance" = tolerance,
-                  "maxit" = maxit,
-                  "constraint_fn" = constraint_fn,
-                  "maxit_glm" = maxit_glm,
-                  "method" = method,
-                  "weights" = rect_weights,
-                  "reweight" = reweight))
+    #
+    #       message("David to test: pseudohuber derivatives with at steps where ll jumps around;
+    # augmented ll derivatives at similar steps; info positive definite (which it should always be); probably more.")
+    
+    test_kj$estimate[test_ind] <- fitted_B[test_kj$k[test_ind],test_kj$j[test_ind]]
+    
+    if(run_score_tests){
+      test_kj$pval[test_ind] <- test_result$pval
+      test_kj$score_stat[test_ind] <- test_result$score_stat
     } else{
-      return(
-        list("B" = B,
-             "z" = z,
-             "ll" = lls[iter - 1],
-             "method" = method,
-             "weights" = rect_weights,
-             "reweight" = reweight)
-      )
-
+      test_kj$pval[test_ind] <- NA
+      test_kj$score_stat[test_ind] <- NA
     }
-
+    
+    
   }
-
-  z <- apply(Y*rect_weights,1,function(x) log(sum(x))) -
-    apply(exp(X%*%B)*rect_weights,1,function(x) log(sum(x)))
-
-  lls <- numeric(maxit + 1)
-
-  lls[1] <- log_likelihood_wide(Y = Y,
-                                rect_weights = rect_weights,
-                                X = X,
-                                B = B,
-                                z = z)
-
-  converged <- FALSE
-  iter <- 1
-  while(!converged){
-    if(verbose){
-      message(paste("Iteration ", iter,"; log likelihood ", lls[iter],
-                    sep ="", collapse = ""))
-    }
-
-    B_old <- B
-    z_old <- z
-
-
-    # update_order <- sample(1:J)
-    update_order <- 1:J
-    for(j in update_order){
-      # message(j)
-
-      Bj_update <- emuFit_one(Y = Y,
-                              X = X,
-                              rect_weights = rect_weights,
-                              j = j,
-                              B = B,
-                              z = z,
-                              method = method,
-                              maxit_glm = maxit_glm,
-                              WD = NULL,
-                              info_inv = NULL)
-
-      if(is.null(Bj_update)){
-        stop("glm update failed!")
-      }
-
-      Bj_update[abs(Bj_update)>B_cutoff] <-
-        B_cutoff*sign(Bj_update[abs(Bj_update)>B_cutoff])
-
-
-      # if(!is.null(Bj_update)){
-      B[,j] <- Bj_update
-      # } else{
-      #   message(paste("Skipping update for outcome ", j, "; glm fit failed.",
-      #                 sep = "",collapse = ""))
-      # }
-
-      z <- update_z(Y = Y,
-                    rect_weights = rect_weights,
-                    X = X,B)
-
-    }
-
-    for(k in 1:p){
-      B[k,] <- B[k,] - constraint_fn(B[k,])
-    }
-
-    z <- log(Matrix::rowSums(Y*rect_weights)) -
-      log(Matrix::rowSums(exp(X%*%B)*rect_weights))
-
-
-    if(linesearch){
-    B_direction <- B - B_old
-    z_direction <- z - z_old
-    stepsize <- 2
-
-    accepted <- FALSE
-    while(!accepted){
-      stepsize <- stepsize/2
-      message(stepsize)
-      prop_B <- B_old + stepsize*B_direction
-
-      for(k in 1:p){
-        prop_B[k,] <- prop_B[k,] - constraint_fn(prop_B[k,])
-      }
-
-      prop_z <- log(Matrix::rowSums(Y*rect_weights)) -
-        log(Matrix::rowSums(exp(X%*%prop_B)*rect_weights))
-
-      prop_ll <- log_likelihood_wide(Y = Y,
-                                     rect_weights = rect_weights,
-                                     X = X,
-                                     B = prop_B,
-                                     z = prop_z)
-
-      if(prop_ll >= lls[iter]){
-        accepted <- TRUE
-      }
-    }
-
-    lls <- c(lls,
-             prop_ll)
-
-    B <- prop_B
-    z <- prop_z
-    }
-
-
-
-
-    # log_means <- X%*%B + z%*%matrix(1,ncol = J, nrow = 1)
-    lls[iter + 1] <- log_likelihood_wide(Y = Y,
-                                         rect_weights = rect_weights,
-                                         X = X,
-                                         B = B,
-                                         z = z)
-
-
-    if((abs(lls[iter + 1] - lls[iter]) < tolerance)&
-       (max(lls[1:iter] - lls[iter + 1]) < tolerance)
-    ){
-      converged <- TRUE
-    }
-
-    if(iter>=maxit){
-      converged <- TRUE
-    }
-
-
-
-    iter <- iter + 1
-  }
-
-  if(verbose){
-    message(paste("Iteration ", iter,"; log likelihood ", lls[iter],
-                  sep ="", collapse = ""))
-  }
-
-  if(return_a_lot){
-    return(list("B" = B,
-                "z" = z,
-                "ll" = lls[iter - 1],
-                "Y" = Y,
-                "X" = X,
-                "tolerance" = tolerance,
-                "maxit" = maxit,
-                "constraint_fn" = constraint_fn,
-                "maxit_glm" = maxit_glm,
-                "method" = method,
-                "weights" = rect_weights,
-                "reweight" = reweight))
+  
+  k_to_covariates <- data.frame(k = 1:p,
+                                covariate = colnames(X))
+  
+  test_kj$covariate <- do.call(c,
+                               lapply(test_kj$k,
+                                      function(d) k_to_covariates$covariate[
+                                        k_to_covariates$k ==d
+                                      ]))
+  
+  if(!is.null(colnames(Y))){
+    j_to_categories <- data.frame(j = 1:J,
+                                  category = colnames(Y))
+    test_kj$category <- do.call(c,
+                                lapply(test_kj$j,
+                                       function(d) j_to_categories$category[
+                                         j_to_categories$j ==d
+                                       ]))
   } else{
-    return(
-      list("B" = B,
-           "z" = z,
-           "ll" = lls[iter - 1],
-           "method" = method,
-           "weights" = rect_weights,
-           "reweight" = reweight)
-    )
-
+    test_kj$category <- NA
   }
+  
+  test_kj <-
+    cbind(data.frame(covariate = test_kj$covariate,
+                     category = test_kj$category,
+                     category_num = test_kj$j),
+          test_kj[,c("estimate","se","lower","upper","score_stat","pval")])
+  
+  
+  # message("David to add: rho_init, rho_scaling, gap_tolerance")
+  # message("David also to add: labeling of output by input (taxa) and labeling of input by output (covariates)")
+  # message("David as well adding: option to not perform score tests")
+  
+  return(test_kj)
 }
+
+

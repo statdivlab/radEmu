@@ -1,21 +1,20 @@
 Package: radEmu
 Title: Using Relative Abundance Data to Estimate of Multiplicative Differences in Mean Absolute Abundance 
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Authors@R: as.person(c(
+    "David Clausen <dsc24@uw.edu> [aut, cre]",
+    "Amy Willis [aut]", 
+    "Sarah Teichman [aut]"
+  ))
+Description: A differential abundance method for the analysis of microbiome data. radEmu estimates fold-differences across sample types relative to "typical" fold-differences. Notably, it does not require pseudocounts, nor choosing a denominator taxon. 
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Depends: 
-    Matrix,
-    logsum,
-    cir,
-    fastglm
+    MASS, 
+    Matrix
 Suggests: 
     testthat (>= 3.0.0),
     parallel,

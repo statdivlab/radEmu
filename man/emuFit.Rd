@@ -2,60 +2,69 @@
 % Please edit documentation in R/emuFit.R
 \name{emuFit}
 \alias{emuFit}
-\title{Fit partially identified log-linear model to 'relative abundance' data}
+\title{Fit radEmu model}
 \usage{
 emuFit(
-  formula_rhs = NULL,
   Y,
-  X = NULL,
-  covariate_data = NULL,
+  formula,
+  data,
+  penalize = TRUE,
   B = NULL,
-  B_cutoff = 20,
-  tolerance = 0.1,
-  maxit = 100,
+  test_kj = NULL,
   verbose = TRUE,
-  constraint_fn = NULL,
-  maxit_glm = 100,
-  method = "ML",
-  linesearch = FALSE,
-  reweight = FALSE,
-  reweight_blocks = NULL,
-  weights = NULL,
-  test_firth = FALSE,
-  return_a_lot = TRUE,
-  prefit = TRUE
+  tolerance = 0.01,
+  maxit = 500,
+  tol_factor = 0.01,
+  min_tol = 0.01,
+  constraint_fn = pseudohuber_center,
+  constraint_grad_fn = dpseudohuber_center_dx,
+  constraint_param = 1,
+  alpha = 0.05,
+  return_wald_p = FALSE,
+  run_score_tests = TRUE,
+  rho_init = 1,
+  rho_scaling = 2,
+  gap_tolerance = 1e-06
 )
 }
 \arguments{
-\item{formula_rhs}{The right-hand side of a formula specifying which
-predictors should be included in model. Either \code{formula_rhs} and
-\code{covariate_data} or \code{X} must be specified.}
+\item{Y}{an n x J matrix of nonnegative observations}
 
-\item{Y}{A matrix of outcome data with rows corresponding to samples and
-columns corresponding to outcome categories (e.g., microbial taxon)}
+\item{formula}{a one-sided formula specifying the form of the mean model to be fit}
 
-\item{X}{A design matrix. This is an alternative to using \code{formula_rhs}
-and \code{covariate_data} arguments.}
+\item{data}{an n x p data frame containing variables given in \code{formula}}
 
-\item{covariate_data}{A data frame including the predictors specified in
-\code{formula_rhs}.}
+\item{B}{starting value of coefficient matrix (p x J). If not provided,
+B will be initiated as a zero matrix.}
 
-\item{constraint_fn}{The function to be used as a constraint -- namely,
-we enforce constraint_fn(B_k) = 0 for all rows k = 1, ..., p of B. This
-defaults to median().}
+\item{test_kj}{a data frame whose rows give coordinates (in category j and
+covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
+is not provided, all elements of B save the intercept row will be tested.}
 
-\item{reweight}{Refit model using weights derived from estimated mean-
-variance relationship? Default is FALSE.}
+\item{verbose}{provide updates as model is being fitted? Defaults to TRUE.}
+
+\item{tolerance}{tolerance on squared norm of gradient of likelihood to be used
+as a stopping condition in model fitting}
+
+\item{maxit}{maximum number of coordinate descent cycles to perform before
+exiting optimization}
+
+\item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
+for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
+pseudohuber loss).}
+
+\item{constraint_grad_fn}{derivative of constraint_fn with respect to its
+arguments (i.e., elements of a row of B)}
+
+\item{constraint_param}{If pseudohuber centering is used (this is the default),
+parameter controlling relative weighting of elements closer and further from center.
+(Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
+the minimizer of the pseudo-Huber loss approaches the median.)}
 }
 \value{
-\item{emuMod}{An emuMod object specifying the model fit and providing
-point estimates for effects included in model.}
+A p x J matrix containing regression coefficients (under constraint
+g(B_k) = 0)
 }
 \description{
-This function fits a radEmu model to multivariate outcome data Y. Predictors
-are specified either via a formula, in which case covariate data must be
-included as a data frame, or via an already formed model matrix X.
-}
-\author{
-David Clausen
+Fit radEmu model
 }
