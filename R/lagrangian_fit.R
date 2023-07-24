@@ -167,8 +167,10 @@ lagrangian_fit <- function(X,
 
         update <- try(qr.solve(curr_vals$hess,curr_vals$gr),
                       silent = TRUE)
-        if(inherits(update,"try-error")){
-        update <- try(qr.solve(curr_vals$hess+ diag(rep(sqrt(mean(curr_vals$gr^2)),p)),curr_vals$gr))
+        reg <- 0.1
+        while(inherits(update,"try-error")){
+        update <- try(qr.solve(curr_vals$hess+ diag(reg*rep(sqrt(mean(curr_vals$gr^2)),p)),curr_vals$gr))
+        reg <- 10*reg
         }
 
         update_norm <- max(abs(update))

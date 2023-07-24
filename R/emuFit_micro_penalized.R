@@ -35,6 +35,10 @@ fitted_model <- NULL
 converged <- FALSE
 counter <- 0
 while(!converged){
+  
+  if(counter ==0){
+    Y_augmented <- Y + 1
+  }
 
 fitted_model <- emuFit_micro(X,
                             Y_augmented,

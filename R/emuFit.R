@@ -60,7 +60,8 @@ emuFit <- function(Y,
                    run_score_tests = TRUE,
                    rho_init = 1,
                    rho_scaling = 2,
-                   gap_tolerance = 1e-3
+                   gap_tolerance = 1e-3,
+                   refit = TRUE
 ){
   X <- model.matrix(formula,data)
   
@@ -91,7 +92,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   
-  
+  if(refit){
   
   if(penalize){
     #fit penalized_model
@@ -118,6 +119,13 @@ and the corresponding gradient function to constraint_grad_fn.")
     Y_test <- Y
   }
   
+  } else{
+      if(is.null(B)){
+        stop("If refit is FALSE, B must be provided")
+      }
+    fitted_B <- B
+    Y_test <- Y
+    }
   if(!is.null(test_kj)){
     arch_test_kj <- test_kj
     ntests <- nrow(test_kj)
@@ -136,6 +144,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   
   if(is.null(ntests)){
     ntests <- nrow(test_kj)
+    arch_test_kj <- test_kj
   }
   
   if(!is.null(arch_test_kj)){
@@ -165,13 +174,14 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   test_kj <- test_kj[,colnames(test_kj) != "p"]
   
-  
+
   
   for(test_ind in 1:ntests){
+    test_kj_ind <- which((test_kj$k == arch_test_kj$k[test_ind]) & (test_kj$j == arch_test_kj$j[test_ind]))
     if(run_score_tests){
       if(verbose){
-        print(paste("Running score test ", test_ind, " of ", ntests," (row of B k = ", test_kj$k[test_ind],"; column of B j = ",
-                    test_kj$j[test_ind],").",sep = ""))
+        print(paste("Running score test ", test_ind, " of ", ntests," (row of B k = ", arch_test_kj$k[test_ind],"; column of B j = ",
+                    arch_test_kj$j[test_ind],").",sep = ""))
       }
     
       
@@ -181,8 +191,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                                       B = fitted_B,
                                       constraint_fn = constraint_fn,
                                       constraint_grad_fn = constraint_grad_fn,
-                                      null_k = test_kj$k[test_ind],
-                                      null_j = test_kj$j[test_ind],
+                                      null_k = arch_test_kj$k[test_ind],
+                                      null_j = arch_test_kj$j[test_ind],
                                       rho_init = rho_init,
                                       rho_scaling = rho_scaling,
                                       gap_tolerance = gap_tolerance,
@@ -194,16 +204,13 @@ and the corresponding gradient function to constraint_grad_fn.")
     #
     #       message("David to test: pseudohuber derivatives with at steps where ll jumps around;
     # augmented ll derivatives at similar steps; info positive definite (which it should always be); probably more.")
-    
-    test_kj$estimate[test_ind] <- fitted_B[test_kj$k[test_ind],test_kj$j[test_ind]]
+
+
     
     if(run_score_tests){
-      test_kj$pval[test_ind] <- test_result$pval
-      test_kj$score_stat[test_ind] <- test_result$score_stat
-    } else{
-      test_kj$pval[test_ind] <- NA
-      test_kj$score_stat[test_ind] <- NA
-    }
+      test_kj$pval[test_kj_ind] <- test_result$pval
+      test_kj$score_stat[test_kj_ind] <- test_result$score_stat
+    } 
     
     
   }
