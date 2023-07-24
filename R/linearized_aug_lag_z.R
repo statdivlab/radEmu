@@ -10,8 +10,6 @@ linearized_aug_lag_z <-
            B0,
            u,
            rho,
-           constraint_fn_at_B0,
-           constraint_grad_at_B0,
            constraint_fn,
            constraint_grad_fn,
            compute_gradient = FALSE,
@@ -29,7 +27,7 @@ linearized_aug_lag_z <-
     if(compute_gradient){
       gr_val <- as.numeric(-t(X)%*%(Y[,j,drop = FALSE] - exp(log_means)))
       gr_val[k_constr] <-  gr_val[k_constr] +
-        (u + rho*lin_gap)*(as.numeric(j == j_constr) -    constraint_grad_fn(B[k_constr,])[j])
+        (u + rho*lin_gap)*(as.numeric(j == j_constr) -   constraint_grad_fn(B[k_constr,])[j])
     } else{
       gr_val <- NULL
     }

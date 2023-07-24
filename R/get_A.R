@@ -4,6 +4,7 @@ get_A <- function(B_cup,
                   X_cup,
                   Y){
   n <- nrow(Y)
+  J <- ncol(Y)
 
   X_cup_i <- lapply(1:n,
                     function(i)

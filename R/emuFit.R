@@ -3,6 +3,7 @@
 #' @param Y an n x J matrix of nonnegative observations
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
+#' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
 #' @param B starting value of coefficient matrix (p x J). If not provided,
 #' B will be initiated as a zero matrix.
 #' @param test_kj a data frame whose rows give coordinates (in category j and
@@ -13,8 +14,6 @@
 #' as a stopping condition in model fitting
 #' @param maxit maximum number of coordinate descent cycles to perform before
 #' exiting optimization
-#' @return A p x J matrix containing regression coefficients (under constraint
-#' g(B_k) = 0)
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
 #' pseudohuber loss).
@@ -24,6 +23,19 @@
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 #' the minimizer of the pseudo-Huber loss approaches the median.)
+#' @param alpha nominal type 1 error level to be used to construct confidence intervals. Default is 0.05 
+#' (corresponding to 95% confidence intervals)
+#' @param return_wald_p logical: return p-values from Wald tests? Default is FALSE. 
+#' @param run_score_tests logical: perform robust score testing? Default is TRUE.
+#' @param rho_init numeric: value at which to initiate rho parameter in augmented Lagrangian 
+#' algorithm. Default is 1.
+#' @param rho_scaling numeric: value to scale rho by in each iteration of augmented Lagrangian 
+#' algorithm. Default is 2.
+#' @param gap_tolerance numeric: constraint tolerance for fits under null hypotheses 
+#' (tested element of B must be equal to constraint function to within this tolerance for 
+#' a fit to be accepted as a solution to constrained optimization problem). Default is 1e-6.
+#' @return A dataframe containing point estimates, confidence intervals, and p-values for 
+#' fitted model
 #' 
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
@@ -40,8 +52,6 @@ emuFit <- function(Y,
                    verbose = TRUE,
                    tolerance = 1e-2,
                    maxit = 500,
-                   tol_factor = 1e-2,
-                   min_tol = 1e-2,
                    constraint_fn = pseudohuber_center,
                    constraint_grad_fn = dpseudohuber_center_dx,
                    constraint_param = 1,
@@ -50,7 +60,7 @@ emuFit <- function(Y,
                    run_score_tests = TRUE,
                    rho_init = 1,
                    rho_scaling = 2,
-                   gap_tolerance = 1e-6
+                   gap_tolerance = 1e-3
 ){
   X <- model.matrix(formula,data)
   
@@ -108,19 +118,39 @@ and the corresponding gradient function to constraint_grad_fn.")
     Y_test <- Y
   }
   
-  
-  if(is.null(test_kj)){
-    test_kj <- expand.grid(1:J, 2:p)
-    test_kj <- data.frame(j = test_kj[,1],
-                          k = test_kj[,2])
+  if(!is.null(test_kj)){
+    arch_test_kj <- test_kj
+    ntests <- nrow(test_kj)
+  } else{
+    arch_test_kj <- NULL
+    ntests <- NULL
   }
   
-  ntests <- nrow(test_kj)
-  
+  test_kj <- expand.grid(1:J, 2:p)
+  test_kj <- data.frame(j = test_kj[,1],
+                        k = test_kj[,2])
   test_kj$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
   test_kj$lower <- NA
   test_kj$upper <- NA
   test_kj$pval <- test_kj$score_stat <- NA
+  
+  if(is.null(ntests)){
+    ntests <- nrow(test_kj)
+  }
+  
+  if(!is.null(arch_test_kj)){
+  reassemble <- lapply(1:nrow(arch_test_kj),
+                       function(x) test_kj[test_kj$j == arch_test_kj$j[x]&test_kj$k == arch_test_kj$k[x],])
+  
+  test_kj <- do.call(rbind,reassemble)
+  }
+
+  
+
+  
+  
+  
+
   
   test_kj <- micro_wald(Y = Y,
                         X = X,
@@ -143,17 +173,7 @@ and the corresponding gradient function to constraint_grad_fn.")
         print(paste("Running score test ", test_ind, " of ", ntests," (row of B k = ", test_kj$k[test_ind],"; column of B j = ",
                     test_kj$j[test_ind],").",sep = ""))
       }
-      
-      H <- matrix(0,nrow = p, ncol = J)
-      for(j in 1:J){
-        H[null_k,j] <- constraint_grad_fn(fitted_B[test_kj$k[test_ind],])[j]
-      }
-      H[test_kj$k[test_ind],test_kj$j[test_ind]] <-  H[test_kj$k[test_ind],test_kj$j[test_ind]] - 1
-      H_cup <- B_cup_from_B(H)
-      H_cup[] <- as.numeric(H_cup[]!=0)
-      
-      
-      
+    
       
       
       test_result <- micro_score_test(Y = Y_test,

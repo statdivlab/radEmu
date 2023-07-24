@@ -14,8 +14,6 @@ emuFit(
   verbose = TRUE,
   tolerance = 0.01,
   maxit = 500,
-  tol_factor = 0.01,
-  min_tol = 0.01,
   constraint_fn = pseudohuber_center,
   constraint_grad_fn = dpseudohuber_center_dx,
   constraint_param = 1,
@@ -24,7 +22,7 @@ emuFit(
   run_score_tests = TRUE,
   rho_init = 1,
   rho_scaling = 2,
-  gap_tolerance = 1e-06
+  gap_tolerance = 0.001
 )
 }
 \arguments{
@@ -33,6 +31,8 @@ emuFit(
 \item{formula}{a one-sided formula specifying the form of the mean model to be fit}
 
 \item{data}{an n x p data frame containing variables given in \code{formula}}
+
+\item{penalize}{logical: should Firth penalty be used in fitting model? Default is TRUE.}
 
 \item{B}{starting value of coefficient matrix (p x J). If not provided,
 B will be initiated as a zero matrix.}
@@ -60,10 +60,27 @@ arguments (i.e., elements of a row of B)}
 parameter controlling relative weighting of elements closer and further from center.
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
+
+\item{alpha}{nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
+(corresponding to 95\% confidence intervals)}
+
+\item{return_wald_p}{logical: return p-values from Wald tests? Default is FALSE.}
+
+\item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
+
+\item{rho_init}{numeric: value at which to initiate rho parameter in augmented Lagrangian
+algorithm. Default is 1.}
+
+\item{rho_scaling}{numeric: value to scale rho by in each iteration of augmented Lagrangian
+algorithm. Default is 2.}
+
+\item{gap_tolerance}{numeric: constraint tolerance for fits under null hypotheses
+(tested element of B must be equal to constraint function to within this tolerance for
+a fit to be accepted as a solution to constrained optimization problem). Default is 1e-6.}
 }
 \value{
-A p x J matrix containing regression coefficients (under constraint
-g(B_k) = 0)
+A dataframe containing point estimates, confidence intervals, and p-values for
+fitted model
 }
 \description{
 Fit radEmu model

@@ -24,6 +24,7 @@ lagrangian_fit <- function(X,
   rho <- rho_init
 
   u <- rho*gap
+  # us <- u
 
   # ek_constr <- matrix(0,nrow = p, ncol = 1)
   # ek_constr[k_constr,] <- 1
@@ -44,13 +45,34 @@ lagrangian_fit <- function(X,
   # }
 
   feas_gap <- B[k_constr,j_constr] - constraint_fn(B[k_constr,])
-
-  B_cups <- data.frame(value = B_cup[,1],
-                       j = rep(1:J,each = 2),
-                       k = rep(1:2, J),
-                       rho = NA,
-                       u = NA,
-                       iter = 0)
+# 
+  # B_cups <- data.frame(value = B_cup_from_B(B)[,1],
+  #                      j = rep(1:J,each = 2),
+  #                      k = rep(1:2, J),
+  #                      rho = NA,
+  #                      u = NA,
+  #                      iter = 0)
+  
+  
+  lag_gr <- do.call(c,
+                    lapply(1:J,
+                           function(j)
+                             linearized_aug_lag_z(X = X,
+                                                  Y = Y,
+                                                  j = j,
+                                                  j_constr = j_constr,
+                                                  k_constr = k_constr,
+                                                  B = B,
+                                                  z = z,
+                                                  B0 = B0,
+                                                  u = u,
+                                                  rho = rho,
+                                                  constraint_fn = constraint_fn,
+                                                  constraint_grad_fn = constraint_grad_fn,
+                                                  compute_gradient = TRUE)$gr
+                           
+                    )
+  )
   iter <- 1
   while(abs(feas_gap)>gap_tolerance){
 
@@ -96,18 +118,58 @@ lagrangian_fit <- function(X,
                                B0 = B0,
                                u = u,
                                rho = rho,
-                               constraint_fn_at_B0 = constraint_fn_at_B0,
-                               constraint_grad_at_B0 = constraint_grad_at_B0,
                                constraint_fn = constraint_fn,
                                constraint_grad_fn = constraint_grad_fn,
                                compute_gradient = TRUE,
                                compute_hessian = TRUE)
+        
+        # message("test derivatives being returned by linearized_aug_lag_z")
+# 
+#         al_func <- function(Bj){
+#           temp_B <- B
+#           temp_B[,j] <- Bj
+#           linearized_aug_lag_z(X = X,
+#                                      Y = Y,
+#                                      j = j,
+#                                      j_constr = j_constr,
+#                                      k_constr = k_constr,
+#                                      B = temp_B,
+#                                      z = z,
+#                                      B0 = B0,
+#                                      u = u,
+#                                      rho = rho,
+#                                      constraint_fn = constraint_fn,
+#                                      constraint_grad_fn = constraint_grad_fn,
+#                                      compute_gradient = FALSE,
+#                                      compute_hessian = FALSE)[[1]]
+#         }
+#         #
+#         al_func(B[,j])
+#         #
+#         nd <- numDeriv::grad(al_func,B[,j])
+#         nh <- numDeriv::hessian(al_func,B[,j])
+#         ad <- curr_vals$gr
+#         ah <- curr_vals$hess
+# 
+#         ad/nd
+        
+     
+        
+        
+        
+        # log_means <- X%*%B + matrix(z,ncol = 1)%*%matrix(1,nrow = 1, ncol = J)
+        # 
+        # ll <- sum(Y*log_means - exp(log_means))
+        # 
+        # gap <- B[null_k,null_j] - constraint_fn(B[null_k,])
+        # 
+        # -ll + u*gap + 0.5*rho*gap^2
 
-        # update <- try(qr.solve(curr_vals$hess,curr_vals$gr),
-        #               silent = TRUE)
-        # if(inherits(update,"try-error")){
+        update <- try(qr.solve(curr_vals$hess,curr_vals$gr),
+                      silent = TRUE)
+        if(inherits(update,"try-error")){
         update <- try(qr.solve(curr_vals$hess+ diag(rep(sqrt(mean(curr_vals$gr^2)),p)),curr_vals$gr))
-        # }
+        }
 
         update_norm <- max(abs(update))
         # if(update_norm>0.1){
@@ -116,8 +178,8 @@ lagrangian_fit <- function(X,
         stepsize <- 0.5
         accept <- FALSE
 
-
-        armijo <- c1*sum(lag_gr*update)
+        # message("finding stepsize for category ", j)
+        armijo <- c1*sum(curr_vals$gr*update)
         while(!accept){
           prop_B <- B
           prop_B[,j] <- B[,j] - stepsize*update
@@ -131,13 +193,11 @@ lagrangian_fit <- function(X,
                                               B0 = B0,
                                               u = u,
                                               rho = rho,
-                                              constraint_fn_at_B0 = constraint_fn_at_B0,
-                                              constraint_grad_at_B0 = constraint_grad_at_B0,
                                               constraint_fn = constraint_fn,
                                               constraint_grad_fn = constraint_grad_fn)
 
           accept <- prop_val$value <= curr_vals$value+ armijo*stepsize
-          stepsize <- stepsize/2
+          stepsize <- stepsize*0.9
         }
         B[,j] <-   prop_B[,j]
         for(k in 1:p){
@@ -146,14 +206,15 @@ lagrangian_fit <- function(X,
         z <- update_z_no_wts(Y,X,B)
 
       }
+      # message("step accepted")
 
-      B_cups <- rbind(B_cups,
-                      data.frame(value = B_cup_from_B(B)[,1],
-                                 j = rep(1:J,each = 2),
-                                 k = rep(1:2, J),
-                                 rho = rho,
-                                 u = u,
-                                 iter = iter))
+      # B_cups <- rbind(B_cups,
+      #                 data.frame(value = B_cup_from_B(B)[,1],
+      #                            j = rep(1:J,each = 2),
+      #                            k = rep(1:2, J),
+      #                            rho = rho,
+      #                            u = u,
+      #                            iter = iter))
 
       iter <- iter + 1
 
@@ -168,13 +229,11 @@ lagrangian_fit <- function(X,
                                                       j = j,
                                                       j_constr = j_constr,
                                                       k_constr = k_constr,
-                                                      B = prop_B,
+                                                      B = B,
                                                       z = z,
                                                       B0 = B0,
                                                       u = u,
                                                       rho = rho,
-                                                      constraint_fn_at_B0 = constraint_fn_at_B0,
-                                                      constraint_grad_at_B0 = constraint_grad_at_B0,
                                                       constraint_fn = constraint_fn,
                                                       constraint_grad_fn = constraint_grad_fn,
                                                       compute_gradient = TRUE)$gr
@@ -200,6 +259,7 @@ lagrangian_fit <- function(X,
       # )
 
       lag_gr_norm <- sqrt(sum(lag_gr^2))
+      # print(lag_gr_norm)
       lgns <- c(lgns,lag_gr_norm)
 
       # print(lag_gr_norm)
@@ -221,7 +281,7 @@ lagrangian_fit <- function(X,
               ". Solution deviates from feasibility by ", signif(feas_gap,3),".")
     }
     u <- u + rho*feas_gap
-    us <- c(us,u)
+    # us <- c(us,u)
     rho <- rho*rho_scaling
 
 
@@ -234,7 +294,11 @@ lagrangian_fit <- function(X,
 
 # }
 # B_cups %>%
+#   group_by(k,j) %>%
+#   mutate(value = value - value[iter ==max(iter)]) %>%
+#   filter(iter>500) %>%
 #   ggplot() +
+# 
 #   # geom_point(aes(x = iter, y= asinh(value),color = u))
 #   geom_line(aes(x = iter,y = asinh(value), group = interaction(k,j)))
 

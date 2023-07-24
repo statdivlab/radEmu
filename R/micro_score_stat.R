@@ -7,6 +7,7 @@ micro_score_stat <- function(Y,
                              j){
   J <- ncol(Y)
   n <- nrow(Y)
+  p <- ncol(X)
   X_cup <- X_cup_from_X(X,J)
   B_cup <- B_cup_from_B(B_fitted)
 

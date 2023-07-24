@@ -30,6 +30,10 @@ exiting optimization}
 
 \item{tolerance}{tolerance on improvement in log likelihood at which to
 exit optimization}
+
+\item{max_step}{numeric: maximum sup-norm for proposed update steps}
+
+\item{verbose}{logical: report information about progress of optimization? Default is TRUE.}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint

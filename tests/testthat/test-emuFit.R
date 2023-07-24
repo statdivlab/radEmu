@@ -2,7 +2,7 @@ test_that("emuFit works on simple example",{
     set.seed(4323)
     X <- cbind(1,rep(c(0,1),each = 20))
     z <- rnorm(40) +5
-    J <- 10
+    J <- 5
     p <- 2
     n <- 40
     b0 <- rnorm(J)
@@ -21,6 +21,7 @@ test_that("emuFit works on simple example",{
     fitted_emu <- emuFit(Y,~covariate,data)
 
     expect_true(is.data.frame(fitted_emu))
+    expect_true(max(abs(fitted_emu$estimate  - (b1 - pseudohuber_center(b1))))<0.1)
 
 })
 
@@ -71,7 +72,7 @@ test_that("emuFit works on example with more taxa",{
   }
 
   data <- data.frame(covariate = X[,2])
-  fitted_emu <- emuFit(Y,~covariate,data)
+  fitted_emu <- emuFit(Y,~covariate,data,test_kj = data.frame(j = 3, k = 2))
   expect_true(is.data.frame(fitted_emu))
 })
 

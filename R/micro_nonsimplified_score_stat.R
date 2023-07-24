@@ -9,6 +9,7 @@ micro_nonsimplified_score_stat <- function(Y,
   n <- nrow(Y)
   X_cup <- X_cup_from_X(X,J)
   B_cup <- B_cup_from_B(B_fitted)
+  p <- ncol(X)
 
   UUT <- matrix(0,ncol = p*J, nrow = p*J)
   U <- matrix(0,ncol = p*J, nrow = 1)

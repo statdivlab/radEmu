@@ -10,6 +10,8 @@
 #' exiting optimization
 #' @param tolerance tolerance on improvement in log likelihood at which to
 #' exit optimization
+#' @param max_step numeric: maximum sup-norm for proposed update steps
+#' @param verbose logical: report information about progress of optimization? Default is TRUE.
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #' 
@@ -39,7 +41,7 @@ fitted_model <- emuFit_micro(X,
                             B = fitted_model,
                             constraint_fn = constraint_fn,
                             maxit = maxit,
-                            max_step = max_step,
+                            max_stepsize = max_step,
                             tolerance = tolerance,
                             verbose = verbose)
 

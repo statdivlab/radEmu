@@ -13,7 +13,7 @@ micro_score_test <- function(Y,
                              step_ratio = 0.5,
                              rho_init = 1,
                              rho_scaling = 2,
-                             gap_tolerance = 1e-6){
+                             gap_tolerance = 1e-3){
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)

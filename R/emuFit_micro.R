@@ -10,9 +10,15 @@
 #' exiting optimization
 #' @param tolerance tolerance on improvement in log likelihood at which to
 #' exit optimization
+#' @param verbose logical: print information about optimization progress? Default is TRUE.
+#' @param warm_start logical: begin from "warm start" obtained from linear regression on
+#' transformed counts? Default is TRUE.
+#' @param c1 numeric: value of constant in Armijo condition checked in backtracking line search
+#' @param max_stepsize numeric: maximum sup-norm value of proposed step. Default is 0.5.
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #' 
+#' @export
 emuFit_micro <-
   function(X,
            Y,
