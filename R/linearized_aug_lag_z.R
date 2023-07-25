@@ -7,7 +7,6 @@ linearized_aug_lag_z <-
            k_constr,
            B,
            z,
-           B0,
            u,
            rho,
            constraint_fn,

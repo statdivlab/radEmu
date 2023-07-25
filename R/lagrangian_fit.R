@@ -64,7 +64,6 @@ lagrangian_fit <- function(X,
                                                   k_constr = k_constr,
                                                   B = B,
                                                   z = z,
-                                                  B0 = B0,
                                                   u = u,
                                                   rho = rho,
                                                   constraint_fn = constraint_fn,
@@ -76,12 +75,13 @@ lagrangian_fit <- function(X,
   iter <- 1
   while(abs(feas_gap)>gap_tolerance){
 
-    constraint_grad_at_B0 <- constraint_grad_fn(B[k_constr,])
-    constraint_fn_at_B0 <- constraint_fn(B[k_constr,])
+
     lgns <- numeric(0)
     lag_gr_norm <- Inf
     B0 <- B
-    while(lag_gr_norm>tolerance){
+    max_update <- 1
+    while(lag_gr_norm>tolerance ){#& max_update > 1e-6
+      max_update <- 0
       for(j in 1:J){
         #   means <- exp(X%*%B[,j,drop = FALSE] + z)
         #   message("David! lag_fn() should *definitely* be its own function with
@@ -115,7 +115,6 @@ lagrangian_fit <- function(X,
                                k_constr = k_constr,
                                B = B,
                                z = z,
-                               B0 = B0,
                                u = u,
                                rho = rho,
                                constraint_fn = constraint_fn,
@@ -125,33 +124,36 @@ lagrangian_fit <- function(X,
         
         # message("test derivatives being returned by linearized_aug_lag_z")
 # 
-#         al_func <- function(Bj){
-#           temp_B <- B
-#           temp_B[,j] <- Bj
-#           linearized_aug_lag_z(X = X,
-#                                      Y = Y,
-#                                      j = j,
-#                                      j_constr = j_constr,
-#                                      k_constr = k_constr,
-#                                      B = temp_B,
-#                                      z = z,
-#                                      B0 = B0,
-#                                      u = u,
-#                                      rho = rho,
-#                                      constraint_fn = constraint_fn,
-#                                      constraint_grad_fn = constraint_grad_fn,
-#                                      compute_gradient = FALSE,
-#                                      compute_hessian = FALSE)[[1]]
-#         }
-#         #
-#         al_func(B[,j])
-#         #
-#         nd <- numDeriv::grad(al_func,B[,j])
-#         nh <- numDeriv::hessian(al_func,B[,j])
-#         ad <- curr_vals$gr
-#         ah <- curr_vals$hess
-# 
-#         ad/nd
+        # al_func <- function(Bj){
+        #   temp_B <- B
+        #   temp_B[,j] <- Bj
+        #   linearized_aug_lag_z(X = X,
+        #                              Y = Y,
+        #                              j = j,
+        #                              j_constr = j_constr,
+        #                              k_constr = k_constr,
+        #                              B = temp_B,
+        #                              z = z,
+        #                              u = u,
+        #                              rho = rho,
+        #                              constraint_fn = constraint_fn,
+        #                              constraint_grad_fn = constraint_grad_fn,
+        #                              compute_gradient = FALSE,
+        #                              compute_hessian = FALSE)[[1]]
+        # }
+        # #
+        # al_func(B[,j])
+        # #
+        # nd <- numDeriv::grad(al_func,B[,j])
+        # nh <- numDeriv::hessian(al_func,B[,j])
+        # ad <- curr_vals$gr
+        # ah <- curr_vals$hess
+        # ah/nh
+        # ad/nd
+        # 
+        # cag <- constraint_grad_fn(B[k_constr,])
+        # cng <- numDeriv::grad(constraint_fn,B[k_constr,])
+        # cag/cng
         
      
         
@@ -169,14 +171,18 @@ lagrangian_fit <- function(X,
                       silent = TRUE)
         reg <- 0.1
         while(inherits(update,"try-error")){
-        update <- try(qr.solve(curr_vals$hess+ diag(reg*rep(sqrt(mean(curr_vals$gr^2)),p)),curr_vals$gr))
+        update <- try(qr.solve(curr_vals$hess+ diag(reg*rep(sqrt(mean(curr_vals$gr^2)),p)),curr_vals$gr),
+                      silent = TRUE)
         reg <- 10*reg
         }
 
         update_norm <- max(abs(update))
-        # if(update_norm>0.1){
-        #   update <- 0.1*update/update_norm
-        # }
+        # print(update_norm)
+        if(update_norm>0.1){
+          update <- 0.1*update/update_norm
+        }
+        
+        max_update <- max(max_update,update_norm)
         stepsize <- 0.5
         accept <- FALSE
 
@@ -192,7 +198,6 @@ lagrangian_fit <- function(X,
                                               k_constr = k_constr,
                                               B = prop_B,
                                               z = z,
-                                              B0 = B0,
                                               u = u,
                                               rho = rho,
                                               constraint_fn = constraint_fn,
@@ -233,7 +238,6 @@ lagrangian_fit <- function(X,
                                                       k_constr = k_constr,
                                                       B = B,
                                                       z = z,
-                                                      B0 = B0,
                                                       u = u,
                                                       rho = rho,
                                                       constraint_fn = constraint_fn,
@@ -262,6 +266,7 @@ lagrangian_fit <- function(X,
 
       lag_gr_norm <- sqrt(sum(lag_gr^2))
       # print(lag_gr_norm)
+      # print(max_update)
       lgns <- c(lgns,lag_gr_norm)
 
       # print(lag_gr_norm)

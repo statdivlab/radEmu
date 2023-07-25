@@ -22,7 +22,8 @@ emuFit(
   run_score_tests = TRUE,
   rho_init = 1,
   rho_scaling = 2,
-  gap_tolerance = 0.001
+  gap_tolerance = 0.001,
+  refit = TRUE
 )
 }
 \arguments{
