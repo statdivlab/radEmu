@@ -6,28 +6,45 @@
 \usage{
 emuFit(
   Y,
+  X = NULL,
   formula,
   data,
   penalize = TRUE,
   B = NULL,
+  fitted_model = NULL,
+  refit = TRUE,
   test_kj = NULL,
-  verbose = TRUE,
-  tolerance = 0.01,
-  maxit = 500,
-  constraint_fn = pseudohuber_center,
-  constraint_grad_fn = dpseudohuber_center_dx,
-  constraint_param = 1,
   alpha = 0.05,
   return_wald_p = FALSE,
+  compute_cis = TRUE,
   run_score_tests = TRUE,
+  use_fullmodel_info = FALSE,
+  use_fullmodel_cov = FALSE,
+  use_both_cov = FALSE,
+  constraint_fn = pseudohuber_center,
+  constraint_grad_fn = dpseudohuber_center_dx,
+  constraint_param = 0.1,
+  verbose = FALSE,
+  tolerance = 1e-04,
+  B_null_tol = 0.001,
   rho_init = 1,
-  rho_scaling = 2,
-  gap_tolerance = 0.001,
-  refit = TRUE
+  inner_tol = 1,
+  ntries = 4,
+  tau = 2,
+  kappa = 0.8,
+  constraint_tol = 1e-05,
+  c1 = 1e-04,
+  maxit = 1000,
+  inner_maxit = 25,
+  max_step = 1,
+  trackB = FALSE,
+  return_both_score_pvals = FALSE
 )
 }
 \arguments{
 \item{Y}{an n x J matrix of nonnegative observations}
+
+\item{X}{an n x p matrix of covariates (optional)}
 
 \item{formula}{a one-sided formula specifying the form of the mean model to be fit}
 
@@ -38,17 +55,34 @@ emuFit(
 \item{B}{starting value of coefficient matrix (p x J). If not provided,
 B will be initiated as a zero matrix.}
 
+\item{fitted_model}{a fitted model produced by a separate call to emuFit; to
+be provided if score tests are to be run without refitting the full unrestricted model.
+Default is NULL.}
+
+\item{refit}{logical: if B or fitted_model is provided, should full model be fit (TRUE) or
+should fitting step be skipped (FALSE), e.g., if score tests are to be run on an already
+fitted model. Default is TRUE.}
+
 \item{test_kj}{a data frame whose rows give coordinates (in category j and
 covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
 is not provided, all elements of B save the intercept row will be tested.}
 
-\item{verbose}{provide updates as model is being fitted? Defaults to TRUE.}
+\item{alpha}{nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
+(corresponding to 95\% confidence intervals)}
 
-\item{tolerance}{tolerance on squared norm of gradient of likelihood to be used
-as a stopping condition in model fitting}
+\item{return_wald_p}{logical: return p-values from Wald tests? Default is FALSE.}
 
-\item{maxit}{maximum number of coordinate descent cycles to perform before
-exiting optimization}
+\item{compute_cis}{logical: compute and return Wald CIs? Default is TRUE.}
+
+\item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
+
+\item{use_fullmodel_cov}{logical: use information matrix and empirical score covariance
+computed for full model fit? Defaults to FALSE, in which case these quantities are
+recomputed for each null model fit for score testing.}
+
+\item{use_both_cov}{logical: should score tests be run using information and
+empirical score covariance evaluated both under the null and full models?
+Used in simulations}
 
 \item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
 for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
@@ -62,22 +96,55 @@ parameter controlling relative weighting of elements closer and further from cen
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
 
-\item{alpha}{nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
-(corresponding to 95\% confidence intervals)}
+\item{verbose}{provide updates as model is being fitted? Defaults to TRUE.}
 
-\item{return_wald_p}{logical: return p-values from Wald tests? Default is FALSE.}
+\item{tolerance}{tolerance for stopping criterion in full model fitting; once
+no element of B is updated by more than this value in a single step, we exit
+optimization. Defaults to 1e-3.}
 
-\item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
+\item{B_null_tol}{numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
+B across outer iterations is below this threshold, we declare convergence).
+Default is 0.01.}
 
 \item{rho_init}{numeric: value at which to initiate rho parameter in augmented Lagrangian
 algorithm. Default is 1.}
 
-\item{rho_scaling}{numeric: value to scale rho by in each iteration of augmented Lagrangian
-algorithm. Default is 2.}
+\item{inner_tol}{numeric: convergence tolerance for augmented Lagrangian subproblems
+within null model fitting. Default is 1.}
 
-\item{gap_tolerance}{numeric: constraint tolerance for fits under null hypotheses
+\item{ntries}{numeric: how many times should optimization be tried in null
+models where at least one optimization attempt fails? Default is 4.}
+
+\item{tau}{numeric: value to scale rho by in each iteration of augmented Lagrangian
+algorithm that does not move estimate toward zero sufficiently. Default is 2.}
+
+\item{kappa}{numeric: value between 0 and 1 that determines the cutoff on the ratio
+of current distance from feasibility over distance in last iteration triggering
+scaling of rho. If this ratio is above kappa, rho is scaled by tau to encourage
+estimate to move toward feasibility.}
+
+\item{constraint_tol}{numeric: constraint tolerance for fits under null hypotheses
 (tested element of B must be equal to constraint function to within this tolerance for
-a fit to be accepted as a solution to constrained optimization problem). Default is 1e-6.}
+a fit to be accepted as a solution to constrained optimization problem). Default is 1e-5.}
+
+\item{c1}{numeric: parameter for Armijo line search. Default is 1e-4.}
+
+\item{maxit}{maximum number of outer iterations of augmented lagrangian algorithm to perform before
+exiting optimization. Default is 1000.}
+
+\item{inner_maxit}{maximum number of coordinate descent passes through columns of B to make within each
+outer iteration of augmented lagrangian algorithm before exiting inner loop}
+
+\item{max_step}{maximum stepsize; update directions computed during optimization
+will be rescaled if a step in any parameter exceeds this value. Defaults to 0.5.}
+
+\item{trackB}{logical: should values of B be recorded across optimization
+iterations and be returned? Primarily used for debugging. Default is FALSE.}
+
+\item{return_both_score_pvals}{logical: should score p-values be returned using both
+information matrix computed from full model fit and from null model fits? Default is
+FALSE. This parameter is used for simulations - in any applied analysis, type of
+p-value to be used should be chosen before conducting tests.}
 }
 \value{
 A dataframe containing point estimates, confidence intervals, and p-values for

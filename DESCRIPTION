@@ -1,6 +1,6 @@
 Package: radEmu
 Title: Using Relative Abundance Data to Estimate of Multiplicative Differences in Mean Absolute Abundance 
-Version: 0.0.0.9000
+Version: 0.0.1.0
 Authors@R: as.person(c(
     "David Clausen <dsc24@uw.edu> [aut, cre]",
     "Amy Willis [aut]", 
@@ -17,6 +17,5 @@ Depends:
     Matrix
 Suggests: 
     testthat (>= 3.0.0),
-    parallel,
     numDeriv
 Config/testthat/edition: 3

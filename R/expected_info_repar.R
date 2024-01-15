@@ -6,9 +6,10 @@ expected_info_repar <- function(beta_tilde_J,
                                 J,
                                 n,
                                 p,
-                                collect_byproducts = TRUE){
+                                collect_byproducts = TRUE,
+                                verbose = FALSE){
 
-  expected_info <- matrix(0,nrow = n + p*(J - 1), ncol = n + p*(J - 1))
+  expected_info <- Matrix::Matrix(0,nrow = n + p*(J - 1), ncol = n + p*(J - 1))
 
   if(collect_byproducts){
     jacobians <- vector(n, mode = "list")
@@ -17,9 +18,14 @@ expected_info_repar <- function(beta_tilde_J,
     jacobians <- NULL
     mus <- NULL
   }
+  # info_bits <- vector(n,mode = "list")
 
-
+  # pv5 <- profvis({
   for(i in 1:n){
+    if(verbose){
+      message("Computing information contribution of observation ", i,".")
+    }
+
     which_indices <- 1:J + (i - 1)*J
     d_eta_i_d_theta_J <- eta_jacobian(beta_tilde_J,
                                       tau,
@@ -35,10 +41,11 @@ expected_info_repar <- function(beta_tilde_J,
     mus[[i]] <- mu_i
     expected_info <- expected_info +
       Matrix::crossprod(d_eta_i_d_theta_J,Matrix::crossprod(Matrix::Diagonal(x = as.numeric(mu_i)),d_eta_i_d_theta_J))
-      # Matrix::t(d_eta_i_d_theta_J)%*%diag(as.numeric(mu_i)) %*%
-      # d_eta_i_d_theta_J
+    # Matrix::t(d_eta_i_d_theta_J)%*%diag(as.numeric(mu_i)) %*%
+    # d_eta_i_d_theta_J
   }
-return(list("expected_info" = expected_info,
-            "jacobians" = jacobians,
-            "mus" = mus))
+  # })
+  return(list("expected_info" = expected_info,
+              "jacobians" = jacobians,
+              "mus" = mus))
 }

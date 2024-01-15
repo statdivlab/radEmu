@@ -8,11 +8,16 @@ emuFit_micro_penalized(
   X,
   Y,
   B = NULL,
+  X_cup = NULL,
   constraint_fn = NULL,
   maxit = 500,
-  tolerance = 1e-05,
-  max_step = 0.5,
-  verbose = TRUE
+  ml_maxit = 5,
+  tolerance = 0.001,
+  max_step = 5,
+  verbose = TRUE,
+  max_abs_B = 250,
+  use_legacy_augmentation = FALSE,
+  j_ref = NULL
 )
 }
 \arguments{
@@ -22,11 +27,17 @@ emuFit_micro_penalized(
 
 \item{B}{starting value of coefficient matrix (p x J)}
 
+\item{X_cup}{design matrix for Y in long format. Defaults to NULL, in
+which case matrix is computed from X.}
+
 \item{constraint_fn}{function g defining constraint on rows of B; g(B_k) = 0
 for rows k = 1, ..., p of B.}
 
 \item{maxit}{maximum number of coordinate descent cycles to perform before
 exiting optimization}
+
+\item{ml_maxit}{numeric: maximum number of coordinate descent cycles to perform inside
+of maximum likelihood fits. Defaults to 5.}
 
 \item{tolerance}{tolerance on improvement in log likelihood at which to
 exit optimization}
@@ -34,6 +45,20 @@ exit optimization}
 \item{max_step}{numeric: maximum sup-norm for proposed update steps}
 
 \item{verbose}{logical: report information about progress of optimization? Default is TRUE.}
+
+\item{max_abs_B}{numeric: maximum allowed value for elements of B (in absolute value). In
+most cases this is not needed as Firth penalty will prevent infinite estimates
+under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
+nearly collinear regressors). Default is 50.}
+
+\item{use_legacy_augmentation}{logical: should an older (slower) implementation of
+data augmentation be used? Only used for testing - there is no advantage to using
+the older implementation in applied settings.}
+
+\item{j_ref}{which column of B to set to zero as a convenience identifiability
+during optimization. Default is NULL, in which case this column is chosen based
+on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
+Y_j_ref greater than zero).}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint

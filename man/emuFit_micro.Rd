@@ -10,11 +10,14 @@ emuFit_micro(
   B = NULL,
   constraint_fn = NULL,
   maxit = 250,
-  tolerance = 1e-04,
+  tolerance = 1e-05,
   verbose = TRUE,
   warm_start = TRUE,
   c1 = 1e-04,
-  max_stepsize = 0.5
+  max_stepsize = 0.5,
+  max_abs_B = 50,
+  use_working_constraint = TRUE,
+  j_ref = NULL
 )
 }
 \arguments{
@@ -41,6 +44,16 @@ transformed counts? Default is TRUE.}
 \item{c1}{numeric: value of constant in Armijo condition checked in backtracking line search}
 
 \item{max_stepsize}{numeric: maximum sup-norm value of proposed step. Default is 0.5.}
+
+\item{max_abs_B}{numeric: maximum value elements of B are allowed to take in absolute value.
+Helps prevent optimization failure in larger problems. Defaults to 50.}
+
+\item{use_working_constraint}{logical: set a column of B equal to
+zero within optimization. Default is TRUE.}
+
+\item{j_ref}{If use_working_constraint is TRUE, column index of column of B
+to set to zero. Default is NULL, in which case this column is chosen to
+maximize the number of nonzero entries of Y_j_ref.}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint

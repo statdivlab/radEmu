@@ -3,7 +3,9 @@
 micro_fisher <- function(X,Yj,Bj,z,
                          stepsize = 1,
                          c1 = 0.1){
-  means <- exp(X%*%Bj + z)
+  log_means <- X%*%Bj + z
+  means <- exp(log_means)
+  # means <- exp(X%*%Bj + z)
   info <- t(X)%*%diag(as.numeric(means))%*%X
   lj_grad <- colSums(diag(as.numeric(Yj - means))%*%X)
 
@@ -23,7 +25,7 @@ micro_fisher <- function(X,Yj,Bj,z,
   }
 
 
-  obj <- -sum(Yj*log(means) - means)
+  obj <- -sum(Yj*log_means - means)
   obj_grad <- -lj_grad
 
   suff_decrease_term <- c1*sum(obj_grad*update)

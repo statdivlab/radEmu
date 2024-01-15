@@ -4,73 +4,165 @@
 #' @param X a p x J design matrix
 #' @param Y an n x p matrix of nonnegative observations
 #' @param B starting value of coefficient matrix (p x J)
+#' @param X_cup design matrix for Y in long format. Defaults to NULL, in
+#' which case matrix is computed from X.
 #' @param constraint_fn function g defining constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B.
 #' @param maxit maximum number of coordinate descent cycles to perform before
 #' exiting optimization
+#' @param ml_maxit numeric: maximum number of coordinate descent cycles to perform inside
+#' of maximum likelihood fits. Defaults to 5.
 #' @param tolerance tolerance on improvement in log likelihood at which to
 #' exit optimization
 #' @param max_step numeric: maximum sup-norm for proposed update steps
 #' @param verbose logical: report information about progress of optimization? Default is TRUE.
+#' @param max_abs_B numeric: maximum allowed value for elements of B (in absolute value). In
+#' most cases this is not needed as Firth penalty will prevent infinite estimates
+#' under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
+#' nearly collinear regressors). Default is 50.
+#' @param use_legacy_augmentation logical: should an older (slower) implementation of
+#' data augmentation be used? Only used for testing - there is no advantage to using
+#' the older implementation in applied settings.
+#' @param j_ref which column of B to set to zero as a convenience identifiability
+#' during optimization. Default is NULL, in which case this column is chosen based
+#' on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
+#' Y_j_ref greater than zero).
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
-#' 
+#'
 emuFit_micro_penalized <-
   function(X,
            Y,
            B = NULL,
+           X_cup = NULL,
            constraint_fn = NULL,
            maxit = 500,
-           tolerance = 1e-5,
-           max_step = 0.5,
-           verbose = TRUE
-           ){
+           ml_maxit = 5,
+           tolerance = 1e-3,
+           max_step = 5,
+           verbose = TRUE,
+           max_abs_B = 250,
+           use_legacy_augmentation = FALSE,
+           j_ref = NULL
+  ){
 
-J <- ncol(Y)
-p <- ncol(X)
-n <- nrow(Y)
-X_tilde <- X_cup_from_X(X,J)
-Y_augmented <- Y
-fitted_model <- NULL
-converged <- FALSE
-counter <- 0
-while(!converged){
-  
-  if(counter ==0){
-    Y_augmented <- Y + 1
-  }
+    J <- ncol(Y)
+    p <- ncol(X)
+    n <- nrow(Y)
+    if(use_legacy_augmentation){
+      X_tilde <- X_cup_from_X(X,J)
+    }
+    Y_augmented <- Y
+    fitted_model <- NULL
+    converged <- FALSE
+    counter <- 0
+    #get design matrix we'll use for computing augmentations
+    if(!use_legacy_augmentation){
+      if(verbose){
+        message("Constructing expanded design matrix. For larger datasets this
+may take a moment.")
+      }
+      if(is.null(X_cup)){
+        X_cup <- X_cup_from_X(X,J)
+      }
+      G <- get_G_for_augmentations(X,J,n,X_cup)
+    }
+    while(!converged){
+      # print(counter)
 
-fitted_model <- emuFit_micro(X,
-                            Y_augmented,
-                            B = fitted_model,
-                            constraint_fn = constraint_fn,
-                            maxit = maxit,
-                            max_stepsize = max_step,
-                            tolerance = tolerance,
-                            verbose = verbose)
+      if(counter ==0){
+        Y_augmented <- Y + 1e-3*mean(Y)
+      } else{
+        if(verbose){
+          message("Computing data augmentations for Firth penalty. For larger models, this may take some time.")
+        }
 
-Y_augmented <-
-  update_data(Y = Y,
-              X_tilde = X_tilde,
-              B = fitted_model,
-              p = p,
-              n = n,
-              J = J)
+        if(use_legacy_augmentation){
+          message("Using legacy implementation of data augmentation. This is less
+computationally efficient than the default implementation and is
+maintained only for testing purposes.")
+          Y_augmented <-
+            update_data(Y = Y,
+                        X_tilde = X_tilde,
+                        B = fitted_model,
+                        p = p,
+                        n = n,
+                        J = J,
+                        verbose = verbose)
+        } else{
+          augmentations <- get_augmentations(X = X,
+                                             G = G,
+                                             Y = Y,
+                                             B = fitted_model)
+          Y_augmented <- Y + augmentations
+        }
+      }
+      if(!is.null(fitted_model)){
+        old_B <- fitted_model
+      } else{
+        old_B <- Inf
+      }
+      fitted_model <- emuFit_micro(X,
+                                   Y_augmented,
+                                   B = fitted_model,
+                                   constraint_fn = constraint_fn,
+                                   # maxit = maxit,
+                                   maxit = ml_maxit,
+                                   warm_start = TRUE,
+                                   max_abs_B = max_abs_B,
+                                   use_working_constraint = TRUE,
+                                   max_stepsize = max_step,
+                                   tolerance = tolerance,
+                                   verbose = verbose,
+                                   j_ref = j_ref)
 
-deriv <- dpll_dB_cup(X,Y_augmented,fitted_model)
-deriv_norm  = sqrt(sum(deriv^2))
+      # plot(do.call(c,lapply(1:p,function(k) fitted_model[k,] )))
+      #
+      # if(counter >0){
+      #   # plot(do.call(c,lapply(1:p,function(k) fitted_model[k,] - old_B[k,] )))
+      #   plot(log(apply(abs(fitted_model - old_B),2,max))/log(10))
+      #   abline(a = log(tolerance)/log(10),b = 0, lty = 2, col = "red")
+      # } else{
+      #   plot(do.call(c,lapply(1:p,function(k) fitted_model[k,] )),pch = ".")
+      # }
 
-if(deriv_norm<tolerance){
-  converged <- TRUE
-}
 
-if(counter>maxit){
-  converged <- TRUE
-}
-counter <- counter + 1
-}
 
-return(list("Y_augmented" = Y_augmented,
-            "B" = fitted_model))
+
+
+      # z <- update_z(Y = Y_augmented,X = X,B = fitted_model)
+      #
+      # log_mean <- X%*%fitted_model +
+      #   matrix(z,ncol = 1)%*%matrix(1,ncol = J, nrow = 1)
+      #
+      #
+      # deriv <- do.call(c,lapply(1:J,
+      #                           function(j) crossprod(X,Y[,j,drop = FALSE] - exp(log_mean[,j,drop = FALSE]))))
+      # message("Why is deriv_norm diff than we found inside emuFit_micro?")
+      # deriv_norm  = sqrt(sum(deriv^2))
+      B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model)<max_abs_B])
+      # print(signif(B_diff,3))
+      if(B_diff < tolerance){
+        converged <- TRUE
+      }
+      # print(deriv_norm)
+      # B_cup_from_B(deriv_pois)
+      # plot(asinh(deriv_pois),asinh(deriv))
+      #
+      # deriv <- dpll_dB_cup(X,Y_augmented,fitted_model)
+      # deriv_norm  = sqrt(sum(deriv^2))
+
+      # if(deriv_norm<tolerance){
+      #   converged <- TRUE
+      # }
+
+      if(counter>maxit){
+        converged <- TRUE
+      }
+      counter <- counter + 1
+    }
+
+    return(list("Y_augmented" = Y_augmented,
+                "B" = fitted_model))
 
   }
