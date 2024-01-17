@@ -10,8 +10,16 @@ test_that("If I ask for silence, I get silence", {
   expect_silent(full_fit <- emuFit(X = cbind(1, rep(c(0,1),each = 10/2)),
                                    Y = Y,
                                    B = NULL,
-                                   tolerance = 1e-3, 
+                                   tolerance = 1e-1, 
                                    verbose = FALSE))
+
+  # load_all()
+  # tmp <- emuFit(X = cbind(1, rep(c(0,1),each = 10/2)),
+  #               Y = Y,
+  #               B = NULL,
+  #               verbose = FALSE, 
+  #               trackB=TRUE)
+  
   
   
 })

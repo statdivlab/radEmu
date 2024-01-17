@@ -1,5 +1,5 @@
 test_that("emuFit takes formulas and actually fits a model", {
-  # rm(list = ls())
+  
 
   set.seed(343234)
   n <- 100
@@ -34,7 +34,6 @@ test_that("emuFit takes formulas and actually fits a model", {
     while(sum(Y[i,])==0){
       for(j in 1:10){
         temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
         Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
       }
     }
@@ -65,7 +64,7 @@ test_that("emuFit takes formulas and actually fits a model", {
 
 test_that("We can use emuFit to create an emuFit object and then
 call emuFit again *without* refitting model and it will return same results", {
-  # rm(list = ls())
+  
 
   set.seed(94043234)
   n <- 100
@@ -114,7 +113,7 @@ call emuFit again *without* refitting model and it will return same results", {
 
 
 test_that("emuFit takes formulas and actually fits a model (with score tests)", {
-  # rm(list = ls())
+  
 
   set.seed(9983334)
   n <- 10
@@ -179,7 +178,7 @@ test_that("emuFit takes formulas and actually fits a model (with score tests)", 
 })
 
 test_that("emuFit takes formulas and actually fits a model (with score tests using full model info)", {
-  # rm(list = ls())
+  
 
   set.seed(9983334)
   n <- 10
@@ -248,7 +247,7 @@ test_that("emuFit takes formulas and actually fits a model (with score tests usi
 
 
 test_that("if return_both_score_pvals = TRUE, emuFit runs and returns two non-identical p-values", {
-  # rm(list = ls())
+  
 
   set.seed(9983334)
   n <- 10
@@ -321,7 +320,7 @@ test_that("if return_both_score_pvals = TRUE, emuFit runs and returns two non-id
 
 test_that("if return_both_score_pvals = TRUE, we
           get same p-values as if we separately run emuFit with use_fullmodel_info = TRUE and = FALSE", {
-  # rm(list = ls())
+  
 
   set.seed(334)
   n <- 10
@@ -414,7 +413,7 @@ test_that("if return_both_score_pvals = TRUE, we
 
 })
 test_that("Difference between using full and null model info is not extreme", {
-  # rm(list = ls())
+  
 
   set.seed(9983334)
   n <- 10
@@ -493,7 +492,7 @@ test_that("Difference between using full and null model info is not extreme", {
 })
 
 test_that("emuFit takes formulas and actually fits a model (no score tests) when J is large", {
-  # rm(list = ls())
+  
 
   set.seed(894334)
   n <- 100
@@ -556,7 +555,7 @@ test_that("emuFit takes formulas and actually fits a model (no score tests) when
 
 # test_that("We can use emuFit to create an emuFit object and then
 # call emuFit again to run score tests.", {
-#   # rm(list = ls())
+#   
 #
 #   set.seed(1243234)
 #   n <- 100

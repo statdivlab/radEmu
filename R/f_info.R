@@ -1,3 +1,5 @@
+#' @importFrom methods as
+
 f_info <- function(Y,
                    B_cup,
                    B,

@@ -1,6 +1,6 @@
 test_that("We get same score test results regardless of whether we provide inverse of info *and*
 we do *not* get same results if we use incorrect info", {
-  # rm(list = ls())
+  
   set.seed(343234)
   X <- cbind(1,rep(c(0,1),each = 20))
   J <- 10
@@ -109,7 +109,7 @@ we do *not* get same results if we use incorrect info", {
 
 })
 # test_that("simple negative binomial example fits reasonably fast and returns reasonable output", {
-#   # rm(list = ls())
+#   
 #   set.seed(343234)
 #   X <- cbind(1,rep(c(0,1),each = 20))
 #   J <- 10
@@ -223,7 +223,7 @@ we do *not* get same results if we use incorrect info", {
 #
 #
 # test_that("simple negative binomial example fits reasonably fast and returns reasonable output", {
-#   # rm(list = ls())
+#   
 #   set.seed(343234)
 #   n <- 250
 #   X <- cbind(1,rep(c(0,1),each = n/2))
@@ -347,7 +347,7 @@ we do *not* get same results if we use incorrect info", {
 
 #
 # test_that("simple negative binomial example fits reasonably fast and returns reasonable output", {
-#   # rm(list = ls())
+#   
 #   set.seed(343234)
 #   n <- 10
 #   X <- cbind(1,rep(c(0,1),each = n/2))
@@ -472,7 +472,7 @@ we do *not* get same results if we use incorrect info", {
 # })
 #
 # test_that("simple negative binomial example fits reasonably fast and returns reasonable output", {
-#   # rm(list = ls())
+#   
 #   set.seed(343234)
 #   n <- 50
 #   X <- cbind(1,rep(c(0,1),each = n/2))

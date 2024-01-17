@@ -76,6 +76,8 @@ is not provided, all elements of B save the intercept row will be tested.}
 
 \item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
 
+\item{use_fullmodel_info}{logical: TODO? Default is FALSE.}
+
 \item{use_fullmodel_cov}{logical: use information matrix and empirical score covariance
 computed for full model fit? Defaults to FALSE, in which case these quantities are
 recomputed for each null model fit for score testing.}
@@ -147,8 +149,7 @@ FALSE. This parameter is used for simulations - in any applied analysis, type of
 p-value to be used should be chosen before conducting tests.}
 }
 \value{
-A dataframe containing point estimates, confidence intervals, and p-values for
-fitted model
+TODO
 }
 \description{
 Fit radEmu model
