@@ -1,6 +1,6 @@
 #' Fit radEmu model
 #'
-#' @param Y an n x J matrix of nonnegative observations
+#' @param Y an n x J matrix of nonnegative observations, or a phyloseq object containing an otu table and sample data.
 #' @param X an n x p matrix of covariates (optional)
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
@@ -83,8 +83,8 @@
 #'
 emuFit <- function(Y,
                    X = NULL,
-                   formula,
-                   data,
+                   formula = NULL,
+                   data = NULL,
                    penalize = TRUE,
                    B = NULL,
                    fitted_model = NULL,
@@ -118,12 +118,27 @@ emuFit <- function(Y,
                    
                    
 ) {
+  # check if Y is a phyloseq object
+  if ("phyloseq" %in% class(Y)) {
+    if (requireNamespace("phyloseq", quietly = TRUE)) {
+      if (is.null(formula)) {
+        stop("If Y is a `phyloseq` object, make sure to include the formula argument.")
+      } else {
+        data <- data.frame(phyloseq::sample_data(Y))
+        X <- model.matrix(formula, data)
+        Y <- as.matrix(phyloseq::otu_table(Y))
+      }
+    } else {
+      stop("You are trying to use a `phyloseq` data object or `phyloseq` helper function without having the `phyloseq` package installed. Please either install the package or use a standard data frame.")
+    }
+  }
+  
   if (is.null(X)) {
     if (is.null(formula) | is.null(data)) {
       stop("If design matrix X not provided, both formula and data containing
 covariates in formula must be provided.")
     }
-    X <- model.matrix(formula,data)
+    X <- model.matrix(formula, data)
   }
   
   if (min(rowSums(Y))==0) {
