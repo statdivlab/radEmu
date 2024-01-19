@@ -13,9 +13,10 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
-    MASS, 
+    MASS,
     Matrix,
-    methods
+    methods,
+    R (>= 2.10)
 Suggests: 
     testthat (>= 3.0.0),
     numDeriv
