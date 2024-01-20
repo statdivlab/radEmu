@@ -20,6 +20,24 @@ test_that("If I ask for silence, I get silence", {
   #               verbose = FALSE, 
   #               trackB=TRUE)
   
+  expect_silent(f2 <- emuFit(X = cbind(1, rep(c(0,1),each = 10/2)),
+                     Y = Y,
+                     tolerance = 0.01,
+                     return_wald_p = FALSE,
+                     compute_cis = FALSE,
+                     run_score_tests = FALSE,
+                     verbose = FALSE))
   
+  
+  f3 <- emuFit(X = cbind(1, rep(c(0,1),each = 10/2)),
+               Y = Y,
+               test_kj=data.frame(k=2, j=6),
+               tolerance = 0.01,
+               return_wald_p = TRUE,
+               compute_cis = TRUE,
+               run_score_tests = FALSE,
+               verbose = TRUE)
+
+
   
 })

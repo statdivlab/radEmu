@@ -159,7 +159,9 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
   } 
   
-  
+  ########################################
+  ########## fit model if needed
+  ########################################
   if (refit) {
     
     #choose reference column for convenience constraint
@@ -169,6 +171,7 @@ and the corresponding gradient function to constraint_grad_fn.")
     if (length(j_ref) > 1) {
       totals <- colSums(Y[ , j_ref])
       j_ref<- j_ref[which.max(totals)]
+      stopifnot(length(j_ref) == 1)
     }
     
     if (penalize) {
@@ -226,6 +229,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   coefficients$upper <- NA
   coefficients$pval <- coefficients$score_stat <- NA
   
+  ##### TODO avoid code duplication
   #choose ref taxon for fitting constrained models / doing wald tests
   for_ref <- colSums(Y>0)
   for_ref <- which(for_ref == max(for_ref))
@@ -259,11 +263,11 @@ and the corresponding gradient function to constraint_grad_fn.")
       I <- NULL
       Dy <- NULL
     }
+  } else {
+    just_wald_things <- NULL
+    I <- NULL
+    Dy <- NULL
   }
-  
-  
-  
-  # print(coefficients)
   
   if (return_wald_p) {
     if (!compute_cis) {
@@ -393,9 +397,7 @@ and the corresponding gradient function to constraint_grad_fn.")
       
       coefficients$covariate <- do.call(c,
                                         lapply(  coefficients$k,
-                                                 function(d) k_to_covariates$covariate[
-                                                   k_to_covariates$k ==d
-                                                 ]))
+                                                 function(d) k_to_covariates$covariate[k_to_covariates$k ==d]))
     } else {
       coefficients$covariate <- NA
     }
@@ -474,7 +476,14 @@ and the corresponding gradient function to constraint_grad_fn.")
     B <- fitted_model$B
   }
   
-  I <- just_wald_things$I
+  if (is.null(just_wald_things)) {
+    I <- NULL
+    Dy <- NULL
+  } else {
+    I <- just_wald_things$I
+    ## TODO Dy? AW added next line Jan 18 2023
+    Dy <- just_wald_things$Dy
+  }
   
   return(list("coef" = coefficients,
               "B" = B,
