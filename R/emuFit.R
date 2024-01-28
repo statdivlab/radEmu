@@ -296,7 +296,11 @@ and the corresponding gradient function to constraint_grad_fn.")
     indexes_to_remove = (j_ref - 1)*p + 1:p
     I_inv <- Matrix::solve(just_wald_things$I[-indexes_to_remove,-indexes_to_remove],  method = "cholmod_solve")
   } else {
+    if(use_both_cov){
+      I_inv <- Matrix::solve(just_wald_things$I[-indexes_to_remove,-indexes_to_remove],  method = "cholmod_solve")
+    } else{
     I_inv <- NULL
+    }
   }
   
   if (run_score_tests) {
@@ -375,8 +379,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                          J = J,
                                          n = n,
                                          p = p, 
-                                         I_inv=just_wald_things$I, #### TODO(AW) confirm w DC
-                                         # I = just_wald_things$I, 
+                                         I_inv=I_inv,
                                          Dy = just_wald_things$Dy)*(n/(n - 1))
         
         
