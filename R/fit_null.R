@@ -22,8 +22,6 @@ fit_null <- function(B,
                      trackB = FALSE
 ) {
   
-  if (trackB) warning("trackB needs fixing; pieces are missing")
-  
   J <- ncol(Y)
   n <- nrow(Y)
   p <- ncol(X)
@@ -45,13 +43,13 @@ fit_null <- function(B,
   log_mean <- X%*%B +
     matrix(z,ncol = 1)%*%matrix(1,ncol = J, nrow = 1)
   
-  # if (trackB) {
-  #   Bs <- data.frame(k = rep(1:p,each = J),
-  #                    j = rep(1:J,p),
-  #                    B = NA)
-  # } else{
+  if (trackB) {
+    Bs <- data.frame(k = rep(1:p,each = J),
+                     j = rep(1:J,p),
+                     B = NA)
+  } else{
   Bs <- NULL
-  # }
+  }
   
   #get X_cup for later use
   if (is.null(X_cup)) {
@@ -71,22 +69,20 @@ fit_null <- function(B,
   #initiate u
   u <- rho*gap
   
-  # if (trackB) {
-  #   Bs$iter <- 0
-  #   Bs$inner_iter <- 0
-  #   Bs$rho <- rho
-  #   Bs$u <- u
-  #   Bs$Q <- NA
-  #   Bs$gap <- gap
+  if (trackB) {
+    Bs$iter <- 0
+    Bs$inner_iter <- 0
+    Bs$rho <- rho
+    Bs$u <- u
+
+    Bs$gap <- gap
   #   Bs$score_stat <- 0
-  #   Bs$score_err <- 0
-  #   Bs$dlag_dB <- NA
-  #   lilBs <- Bs
+    lilBs <- Bs
   #   
-  #   for(k in 1:p) {
-  #     Bs$B[1:J + J*(k - 1)] <- B[k,]
-  #   }
-  # }
+    for(k in 1:p) {
+      Bs$B[1:J + J*(k - 1)] <- B[k,]
+    }
+  }
   
   loop_j_to_update <- j_to_update
   
@@ -133,20 +129,20 @@ fit_null <- function(B,
       gap <- update$gap
       z <- update_z(Y,X,B)
       
-      # if (trackB) {
+      if (trackB) {
       #   
       #   ### AW notes 1/15/24 that dlag_lamhat_dB is not computed in this function. 
       #   
-      #   temp_Bs <- lilBs
-      #   for(k in 1:p) {
-      #     temp_Bs$B[1:J + J*(k - 1)] <- B[k,]
-      #   }
-      #   temp_Bs$iter <- iter
-      #   temp_Bs$inner_iter <- inner_iter
-      #   temp_Bs$rho <- rho
-      #   temp_Bs$u <- u
+        temp_Bs <- lilBs
+        for(k in 1:p) {
+          temp_Bs$B[1:J + J*(k - 1)] <- B[k,]
+        }
+        temp_Bs$iter <- iter
+        temp_Bs$inner_iter <- inner_iter
+        temp_Bs$rho <- rho
+        temp_Bs$u <- u
       #   temp_Bs$Q <- NA
-      #   temp_Bs$gap <- gap
+        temp_Bs$gap <- gap
       #   if (iter > 1 | inner_iter > 1) {
       #     jcounter <- 1
       #     for(j in 1:J) {
@@ -163,9 +159,9 @@ fit_null <- function(B,
       #     }
       #   }
       #   
-      #   Bs <- rbind(Bs,temp_Bs)
+        Bs <- rbind(Bs,temp_Bs)
       #   
-      # }
+      }
       
       inner_diff <- max(abs(B - inner_old_B))
       
