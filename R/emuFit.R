@@ -78,6 +78,7 @@
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
 #' @import MASS
+#' @import MatrixExtra
 #'
 #' @export
 #'

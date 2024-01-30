@@ -7,8 +7,8 @@
 emuFit(
   Y,
   X = NULL,
-  formula,
-  data,
+  formula = NULL,
+  data = NULL,
   penalize = TRUE,
   B = NULL,
   fitted_model = NULL,
@@ -42,7 +42,7 @@ emuFit(
 )
 }
 \arguments{
-\item{Y}{an n x J matrix of nonnegative observations}
+\item{Y}{an n x J matrix of nonnegative observations, or a phyloseq object containing an otu table and sample data.}
 
 \item{X}{an n x p matrix of covariates (optional)}
 

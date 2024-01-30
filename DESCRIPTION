@@ -6,15 +6,16 @@ Authors@R: as.person(c(
     "Amy Willis [aut]", 
     "Sarah Teichman [aut]"
   ))
-Description: A differential abundance method for the analysis of microbiome data. radEmu estimates fold-differences across sample types relative to "typical" fold-differences. Notably, it does not require pseudocounts, nor choosing a denominator taxon. 
+Description: A differential abundance method for the analysis of microbiome data. radEmu estimates fold-differences in the abundance of taxa across samples relative to "typical" fold-differences. Notably, it does not require pseudocounts, nor choosing a denominator taxon. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Depends: 
     MASS,
     Matrix,
+    MatrixExtra, 
     methods,
     R (>= 2.10)
 Suggests: 
