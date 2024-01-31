@@ -33,7 +33,8 @@ get_augmentations <- function(X,
   W <- Matrix::Diagonal(x = exp(log_means@x))
 
   info <- Matrix::crossprod(G, W) %*% G
-  info <- methods::as(info, "symmetricMatrix")
+  # info <- methods::as(info, "symmetricMatrix")
+  info <- Matrix::forceSymmetric(info)
   # info <- as(info,"dsTMatrix")
   # info <- spam::as.spam.dgCMatrix(info)
   info_chol <- Matrix::chol(info, pivot = FALSE)
