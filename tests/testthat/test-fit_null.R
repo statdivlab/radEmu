@@ -166,7 +166,7 @@ test_that("Null fit satisfies null constraints", {
                           constraint_tol = 1e-5,
                           B_tol = 1e-1,
                           constraint_grad_fn = constraint_grad_fn,
-                          verbose = TRUE)
+                          verbose = FALSE)
   
   
   

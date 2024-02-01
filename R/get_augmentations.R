@@ -1,7 +1,9 @@
 
-
+#get data augmentations for Firth penalized estimation
+#general method described in Kosmidis and Firth (2011)
+#specifics here described in estimation section of Clausen and Willis (2024)
 get_augmentations <- function(X,
-                              G,
+                              G, #design matrix in beta_vec and z
                               Y,
                               B){
 
@@ -11,7 +13,7 @@ get_augmentations <- function(X,
   p <- nrow(B)
   J <- ncol(Y)
 
-  #parametrize so last column of B is dropped
+  #parametrize so last column of B is / can be dropped
   for(k in 1:p){
     B[k, ] <- B[k, ] - B[k, J]
   }
@@ -32,39 +34,28 @@ get_augmentations <- function(X,
 
   W <- Matrix::Diagonal(x = exp(log_means@x))
 
+  #information matrix (we're using tricky equivalency to poisson model)
   info <- Matrix::crossprod(G, W) %*% G
-  info <- methods::as(info, "symmetricMatrix")
-  # info <- as(info,"dsTMatrix")
-  # info <- spam::as.spam.dgCMatrix(info)
+  # info <- methods::as(info, "symmetricMatrix")
+  info <- Matrix::forceSymmetric(info)
+  #cholesky decomposition
   info_chol <- Matrix::chol(info, pivot = FALSE)
+  #info^(-0.5) by inverting cholesky decomp
   info_half_inv <- Matrix::solve(info_chol)
-  # info_half_inv <- info_chol_inv
-  # info_half_inv <- 0.5*(info_chol_inv + t(info_chol_inv))
-  # eigen(info_chol)
-  # info_schur <- Matrix::Schur(info)
-  # info_eigen <- eigen(info, symmetric = TRUE)
-  # info_eigen <- spam::eigen.spam(info,
-  #                                symmetric = TRUE,
-  #                                nev = nrow(info))
-  # info_half_inv <-  info_eigen$vectors  %*%
-  #   Matrix::tcrossprod(Matrix::Diagonal(x = 1/sqrt(info_eigen$values)), info_eigen$vectors)
-  # info_half_inv <- Matrix::t(info_chol_inv)
+ 
   augmentations <- matrix(0, nrow = n, ncol =J)
-  # pv <- profvis::profvis({
+
+  #get augmentations
   for(i in 1:n){
     # print(i)
     G_i <- G[1:J + (i - 1)*J, , drop = FALSE]
     G_i <- G_i %*% info_half_inv
 
-    # G_i %*%
-    # for(j in 1:J){
-    #   augmentations[i, j] <- sum(G_i[j, ]^2)*exp(log_means[(i - 1)*J +j, ])/2
       augmentations[i, ] <-
       Matrix::rowSums(Matrix::Diagonal(x = exp(log_means[(i - 1)*J + 1:J, ])) %*% (G_i^2) )/2
-  #     G_i
-  #   }
+
   }
-  # })
+
 
 
   return(augmentations)

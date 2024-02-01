@@ -71,7 +71,12 @@ may take a moment.")
       # print(counter)
 
       if(counter ==0){
-        Y_augmented <- Y + 1e-3*mean(Y)
+        Y_augmented <- Y + 1e-3*mean(Y) #ensures we don't diverge to 
+                                        #infinity in first iteration 
+                                        #after which point we use 
+                                        #data augmentations based on B
+                                        #is there a smarter way to start?
+                                        #probably.
       } else{
         if(verbose){
           message("Computing data augmentations for Firth penalty. For larger models, this may take some time.")
@@ -102,6 +107,7 @@ maintained only for testing purposes.")
       } else{
         old_B <- Inf
       }
+      #fit model by ML to data with augmentations
       fitted_model <- emuFit_micro(X,
                                    Y_augmented,
                                    B = fitted_model,
@@ -116,45 +122,12 @@ maintained only for testing purposes.")
                                    verbose = verbose,
                                    j_ref = j_ref)
 
-      # plot(do.call(c,lapply(1:p,function(k) fitted_model[k,] )))
-      #
-      # if(counter >0){
-      #   # plot(do.call(c,lapply(1:p,function(k) fitted_model[k,] - old_B[k,] )))
-      #   plot(log(apply(abs(fitted_model - old_B),2,max))/log(10))
-      #   abline(a = log(tolerance)/log(10),b = 0, lty = 2, col = "red")
-      # } else{
-      #   plot(do.call(c,lapply(1:p,function(k) fitted_model[k,] )),pch = ".")
-      # }
-
-
-
-
-
-      # z <- update_z(Y = Y_augmented,X = X,B = fitted_model)
-      #
-      # log_mean <- X%*%fitted_model +
-      #   matrix(z,ncol = 1)%*%matrix(1,ncol = J, nrow = 1)
-      #
-      #
-      # deriv <- do.call(c,lapply(1:J,
-      #                           function(j) crossprod(X,Y[,j,drop = FALSE] - exp(log_mean[,j,drop = FALSE]))))
-      # message("Why is deriv_norm diff than we found inside emuFit_micro?")
-      # deriv_norm  = sqrt(sum(deriv^2))
+  
       B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model)<max_abs_B])
-      # print(signif(B_diff,3))
+
       if(B_diff < tolerance){
         converged <- TRUE
       }
-      # print(deriv_norm)
-      # B_cup_from_B(deriv_pois)
-      # plot(asinh(deriv_pois),asinh(deriv))
-      #
-      # deriv <- dpll_dB_cup(X,Y_augmented,fitted_model)
-      # deriv_norm  = sqrt(sum(deriv^2))
-
-      # if(deriv_norm<tolerance){
-      #   converged <- TRUE
-      # }
 
       if(counter>maxit){
         converged <- TRUE

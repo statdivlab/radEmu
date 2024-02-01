@@ -1,11 +1,13 @@
 
-
-eta_jacobian <- function(beta_tilde_J,
-                         tau,
-                         X_tilde_J,
-                         J,
-                         i,
-                         n){
+#function to get jacobian of mean function for observation i wrt beta, tau
+#used in getting data augmentations
+eta_jacobian <- function(beta_tilde_J, #long format beta (w.o. J-th taxon, I believe)
+                         tau, #colsums of Y (no augmentations)
+                         X_tilde_J, #expanded design matrix (for Y_vec)
+                         J, #number taxa
+                         i, #observation index
+                         n #number of observations
+                         ){
 
   which_indices <- 1:J + (i - 1)*J
   p_i <- exp(X_tilde_J[which_indices,]%*%beta_tilde_J)

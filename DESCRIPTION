@@ -15,7 +15,6 @@ RoxygenNote: 7.3.1
 Depends: 
     MASS,
     Matrix,
-    MatrixExtra, 
     methods,
     R (>= 2.10)
 Suggests: 

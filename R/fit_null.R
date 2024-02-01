@@ -1,25 +1,28 @@
+#fits model with B_kj constrained to equal g(B_k) for constraint fn g
 fit_null <- function(B,
                      Y, #Y (with augmentations)
                      X, #design matrix
                      X_cup = NULL,
                      k_constr, #row index of B to constrain
                      j_constr, #col index of B to constrain
-                     j_ref,
+                     j_ref, #column index of convenience constraint
                      constraint_fn, #constraint function
                      constraint_grad_fn, #gradient of constraint fn\
-                     rho_init = 1,
-                     tau = 1.2,
-                     kappa = 0.8,
-                     B_tol = 1e-2,
-                     inner_tol = 0.01,
-                     constraint_tol = 1e-4,
-                     max_step = 5,
-                     c1 = 1e-4,
-                     maxit = 1000,
-                     inner_maxit = 25,
-                     n_final_inner_it = 25,
-                     verbose = FALSE,
-                     trackB = FALSE
+                     rho_init = 1, #where to start quadratic penalty parameter
+                     tau = 1.2, #how much to increment rho by each iteration
+                     kappa = 0.8, #cutoff above which to increment rho 
+                                  #( if distance to feasibility doesn't shrink by
+                                  # at least this factor in an iteration, 
+                                  # increment rho by tau)
+                     B_tol = 1e-2, #tolerance for convergence in max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|
+                     inner_tol = 0.01, #tolerance for inner loop
+                     constraint_tol = 1e-4, #tolerance for |B_kj - g(B_k)|
+                     max_step = 5, #maximum step size
+                     c1 = 1e-4, #constant for armijo rule
+                     maxit = 1000, #maximum iterations
+                     inner_maxit = 25, #max iterations per inner loop
+                     verbose = FALSE, #shout at you?
+                     trackB = FALSE #track value of beta across iterations and return?
 ) {
   
   J <- ncol(Y)
@@ -37,7 +40,7 @@ fit_null <- function(B,
     B[k,] <- B[k,] - B[k,j_ref]
   }
   
-  #how large is norm of score at initiation?
+  #update z
   z <- update_z(X = X, Y = Y, B = B)
   
   log_mean <- X%*%B +
@@ -56,10 +59,10 @@ fit_null <- function(B,
     X_cup = X_cup_from_X(X,J)
   }
   
-  #set  <- ation to zero
+  #set iteration to zero
   iter <- 0
   
-  #compute gap
+  #compute gap (i.e. g(B_k) - B_kj)
   gap <- constraint_fn(B[k_constr,]) - B[k_constr,j_constr]
   init_gap <- abs(gap)
   
@@ -89,7 +92,7 @@ fit_null <- function(B,
   use_max_inner_it <- FALSE
   B_diff <- Inf
   
-  while((abs(gap) > constraint_tol | B_diff> B_tol #proj_score > B_tol #| Q > inner_tol
+  while((abs(gap) > constraint_tol | B_diff> B_tol #outer loop
   ) & iter <= maxit) {
     
     iter <- iter + 1    #increment iteration
@@ -98,17 +101,19 @@ fit_null <- function(B,
     #evaluate augmented Lagrangian
     log_means <- do.call(cbind,lapply(1:J,function(j) X%*%B[,j] + z))
     
-    #     message("Have to update how lagrangian and its derivs are computed to reflect
-    # better ref taxon")
+    #  get current value of augmented lagrangian
     curr_lag_val <- sum(-log_means*Y + exp(log_means)) + u*gap + (rho/2)*(gap^2)
     
-    old_gap <- gap
-    old_B <- B
-    inner_diff <- Inf
+    old_gap <- gap # old value of g(B_k) - B_kj
+    old_B <- B #old value of B
+    inner_diff <- Inf #initiate "observed" max abs val diff in B between inner iterations
+                      #at Inf so inner loop runs at least once
+    #inner loop:
     while(((inner_diff > inner_tol | use_max_inner_it) & inner_iter <= inner_maxit)| inner_iter == 0) {
       
       inner_old_B <- B
       
+      #perform block update to B as described in null estimation section of Clausen & Willis (2024)
       update <- macro_fisher_null(X = X,
                                   Y = Y,
                                   B = B,
@@ -163,19 +168,21 @@ fit_null <- function(B,
       #   
       }
       
+      #did we move much?
       inner_diff <- max(abs(B - inner_old_B))
       
+      #increment inner iteration counter
       inner_iter <- inner_iter + 1
       
     }
-    
+    #did we move much since last *outer* loop iteration?
     B_diff <- max(abs(B - old_B))
     
     if (verbose) {
       message("Max absolute difference in B since last augmented Lagrangian outer step: ", signif (B_diff,3))
     }
     
-    
+    #update u and rho
     if ( abs(gap) > constraint_tol) {
       u <- u + rho*gap
       if (abs(gap/old_gap) > kappa) {

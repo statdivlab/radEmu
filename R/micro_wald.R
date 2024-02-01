@@ -1,4 +1,5 @@
 
+#function that does Wald testing / computes Wald CIs
 micro_wald <- function(Y,
                        X,
                        X_cup,
@@ -22,10 +23,12 @@ micro_wald <- function(Y,
   } else{
     nice_ref <- j_ref
   }
+  #impose convenience constraint and update z
   for(k in 1:p){
     B[k,] <- B[k,] - B[k,nice_ref]
   }
   z <- update_z(Y,X,B)
+  #long form B
   B_cup <- B_cup_from_B(B)
   
   #drop columns corresp. to nice_ref from X_cup
@@ -41,80 +44,38 @@ micro_wald <- function(Y,
     message("Computing 'meat' matrix.")
   }
   
-  #compute score contributions of observations i = 1 through n
   
-  # if(FALSE){
-  # for(i in 1:n){
-  #   if(verbose){
-  #     message("Computing score component ", i, " of ", n,".")
-  #   }
-  #   # print(i)
-  #   X_cup_i <- X_cup[(i - 1)*J + 1:J,]
-  #   # scores[[i]] <- as.matrix(dpll_dB_cup(X[i,,drop = FALSE],Y[i,,drop = FALSE],B))
-  #   log_means_i <- X_cup_i%*%B_cup + z[i]
-  #   scores[[i]] <- Matrix::crossprod(X_cup_i,t(Y[i,,drop = FALSE]) - exp(log_means_i))
-  # }
-  # 
-  # 
-  # } else{
-  #   # score_mat <- methods::as(matrix(0,nrow = n, ncol = ncol(X_cup)),"sparseMatrix")
-  #   # Matrix::sparseMatrix()
-  #   #
   log_means <- X%*%B + matrix(z,ncol = 1)%*%matrix(1,nrow = 1, ncol = J)
-  # 
-  #     for(i in 1:n){
-  #       if(verbose){
-  #         message("Computing score component ", i, " of ", n,".")
-  #       }
-  #       # print(i)
-  #       # X_cup_i <- X_cup[(i - 1)*J + 1:J,]
-  #       # # scores[[i]] <- as.matrix(dpll_dB_cup(X[i,,drop = FALSE],Y[i,,drop = FALSE],B))
-  #       # log_means_i <- X_cup_i%*%B_cup + z[i]
-  #       X_i <- X[i,]
-  #       diffs <- Y[i,] - exp(log_means[i,])
-  #       score_mat[i,] <- do.call(c,
-  #                                lapply(1:J,
-  #                                function(j)
-  #                                diffs[j]*(X_i)))
-  #     }
   
+  #compute residuals
   Y_diff <- Y - exp(log_means)
   
+  #compute score from residuals
   scores <- lapply(1:n,
                    function(i){
                      # print(i);
                      Y_diff[i,,drop = FALSE]%*%
                        X_cup[(i - 1)*J + 1:J,]})
-  # Dy <- Matrix::crossprod(scores[[1]])
-  # for(i in 2:n){
-  #   # if(verbose){
-  #   #   message("Computing meat component ", i, " of ", n,".")
-  #   # }
-  #   print(i)
-  #   Dy <- Dy + Matrix::crossprod(scores[[i]])
-  # }
+  
   score_mat <- do.call(rbind,scores)
   score_mat <- methods::as(score_mat,"sparseMatrix")
+  #empirical score covariance
   Dy <- Matrix::crossprod(score_mat)
   
   
-  # # message("Computing 'meat' matrix")
-  # 
-  # # Dy <- Matrix::crossprod(score_mat)
-  
-  # }
   
   if(verbose){
     message("Computing information matrix.")
   }
   
-  # if(ncol(X_cup)<2500){
+  #get information matrix
   I <- f_info(Y,B_cup = B_cup_from_B(B),B,X,X_cup,compute_together = FALSE)
   
   if(verbose){
     message("Inverting information to obtain 'bread' matrix.")
   }
   
+  #get a matrix whose crossproduct with itself is the sandwich covariance for B
   half_rob_cov <- Matrix::t(Matrix::solve(I[-to_erase,-to_erase], Matrix::t(score_mat)[-to_erase,],
                                           method = "cholmod_solve"))
   
@@ -126,8 +87,8 @@ micro_wald <- function(Y,
   if(verbose){
     message("Performing Wald tests and constructing Wald CIs.")
   }
+  #testing / confidence interval construction
   for(s in 1:nrow(test_kj)){
-    
     
     
     null_k <- test_kj$k[s]
