@@ -1,5 +1,5 @@
 
-
+#get design matrix in beta_vec (w.o. B^J) and z
 get_G_for_augmentations <- function(X,
                                     J,
                                     n,

@@ -1,5 +1,6 @@
 
-
+#another function to get expected information (and possibly jacobians of 
+#mean function in parameters)
 expected_info_repar <- function(beta_tilde_J,
                                 tau,
                                 X_tilde_J,

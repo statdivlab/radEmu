@@ -1,3 +1,6 @@
+
+#function to generate beta values used 
+#in simulations in Clausen & Willis (2024)
 get_sim_bs <- function(J){
   evens <- ((1:J)%%2 ==0)
   b0 <- numeric(J)

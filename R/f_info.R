@@ -1,5 +1,5 @@
 #' @importFrom methods as
-
+# fisher information for multinomial model
 f_info <- function(Y,
                    B_cup,
                    B,
@@ -23,7 +23,8 @@ f_info <- function(Y,
 
 
 
-  if(compute_together){
+  if(compute_together){ #older, slower way of computing info
+                        #used only to test equality with newer way
     ident_mat <- Matrix::Diagonal(x = rep(1,J))
     one_mat <- Matrix::Matrix(1,nrow = J,ncol=1)
   for(i in 1:n){
@@ -37,7 +38,7 @@ f_info <- function(Y,
 
     f_info <- f_info + Matrix::crossprod(M_iX_i,Matrix::Diagonal(x= as.numeric(mu_i)))%*%M_iX_i
   }
-  } else{
+  } else{ #newer, faster way to compute info
     mus <- exp(X_cup%*%B_cup + rep(z,each = J))
     mu_diag <- Matrix::Diagonal(x = mus@x)
 

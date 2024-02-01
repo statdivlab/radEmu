@@ -1,3 +1,4 @@
+#get robust score stat
 get_score_stat <- function(Y,
                            X_cup,
                            X,
@@ -5,13 +6,16 @@ get_score_stat <- function(Y,
                            k_constr,
                            j_constr,
                            constraint_grad_fn,
-                           indexes_to_remove,
-                           j_ref,
+                           indexes_to_remove, #indexes for B_vec corresp. to 
+                                              #parameters set equal to zero as 
+                                              #convenience constraint
+                           j_ref, #index of taxon/category used as convenience constraint
                            J,
                            n,
                            p,
-                           I_inv = NULL,
-                           Dy = NULL){
+                           I_inv = NULL, #previously computed I_inv, if desired
+                           Dy = NULL #previously computed estimate of score covariance, if desired
+                           ){
   scores <- vector(n,mode = "list")
   
   p <- ncol(X)
@@ -73,6 +77,7 @@ get_score_stat <- function(Y,
   score <- as.matrix(score)
   score <- score[-indexes_to_remove, , drop =FALSE]
   
+  #slightly fancy calculation of numerator and denominator of score stat:
   outside <- Matrix::crossprod(score, I_inv_H)
   inside <- Matrix::crossprod(I_inv_H, Dy) %*% I_inv_H
   score_stat <- as.numeric(as.matrix(outside^2/inside))
