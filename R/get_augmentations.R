@@ -36,10 +36,9 @@ get_augmentations <- function(X,
 
   #information matrix (we're using tricky equivalency to poisson model)
   info <- Matrix::crossprod(G, W) %*% G
-  #make Matrix package see this is a symmetric matrix:
-  info <- methods::as(info, "symmetricMatrix")
-
-  #cholesky decomp
+  # info <- methods::as(info, "symmetricMatrix")
+  info <- Matrix::forceSymmetric(info)
+  #cholesky decomposition
   info_chol <- Matrix::chol(info, pivot = FALSE)
   #info^(-0.5) by inverting cholesky decomp
   info_half_inv <- Matrix::solve(info_chol)
