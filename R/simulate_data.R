@@ -1,5 +1,5 @@
 #' @importFrom stats rnorm rbinom rpois rnbinom
-
+#function to simulate data for simulations in Clausen & Willis (2024)
 simulate_data <- function(n,
                           J,
                           b0,

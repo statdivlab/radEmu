@@ -1,14 +1,17 @@
 
-
+#fisher scoring update for j-th column of B in unconstrained optimization
+#z held constant
 micro_fisher <- function(X,Yj,Bj,z,
                          stepsize = 1,
                          c1 = 0.1){
   log_means <- X%*%Bj + z
   means <- exp(log_means)
-  # means <- exp(X%*%Bj + z)
+
+  #info in Bj
   info <- t(X)%*%diag(as.numeric(means))%*%X
   lj_grad <- colSums(diag(as.numeric(Yj - means))%*%X)
 
+  #make update a try-error to start
   update <- try(stop(),silent = TRUE)
 
 
@@ -18,6 +21,8 @@ micro_fisher <- function(X,Yj,Bj,z,
     info_avg_diag <- abs(info)
   }
 
+  #try to compute update direction as is, but if we run into numerical 
+  #invertibility issues, regularize info and try again
   regularization <- 0
   while(inherits(update,"try-error")){
     update <- try(qr.solve(info + regularization*info_avg_diag,lj_grad),silent = TRUE)
@@ -25,6 +30,7 @@ micro_fisher <- function(X,Yj,Bj,z,
   }
 
 
+  #use armijo rule to choose step size
   obj <- -sum(Yj*log_means - means)
   obj_grad <- -lj_grad
 

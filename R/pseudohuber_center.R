@@ -1,21 +1,17 @@
 
-
+#get the pseudohuber smoothed median
 pseudohuber_center <- function(x,
-                               d = 1,
-                               limit = 20,
+                               d = 1, #smoothing parameter
+                               limit = 20, #max iterations
                                tolerance = 1e-8){
 
-  # return(optim(median(x),
-  #       function(y) pseudohuber(x - y,d),
-  #       lower = -limit,
-  #       upper = limit,
-  #       method = "Brent")$par)
-
-  y <- median(x)
+  y <- median(x) #start at median
   converged <- FALSE
 
   ps <- pseudohuber(x -y, d)
   iter <- 1
+  #successive updates using quadratic approx to pseudohuber criterion
+  #detailed in supplement of Clausen & Willis (2024)
   while(!converged){
     scaled_sq <- ((x - y)/d)^2
 
@@ -29,9 +25,6 @@ pseudohuber_center <- function(x,
     if(abs(y - old_y)<tolerance){
       converged <- TRUE
     }
-#
-#     print(y)
-#     print(abs(y - old_y))
 
   }
 

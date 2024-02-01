@@ -1,5 +1,5 @@
 
-
+#perform score test
 score_test <- function(B, #B (MPLE)
                        Y, #Y (with augmentations)
                        X, #design matrix
@@ -33,6 +33,7 @@ score_test <- function(B, #B (MPLE)
   accept_try <- FALSE
   good_enough_fit <- FALSE
   while(!accept_try){
+    #fit under null
   constrained_fit <- try(fit_null(B = B, #B (MPLE)
                                       Y = Y, #Y (with augmentations)
                                       X = X, #design matrix
@@ -90,6 +91,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
   # message("Make X_cup an argument of score_test and calculate it once in emuFit")
   # X_cup = X_cup_from_X(X,J)
     #indexes in long format corresponding to the j_constr-th col of B
+  #get score stat
   indexes_to_remove <- (j_ref - 1)*p + 1:p
   score_stat <-
     get_score_stat(Y = Y,
@@ -109,65 +111,10 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
 
 
   score_stat <- score_stat*(n/(n - 1))
-#
 
-#   scores <- vector(n,mode = "list")
-#
-#   #indexes in long format corresponding to the j_constr-th col of B
-#   indexes_to_remove <- (j_constr - 1)*p + 1:p
-#   #compute score contributions of observations i = 1 through n
-#   for(i in 1:n){
-#     X_cup_i <- X_cup[(i - 1)*J + 1:J,]
-#     scores[[i]] <- as.matrix(dpll_dB_cup(X[i,,drop = FALSE],Y[i,,drop = FALSE],B))
-#   }
-#
-#   H <- matrix(0,nrow = p, ncol = J)
-#   for(j in 1:J){
-#     # H[k_constr,j] <- get_dg_dBj(B = B,
-#     #                           j = j,
-#     #                           k_star = k_constr,
-#     #                           huber_param = huber_param,
-#     #                           constraint_type = constraint_type,
-#     #                           for_testing = TRUE)[k_constr]
-#
-#     H[k_constr,j] <- constraint_grad_fn(B[k_constr,])[j]
-#   }
-#
-#
-#   H_cup <- B_cup_from_B(H)
-#
-#   H_cup <- H_cup[-indexes_to_remove,,drop = FALSE]
-#
-#   B_cup <- B_cup_from_B(B)
-#   I <- f_info(Y,B_cup,B,X,X_cup)
-#   I <- I[-indexes_to_remove,-indexes_to_remove]
-#   # I_inv <- solve(I)
-#   # H_I_inv <- crossprod(H_cup,I_inv)
-#   H_I_inv <- try(t(qr.solve(I,H_cup,tol= 1e-20)))
-#   if(inherits(H_I_inv,"try-error")){
-#     H_I_inv <- t(MASS::ginv(as.matrix(I))%*%H_cup)
-#     warning("Information matrix numerical singular; check convergence of fit under null.")
-#   }
-#
-#   Dy <- Reduce("+",lapply(scores,function(x) tcrossprod(x)))
-#   Dy <- Dy[-indexes_to_remove,-indexes_to_remove]
-#   score <- Reduce("+",scores)
-#   score <- as.matrix(score)
-#   score <- score[-indexes_to_remove,,drop =FALSE]
-#
-#
-#   outside <- H_I_inv%*%score
-#
-#   inside <- H_I_inv%*%Dy%*%t(H_I_inv)
-#
-#   score_stat <- (n/(n - 1))*
-#     as.numeric(outside)^2/as.numeric(inside)
-  # } else{
-    # score_stat <- NA
-
-  # }
-
-  if(!return_both_score_pvals){
+ 
+  if(!return_both_score_pvals){ #typically we want only one score p-value
+                                #(using only one version of information matrix)
 
   return(list("score_stat" = score_stat,
               "pval" = pchisq(score_stat,1,lower.tail = FALSE),
@@ -181,7 +128,9 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
               "null_B" = constrained_fit$B,
               # "score_stats" = constrained_fit$score_stats,
               "Bs" = constrained_fit$Bs))
-  } else{
+  } else{ 
+    #for simulations -- if we want to return both the score p-value using
+    #information from full model fit and from null model
       score_stat_with_null_info <-
         get_score_stat(Y = Y,
                        X_cup = X_cup,
