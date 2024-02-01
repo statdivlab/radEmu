@@ -13,7 +13,7 @@ get_augmentations <- function(X,
   p <- nrow(B)
   J <- ncol(Y)
 
-  #parametrize so last column of B is dropped
+  #parametrize so last column of B is / can be dropped
   for(k in 1:p){
     B[k, ] <- B[k, ] - B[k, J]
   }
