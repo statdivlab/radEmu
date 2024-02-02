@@ -101,8 +101,8 @@ test_that("emuFit takes formulas and actually fits a model", {
                                verbose = FALSE,
                                return_both_score_pvals = TRUE)
   
-  ps_full <- fitted_model_return_both_score_pvals$coef$score_pval_full_info
-  ps_null <- fitted_model_return_both_score_pvals$coef$score_pval_null_info
+  ps_full <- fitted_model_both$coef$score_pval_full_info
+  ps_null <- fitted_model_both$coef$score_pval_null_info
   expect_true(is.numeric(ps_full))
   expect_true(is.numeric(ps_null))
   expect_true(cor(ps_null, ps_full) > 0.95)
