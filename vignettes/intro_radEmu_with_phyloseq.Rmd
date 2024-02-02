@@ -1,0 +1,336 @@
+---
+title: "Introduction to radEmu with phyloseq"
+author: "David Clausen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to radEmu with phyloseq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+First, we will install `radEmu`.
+
+```{r, eval = FALSE}
+if (!require("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+remotes::install_github("statdivlab/radEmu")
+```
+
+Next, we can load `radEmu` as well as the `tidyverse` package suite. 
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(radEmu)
+```
+
+## Introduction 
+
+This vignette provides an introduction to using `radEmu` for differential abundance analysis using a `phyloseq` data object. To see the same analysis using data not stored as a `phyloseq` object, see the vignette "intro_radEmu.Rmd". 
+
+In this lab we'll explore a [dataset published by Wirbel et al. (2019)](https://www.nature.com/articles/s41591-019-0406-6). This is a meta-analysis of case-control studies, meaning that Wirbel et al. collected raw sequencing data from studies other researchers conducted and re-analyzed it (in this case, they also collected some new data of their own).
+
+Wirbel et al. published two pieces of data we'll focus on today:
+
+* metadata giving demographics and other information about participants
+* a mOTU (metagenomic OTU) table
+
+We'll look at a subset of all 849 mOTUs Wirbel et al. published. We're most interested to compare microbial abundance in cases diagnosed with colorectal cancer to abundances in controls (without this diagnosis).
+
+## Loading and exploring data 
+
+Note that in order to follow along with this tutorial (but not to use `radEmu`!) you will need to have `phyloseq` installed. We will check if you have `phyloseq` installed, and if you do not then you can read the following code but it will not be run.
+
+```{r, results = 'hide'}
+phy <- requireNamespace("phyloseq", quietly = TRUE) == TRUE
+```
+
+```{r, echo = FALSE}
+print(paste0("phyloseq is installed: ", phy))
+```
+
+Now that we have loaded the `phyloseq` package, we will create our `phyloseq` data object. 
+
+```{r, eval = phy} 
+data(wirbel_sample)
+data(wirbel_otu)
+data(wirbel_taxonomy)
+wirbel_phylo <- phyloseq::phyloseq(phyloseq::sample_data(wirbel_sample),
+                                   phyloseq::otu_table(wirbel_otu, taxa_are_rows = FALSE),
+                                   phyloseq::tax_table(wirbel_taxonomy))
+```
+
+We'll start by looking at the metadata. 
+
+```{r, eval = phy}
+dim(phyloseq::sample_data(wirbel_phylo))
+head(phyloseq::sample_data(wirbel_phylo))
+```
+
+We can see that this dataset includes $566$ observations and $14$ variables. Let's see how many observations we have among cases ("CRC") and controls ("CTR")
+
+```{r, eval = phy}
+wirbel_sample %>%
+  group_by(Group) %>%
+  summarize(count = n())
+```
+
+We have data from studies in 5 different countries. How much from each study, you ask? Let's find out!
+
+```{r, eval = phy}
+wirbel_sample %>%
+  group_by(Country) %>%
+  summarize(count = n())
+```
+
+Let's see how many cases and controls were enrolled in each study as well. 
+
+```{r, eval = phy}
+wirbel_sample %>%
+  group_by(Country, Group) %>%
+  summarize(n = n())
+```
+
+Now let's load the mOTU table. 
+
+```{r, eval = phy}
+dim(phyloseq::otu_table(wirbel_phylo))
+# let's check out a subset
+phyloseq::otu_table(wirbel_phylo)[1:5, 1:3]
+```
+
+We can see that this table has $566$ samples (just like the metadata) and $845$ mOTUs. Let's save these mOTU names in a vector. 
+
+```{r, eval = phy}
+mOTU_names <- colnames(phyloseq::otu_table(wirbel_phylo))
+```
+
+Finally, we can check out the taxonomy table. 
+
+```{r, eval = phy}
+head(phyloseq::tax_table(wirbel_phylo))
+```
+
+## Fitting a model 
+
+`radEmu` is a package that can be used to investigate the log fold difference in the abundance of microbial taxa between levels of a covariate. In this analysis, the covariate that we are primarily interested in is whether a sample is from a case of colorectal cancer or a control. We will make "CTR" the reference category.
+
+```{r, eval = phy}
+phyloseq::sample_data(wirbel_phylo)$Group <- factor(phyloseq::sample_data(wirbel_phylo)$Group, 
+                                                    levels = c("CTR","CRC"))
+```
+
+We will start by pulling out some taxa we might be interested in to fit models on. We can also fit a model to all mOTUs, but this would take longer. We'll stick to the genera *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and *Fusobacterium* for now.
+
+```{r, eval = phy}
+chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
+wirbel_restrict <- phyloseq::subset_taxa(wirbel_phylo, genus %in% chosen_genera)
+```
+
+In our first model, we'll consider data from a Chinese study Wirbel et al. analyzed. 
+
+```{r, eval = phy}
+wirbel_china <- phyloseq::subset_samples(wirbel_restrict, Country == "CHI")
+```
+
+`emuFit` is the function that we will use to fit our model. 
+
+```{r, eval = phy}
+ch_fit <-
+  emuFit(formula = ~ Group, 
+         # this is a formula telling radEmu what predictors to use in fitting a model
+         # we are using Group -- i.e., an indicator for case (CRT) vs control (CTC)
+         Y = wirbel_china, 
+         run_score_tests = FALSE
+         # for now we will not run score tests
+  ) 
+```
+
+Ok, we now have estimates and confidence intervals for the group effect. Let's take a look:
+
+```{r, fig.width= 7, fig.height = 4, eval = phy}
+ch_df <- ch_fit$coef %>%
+  mutate(Genus = as.vector(phyloseq::tax_table(wirbel_china)[, 6])) %>%
+  # add genus name to output from emuFit
+  mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
+                            stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
+                            "\\]")) %>%
+  mutate(cat_small = factor(cat_small, levels = cat_small[order(Genus)]))
+  # reorder mOTU categories by genus
+
+ggplot(ch_df) + 
+  geom_point(aes(x = cat_small, y = estimate, color = Genus), size = .5) +
+  geom_errorbar(aes(x = cat_small, ymin = lower, ymax = upper, color = Genus), width = .25) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Category",
+       y = "Estimate") + 
+  coord_cartesian(ylim = c(-5,10))
+```
+
+Interestingly, we estimate a meta-mOTU "unknown Eubacterium [meta_mOTU_v2_7116]" assigned to Eubacteria to have a much higher ratio of concentrations (comparing CRC group to control) than is typical across the mOTUs we included in this analysis.
+
+The confidence interval for this effect does not include zero -- but(!!!) the kind of confidence interval that is returned by default by emuFit is not extremely reliable when counts are very skewed or sample size is small-to-moderate. 
+
+To investigate further, let's run a robust score test, which is more reliable in these settings (but also takes more time because apparently we can't have nice things). For comparison, we'll also test mOTU "Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777]", which we also estimate to have a much larger ratio of concentrations across groups than is typical among the taxa we included in this model fit.
+
+```{r, eval = phy}
+two_robust_score_tests <- 
+  emuFit(formula = ~ Group,
+         Y = wirbel_china,
+         B = ch_fit,
+         # use the estimates from the object ch_fit
+         test_kj = data.frame(k = c(2,2), j = c(3,36)))
+         # j = 3 is F. nucleatum; j = 36 is the Eubacterium meta mOTU
+         # (you can see this in output from the model we already fit)
+```
+
+Let's take a look at the test output.
+
+```{r, eval = phy}
+two_robust_score_tests$coef$pval
+```
+
+The Fusobacterium Nucleatum mOTU has a robust score test p-value of $0.08$, while the unknown Eubacterium mOTU has a robust score test p-value of $0.30$. Does this make sense? Let's investigate further by looking at the Eubacterium mOTU counts by Group. 
+
+```{r, eval = phy}
+data.frame(counts = as.vector(
+  phyloseq::otu_table(wirbel_china)[, "unknown Eubacterium [meta_mOTU_v2_7116]"]),
+           group = phyloseq::sample_data(wirbel_china)$Group) %>%
+  mutate(eubact_present = counts > 0) %>%
+  group_by(group, eubact_present) %>%
+  count()
+```
+
+We only detect this meta-mOTU in a single sample in the Chinese study cohort! So, yes -- it makes sense that our test returns a relatively large p-value
+
+Now let's look at F. nucleatum.
+
+```{r, eval = phy}
+data.frame(counts = as.vector(
+  phyloseq::otu_table(wirbel_china)[, "Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777]"]),
+           group = phyloseq::sample_data(wirbel_china)$Group) %>%
+  mutate(fuso_present = counts > 0) %>%
+  group_by(group, fuso_present) %>%
+  count()
+```
+
+This also makes sense given what we found --  F. nucleatum shows up in a sizeable minority of CRC cases, whereas we detect it (by Wirbel et al's standards) in only one control participant. 
+
+We could run robust score tests for every taxon in this analysis, but it will take a longer amount of time to run. The code below will not run in the vignette, but feel free to run it on your own. 
+
+```{r, eval = FALSE}
+test_all <- 
+  emuFit(formula = ~ Group, 
+         B = ch_fit,
+         Y = wirbel_china,
+         run_score_tests = TRUE)
+```
+
+## Comparing across studies
+
+Let's now take a look at a French study Wirbel et al. analyzed. Do we see similar patterns?
+
+```{r, eval = phy}
+wirbel_france <- phyloseq::subset_samples(wirbel_restrict, Country == "FRA")
+
+fr_fit <- emuFit(formula = ~ Group,
+                 Y = wirbel_france,
+                 run_score_tests = FALSE)
+```
+
+Let's compare to the results on the Chinese cohort:
+
+```{r, fig.width= 7, fig.height = 4, eval = phy}
+fr_ch_estimate_df <- fr_fit$coef %>%
+  mutate(Genus = as.vector(phyloseq::tax_table(wirbel_china)[, 6])) %>%
+  mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
+                            stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
+                            "\\]")) %>%
+  mutate(cat_small = factor(cat_small, levels = cat_small[order(Genus)])) %>%
+  rbind(ch_df) %>%
+  mutate(country = rep(c("France", "China"), each = nrow(ch_df)))
+  
+fr_ch_estimate_df %>% 
+  ggplot() + 
+  geom_point(aes(x = cat_small, y = estimate, color = Genus),
+             position = position_dodge2(width = 0.5), size = 0.5) + 
+  geom_errorbar(aes(x = cat_small, ymin = lower, ymax = upper, color = Genus, linetype = country),
+                position = position_dodge2(width = 0.5)) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, size = 6, hjust = 1)) + 
+  labs(x = "Category", 
+       y = "Estimate")
+```
+
+In the Chinese study, samples were taken from patients undergoing colonoscopy, with some patients providing samples before colonoscopy and some after -- maybe we should try to adjust for this by including timing relative to colonoscopy as a predictor in our model. 
+
+```{r, eval = phy}
+ch_fit_timing <- 
+  emuFit(formula = ~ Group + Sampling, 
+         Y = wirbel_china,
+         run_score_tests = FALSE)
+```
+
+We can also fit a single model to data from multiple studies. 
+
+```{r, fig.width= 7, fig.height = 4, eval = phy}
+wirbel_ch_fr <- phyloseq::subset_samples(wirbel_restrict, Country %in% c("CHI", "FRA"))
+
+fr_ch_fit <-
+  emuFit(formula = ~ Group + Country,
+         Y = wirbel_ch_fr,
+         run_score_tests = FALSE)
+
+
+fr_ch_fit$coef %>%
+  mutate(Genus = rep(as.vector(phyloseq::tax_table(wirbel_china)[, 6]), 2)) %>%
+  filter(covariate == "GroupCRC") %>% 
+  # we only want CRC coefficients, not country coefficients
+  mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
+                            stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
+                            "\\]")) %>%
+  mutate(cat_small = factor(cat_small, levels = unique(cat_small[order(Genus)]))) %>%
+  ggplot() + 
+  geom_point(aes(x = cat_small, y = estimate, color = Genus), size = .5) +
+  geom_errorbar(aes(x = cat_small, ymin = lower, ymax = upper, color = Genus), width = .25) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_cartesian(ylim = c(-5, 10)) + 
+  labs(x = "Category", 
+       y = "Estimate")
+```
+
+Notice that we didn't include Sampling in this regression. Optionally, you could fit the model above with Sampling added to the model. 
+
+You can also fit the model to all data from all countries
+
+```{r, fig.width= 7, fig.height = 4, eval = phy}
+all_country_fit <-
+  emuFit(formula = ~ Group + Country,
+         Y = wirbel_restrict,
+         run_score_tests = FALSE)
+
+all_country_fit$coef %>%
+  mutate(Genus = rep(as.vector(phyloseq::tax_table(wirbel_china)[, 6]), 5)) %>%
+  filter(covariate == "GroupCRC") %>% # we only want CRC coefficients, not country coefficients
+  mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
+                            stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
+                            "\\]")) %>%
+  mutate(cat_small = factor(cat_small, levels = unique(cat_small[order(Genus)]))) %>%
+  ggplot() + geom_point(aes(x = cat_small, y = estimate, color = Genus), size = .5) +
+  geom_errorbar(aes(x = cat_small, ymin = lower, ymax = upper, color = Genus), width = .25)+
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Category",
+       y = "Estimate") + 
+  coord_cartesian(ylim = c(-5,10))
+```
