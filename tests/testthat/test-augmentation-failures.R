@@ -4,6 +4,7 @@ test_that("confirm Matrix Csparse_transpose issue is not happening", {
                    3759, 0, 0, 4658, 0, 3719, 0, 0, 7531, 48316, 0, 0, 20273, 0, 
                    1227, 0, 1471, 0, 479, 10602, 3115, 3286, 0, 1969, 0, 3045, 0, 
                    8018, 0, 1622, 1307, 34117, 9338, 0, 0, 7909, 0, 0), dim = c(12L, 4L))
+  X <- structure(c(rep(1, 18), rep(0, 6)), dim = c(12L, 2L))
   covariates <- structure(list(group = c(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)), class = "data.frame", row.names = c(NA, -12L))
   
   # devtools::load_all()  # info <- methods::as(info, "symmetricMatrix")

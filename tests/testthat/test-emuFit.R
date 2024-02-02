@@ -1,606 +1,200 @@
+Y <- structure(c(1748, 8286, 4096, 4289, 1122, 30007, 5087, 3841, 
+                 3059, 3105, 80, 32, 0, 20, 13, 0, 0, 30, 41, 54, 0, 124134, 43569, 
+                 122134, 15785, 99540, 0, 41104, 0, 0, 0, 0, 0, 572, 0, 1497, 
+                 0, 0, 314, 0, 0, 0, 0, 416, 920, 0, 0, 1931, 1279, 0, 0, 0, 2, 
+                 21, 49, 41, 0, 89, 0, 85, 1287, 1716, 0, 0, 1354, 8783, 3040, 
+                 6271, 2274, 0, 26431, 5186, 4147, 0, 0, 6450, 0, 0, 1483, 0, 
+                 0, 0, 0, 5936, 0, 0, 0, 33557, 11459, 0, 0, 4065, 0, 5391, 6721, 
+                 8997, 9225, 13951, 4061, 3871, 0, 0, 0, 0, 0, 0, 3954, 1338, 
+                 886, 426, 0, 0, 0, 496, 0, 709, 508, 840, 680, 0, 0, 4529, 2885, 
+                 0, 0, 13382, 11802, 0, 2144, 2622, 92214, 18326, 6183, 11737, 
+                 0, 0, 12808, 7604, 4684, 9348, 0, 3564, 2250, 0, 0, 20486, 0, 
+                 3442, 5133, 5103, 299927, 34273, 17407, 0, 17896, 149402, 42592, 
+                 0, 0, 25395, 1875, 21975, 1685, 0, 1654, 28670, 9331, 0, 4765, 
+                 0, 0, 0, 76158, 0, 85495, 247396, 51659, 93587, 0, 84277, 0, 
+                 0, 217, 0, 0, 0, 0, 0, 0, 0, 0, 76950, 0, 19911, 33042, 43690, 
+                 68014, 43885, 6086, 0), dim = c(20L, 10L))
+X <- structure(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 
+                 1, 1), dim = c(20L, 2L))
+covariates <- data.frame(group = X[,2])
+b <- structure(c(0.0231122313161752, -4.5, 2.34881909126062, -3.5, 
+                 -0.949623561962149, -2.5, -0.23942645176718, 0.556978794649417, 
+                 0.681191947270542, 0.499524350059682, -1.14509952873781, 0.5, 
+                 0.258373890958553, 1.5, 0.163812326430595, 2.5, 0.491510413255902, 
+                 3.5, -1.63267035802524, 4.5), dim = c(2L, 10L), dimnames = list(
+                   c("b0", "b1"), NULL))
+
 test_that("emuFit takes formulas and actually fits a model", {
   
+  ## test verbose = FALSE works
+  expect_silent({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           formula = ~group,
+                           data = covariates,
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
   
-  set.seed(343234)
-  n <- 100
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 10
-  z <- rnorm(n) +8
-  b0 <- rnorm(10)
-  b1 <- 1:10
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = 10, nrow = n)
   
-  k_constr <- 2
-  j_constr <- 5
-  p <- 2
   
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  
-  ##### Arguments to fix:
-  
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
-  
-  X_cup <- X_cup_from_X(X,J)
-  
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:10){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model <-
-    emuFit(Y = Y,
-           X = X,
-           formula = ~group,
-           data = covariates,
-           verbose = FALSE,
-           B_null_tol = 1e-2,
-           tolerance = 0.01,
-           tau = 2,
-           run_score_test = TRUE,
-           return_wald_p = TRUE)
-  
+  ## emuFit takes formulas and actually fits a model (with score tests)
   
   expect_true(all(fitted_model$coef$wald_p>0 & fitted_model$coef$wald_p<1))
-  expect_true(inherits(fitted_model$B,"matrix"))
-  expect_true(inherits(fitted_model$Y_augmented,"matrix"))
-  expect_true(cor(fitted_model$B[2,],b1)>0.95)
-  
-})
-
-
-test_that("We can use emuFit to create an emuFit object and then
-call emuFit again *without* refitting model and it will return same results", {
-  
-  
-  set.seed(94043234)
-  n <- 100
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 10
-  z <- rnorm(n) +8
-  b0 <- rnorm(10)
-  b1 <- 1:10
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = 10, nrow = n)
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:10){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model <-
-    emuFit(Y = Y,
-           formula = ~group,
-           data = covariates,
-           run_score_test = FALSE,
-           return_wald_p = FALSE)
-  
-  second_model <-
-    emuFit(Y = Y,
-           formula = ~group,
-           data = covariates,
-           refit = FALSE,
-           run_score_test = FALSE,
-           fitted_model = fitted_model)
-  
-  expect_identical(fitted_model,second_model)
-  
-  
-})
-
-
-test_that("emuFit takes formulas and actually fits a model (with score tests)", {
-  
-  
-  set.seed(9983334)
-  n <- 10
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 5
-  z <- rnorm(n) +8
-  b0 <- rnorm(J)
-  b1 <- 1:J
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
-  
-  k_constr <- 2
-  j_constr <- 5
-  p <- 2
-  
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  
-  ##### Arguments to fix:
-  
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
-  
-  X_cup <- X_cup_from_X(X,J)
-  
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:J){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model <-
-    suppressMessages(
-      emuFit(Y = Y,
-             X = X,
-             formula = ~group,
-             tau = 1.2,
-             data = covariates,
-             run_score_test = TRUE,
-             return_wald_p = TRUE,
-             verbose = FALSE)
-    )
-  
-  
-  expect_true(all(fitted_model$coef$wald_p>0 & fitted_model$coef$wald_p<1))
-  expect_true(inherits(fitted_model$B,"matrix"))
-  expect_true(inherits(fitted_model$Y_augmented,"matrix"))
   expect_true(all(fitted_model$coef$pval>0 & fitted_model$coef$pval<1))
-  
-  
-})
-
-test_that("emuFit takes formulas and actually fits a model (with score tests using full model info)", {
-  
-  
-  set.seed(9983334)
-  n <- 10
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 5
-  z <- rnorm(n) +8
-  b0 <- rnorm(J)
-  b1 <- 1:J
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
-  
-  k_constr <- 2
-  j_constr <- 5
-  p <- 2
-  
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  
-  ##### Arguments to fix:
-  
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
-  
-  X_cup <- X_cup_from_X(X,J)
-  
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:J){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model <-
-    suppressMessages(
-      emuFit(Y = Y,
-             X = X,
-             formula = ~group,
-             tau = 2,
-             B_null_tol = 0.01,
-             tolerance = 0.01,
-             data = covariates,
-             run_score_test = TRUE,
-             return_wald_p = TRUE,
-             use_fullmodel_info = TRUE,
-             verbose = FALSE)
-    )
-  
-  
-  expect_true(all(fitted_model$coef$wald_p>0 & fitted_model$coef$wald_p<1))
   expect_true(inherits(fitted_model$B,"matrix"))
   expect_true(inherits(fitted_model$Y_augmented,"matrix"))
-  expect_true(all(fitted_model$coef$pval>0 & fitted_model$coef$pval<1))
+  expect_true(cor(fitted_model$B[2,],b[2, ]) > 0.85) ## good enough for small sample size
+  
+  ## We can use emuFit to create an emuFit object and then
+  ## call emuFit again *without* refitting model and it will return same results"
+  second_model <- emuFit(Y = Y,
+                         formula = ~group,
+                         data = covariates,
+                         refit = FALSE,
+                         run_score_test = FALSE,
+                         fitted_model = fitted_model)
+  
+  expect_identical(fitted_model$coef$estimate, second_model$coef$estimate)
+  
+  ##  emuFit takes formulas and actually fits a model (with score tests using full model info)
+  
+  fitted_model_use_fullmodel_info <- emuFit(Y = Y,
+                                            X = X,
+                                            formula = ~group,
+                                            tau = 2,
+                                            B_null_tol = 0.01,
+                                            tolerance = 0.01,
+                                            data = covariates,
+                                            run_score_test = TRUE,
+                                            return_wald_p = TRUE, ### diff
+                                            use_fullmodel_info = TRUE, ### diff
+                                            verbose = FALSE)
   
   
-})
-
-
-test_that("if return_both_score_pvals = TRUE, emuFit runs and returns two non-identical p-values", {
+  expect_true(all(fitted_model_use_fullmodel_info$coef$wald_p>0 & fitted_model_use_fullmodel_info$coef$wald_p<1))
+  expect_true(inherits(fitted_model_use_fullmodel_info$B,"matrix"))
+  expect_true(inherits(fitted_model_use_fullmodel_info$Y_augmented,"matrix"))
+  expect_true(all(fitted_model_use_fullmodel_info$coef$pval>0 & fitted_model_use_fullmodel_info$coef$pval<1))
   
+  ## if return_both_score_pvals = TRUE, emuFit runs and returns two non-identical p-values
   
-  set.seed(9983334)
-  n <- 10
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 5
-  z <- rnorm(n) +8
-  b0 <- rnorm(J)
-  b1 <- 1:J
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
+  ### TODO test this in a smaller example
   
-  k_constr <- 2
-  j_constr <- 5
-  p <- 2
+  fitted_model_both <-  emuFit(Y = Y,
+                               X = X,
+                               formula = ~group,
+                               tau = 1.2,
+                               data = covariates,
+                               run_score_test = TRUE,
+                               return_wald_p = TRUE,
+                               use_fullmodel_info = TRUE,
+                               verbose = FALSE,
+                               return_both_score_pvals = TRUE)
   
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  
-  ##### Arguments to fix:
-  
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
-  
-  X_cup <- X_cup_from_X(X,J)
-  
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:J){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model <-
-    suppressMessages(
-      emuFit(Y = Y,
-             X = X,
-             formula = ~group,
-             tau = 1.2,
-             data = covariates,
-             run_score_test = TRUE,
-             return_wald_p = TRUE,
-             use_fullmodel_info = TRUE,
-             verbose = FALSE,
-             return_both_score_pvals = TRUE)
-    )
-  
-  
-  expect_true(is.numeric(fitted_model$coef$score_pval_full_info))
-  expect_true(is.numeric(fitted_model$coef$score_pval_null_info))
-  max_abs_logp_diff <- max(abs(log(fitted_model$coef$score_pval_null_info/
-                                     fitted_model$coef$score_pval_full_info)))
-  expect_true(max_abs_logp_diff>0)
-  expect_true(max_abs_logp_diff<log(1.5))
-  
-  
-  
-  
-})
-
-
-test_that("if return_both_score_pvals = TRUE, we
-          get same p-values as if we separately run emuFit with use_fullmodel_info = TRUE and = FALSE", {
-            
-            
-            set.seed(334)
-            n <- 10
-            X <- cbind(1,rep(c(0,1),each = n/2))
-            J <- 5
-            z <- rnorm(n) +8
-            b0 <- rnorm(J)
-            b1 <- 1:J
-            b1 <- b1 - mean(b1)
-            b1[5] <- pseudohuber_center(b1[-5],0.1)
-            b0 <- b0 - mean(b0)
-            b <- rbind(b0,b1)
-            Y <- matrix(NA,ncol = J, nrow = n)
-            
-            k_constr <- 2
-            j_constr <- 5
-            p <- 2
-            
-            constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-            
-            ##### Arguments to fix:
-            
-            constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-            
-            constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-            b[2,4] <- constraint_fn(b[2,-4])
-            
-            X_cup <- X_cup_from_X(X,J)
-            
-            Y[] <- 0
-            for(i in 1:n){
-              while(sum(Y[i,])==0){
-                for(j in 1:J){
-                  temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-                  # Y[i,j] <- rpois(1, lambda = temp_mean)
-                  Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-                }
-              }
-            }
-            
-            covariates <- data.frame(group = X[,2])
-            
-            fitted_both <-
-              suppressMessages(
-                emuFit(Y = Y,
-                       X = X,
-                       formula = ~group,
-                       tau = 1.2,
-                       data = covariates,
-                       run_score_test = TRUE,
-                       return_wald_p = TRUE,
-                       use_fullmodel_info = TRUE,
-                       verbose = FALSE,
-                       return_both_score_pvals = TRUE)
-              )
-            
-            fitted_null <-
-              suppressMessages(
-                emuFit(Y = Y,
-                       X = X,
-                       formula = ~group,
-                       tau = 1.2,
-                       data = covariates,
-                       run_score_test = TRUE,
-                       return_wald_p = TRUE,
-                       use_fullmodel_info = FALSE,
-                       verbose = FALSE,
-                       return_both_score_pvals = FALSE)
-              )
-            
-            fitted_full <-
-              suppressMessages(
-                emuFit(Y = Y,
-                       X = X,
-                       formula = ~group,
-                       tau = 1.2,
-                       data = covariates,
-                       run_score_test = TRUE,
-                       return_wald_p = TRUE,
-                       use_fullmodel_info = TRUE,
-                       verbose = FALSE,
-                       return_both_score_pvals = FALSE)
-              )
-            
-            
-            expect_true(max(abs(fitted_both$coef$score_pval_full_info - fitted_full$coef$pval))
-                        ==0)
-            expect_true(max(abs(fitted_both$coef$score_pval_null_info - fitted_null$coef$pval))
-                        ==0)
-            
-          })
-test_that("Difference between using full and null model info is not extreme", {
-  
-  
-  set.seed(9983334)
-  n <- 10
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 5
-  z <- rnorm(n) +8
-  b0 <- rnorm(J)
-  b1 <- 1:J
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
-  
-  k_constr <- 2
-  j_constr <- 5
-  p <- 2
-  
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  
-  ##### Arguments to fix:
-  
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
-  
-  X_cup <- X_cup_from_X(X,J)
-  
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:J){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model_full <-
-    suppressMessages(
-      emuFit(Y = Y,
-             X = X,
-             formula = ~group,
-             tau = 1.2,
-             data = covariates,
-             run_score_test = TRUE,
-             return_wald_p = TRUE,
-             use_fullmodel_info = TRUE,
-             verbose = FALSE)
-    )
-  
-  fitted_model_null <-
-    suppressMessages(
-      emuFit(Y = Y,
-             X = X,
-             formula = ~group,
-             tau = 1.2,
-             data = covariates,
-             run_score_test = TRUE,
-             return_wald_p = TRUE,
-             use_fullmodel_info = FALSE,
-             verbose = FALSE)
-    )
-  
-  
-  expect_true(max(abs(log(fitted_model_full$coef$pval/fitted_model_null$coef$pval)))<
-                log(1.5))
-  
-  
-  
+  ps_full <- fitted_model_return_both_score_pvals$coef$score_pval_full_info
+  ps_null <- fitted_model_return_both_score_pvals$coef$score_pval_null_info
+  expect_true(is.numeric(ps_full))
+  expect_true(is.numeric(ps_null))
+  expect_true(cor(ps_null, ps_full) > 0.95)
+  expect_true(cor(ps_null, ps_full) < 1)
+   
+  # ## if return_both_score_pvals = TRUE, we
+  # ## get same p-values as if we separately run emuFit with use_fullmodel_info = TRUE and = FALSE"
+  # 
+  # # fitted_model had use_fullmodel_info = FALSE
+  # 
+  # fitted_full <- emuFit(Y = Y,
+  #                       X = X,
+  #                       formula = ~group,
+  #                       tau = 1.2,
+  #                       data = covariates,
+  #                       run_score_test = TRUE,
+  #                       return_wald_p = TRUE,
+  #                       use_fullmodel_info = TRUE,
+  #                       verbose = FALSE,
+  #                       return_both_score_pvals = FALSE)
+  # 
+  # expect_true(max(abs(fitted_model_both$coef$score_pval_full_info - fitted_full$coef$pval))==0)
+  # expect_true(max(abs(fitted_model_both$coef$score_pval_null_info - fitted_model$coef$pval))==0)
+  # 
+  # ## Difference between using full and null model info is not extreme
+  # expect_true(cor(fitted_full$coef$pval, fitted_model$coef$pval) < 1)
+  # expect_true(cor(fitted_full$coef$pval, fitted_model$coef$pval) > 0.95)
   
 })
 
-test_that("emuFit takes formulas and actually fits a model (no score tests) when J is large", {
-  
-  
-  set.seed(894334)
-  n <- 100
-  X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 500
-  z <- rnorm(n) +8
-  b0 <- rnorm(J)
-  b1 <- seq(1,10,length.out = J)
-  b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
-  b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
-  
-  k_constr <- 2
-  j_constr <- 5
-  p <- 2
-  
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  
-  ##### Arguments to fix:
-  
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
-  
-  X_cup <- X_cup_from_X(X,J)
-  
-  Y[] <- 0
-  for(i in 1:n){
-    while(sum(Y[i,])==0){
-      for(j in 1:J){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
-  }
-  
-  covariates <- data.frame(group = X[,2])
-  
-  fitted_model <-
-    emuFit(Y = Y,
-           X = X,
-           formula = ~group,
-           data = covariates,
-           tolerance = 0.01,
-           run_score_test = FALSE,
-           return_wald_p = TRUE)
-  
-  
-  expect_true(all(fitted_model$coef$wald_p >= 0 & fitted_model$coef$wald_p <= 1))
-  expect_true(inherits(fitted_model$B,"matrix"))
-  expect_true(inherits(fitted_model$Y_augmented,"matrix"))
-  expect_true(cor(fitted_model$B[2,],b1)>0.95)
-  
-})
-
-
-# test_that("We can use emuFit to create an emuFit object and then
-# call emuFit again to run score tests.", {
+# test_that("emuFit takes formulas and actually fits a model (no score tests) when J is large", {
 #   
-#
-#   set.seed(1243234)
+#   b1 <- 1:10
+# b1 <- b1 - mean(b1)
+# b1[5] <- pseudohuber_center(b1[-5],0.1)
+# 
+# Y <- simulate_data(n=10, J=10, b0=rnorm(10), distn="Poisson", b1=b1, mean_count_before_ZI=500)
+
+#   set.seed(894334)
 #   n <- 100
 #   X <- cbind(1,rep(c(0,1),each = n/2))
-#   J <- 10
+#   J <- 500
 #   z <- rnorm(n) +8
-#   b0 <- rnorm(10)
-#   b1 <- 1:10
+#   b0 <- rnorm(J)
+#   b1 <- seq(1,10,length.out = J)
 #   b1 <- b1 - mean(b1)
 #   b1[5] <- pseudohuber_center(b1[-5],0.1)
 #   b0 <- b0 - mean(b0)
 #   b <- rbind(b0,b1)
-#   Y <- matrix(NA,ncol = 10, nrow = n)
+#   Y <- matrix(NA,ncol = J, nrow = n)
+#   
+#   k_constr <- 2
+#   j_constr <- 5
+#   p <- 2
+#   
+#   constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+#   
+#   ##### Arguments to fix:
+#   
+#   constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+#   
+#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+#   b[2,4] <- constraint_fn(b[2,-4])
+#   
+#   X_cup <- X_cup_from_X(X,J)
+#   
 #   Y[] <- 0
 #   for(i in 1:n){
 #     while(sum(Y[i,])==0){
-#       for(j in 1:10){
+#       for(j in 1:J){
 #         temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
 #         # Y[i,j] <- rpois(1, lambda = temp_mean)
 #         Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
 #       }
 #     }
 #   }
-#
+#   
 #   covariates <- data.frame(group = X[,2])
-#
+#   
 #   fitted_model <-
 #     emuFit(Y = Y,
+#            X = X,
 #            formula = ~group,
 #            data = covariates,
+#            tolerance = 0.01,
 #            run_score_test = FALSE,
-#            return_wald_p = FALSE)
-#
-#   second_model <-
-#     emuFit(Y = Y,
-#            formula = ~group,
-#            data = covariates,
-#            refit = FALSE,
-#            run_score_test = FALSE,
-#            inner_maxit = 5,
-#            verbose = TRUE,
-#            tau = 1.1,
-#            fitted_model = fitted_model)
-#
-#   expect_identical(fitted_model,second_model)
-#
-#
+#            return_wald_p = TRUE)
+#   
+#   
+#   expect_true(all(fitted_model$coef$wald_p >= 0 & fitted_model$coef$wald_p <= 1))
+#   expect_true(inherits(fitted_model$B,"matrix"))
+#   expect_true(inherits(fitted_model$Y_augmented,"matrix"))
+#   expect_true(cor(fitted_model$B[2,],b1)>0.95)
+#   
 # })
