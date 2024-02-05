@@ -1,28 +1,48 @@
-#fits model with B_kj constrained to equal g(B_k) for constraint fn g
+#' fits model with B_kj constrained to equal g(B_k) for constraint fn g
+#' 
+#' @param B description
+#' @param Y Y (with augmentations)
+#' @param X design matrix
+#' @param k_constr row index of B to constrain
+#' @param j_constr col index of B to constrain
+#' @param j_ref column index of convenience constraint
+#' @param constraint_fn constraint function
+#' @param constraint_grad_fn gradient of constraint fn
+#' @param rho_init where to start quadratic penalty parameter
+#' @param tau how much to increment rho by each iteration
+#' @param kappa cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.
+#' @param B_tol tolerance for convergence in max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|
+#' @param inner_tol tolerance for inner loop
+#' @param constraint_tol tolerance for |B_kj - g(B_k)|
+#' @param max_step maximum step size
+#' @param c1 constant for armijo rule
+#' @param maxit maximum iterations
+#' @param inner_maxit max iterations per inner loop
+#' @param verbose shout at you?
+#' @param trackB track value of beta across iterations and return?
+#' 
+#' 
 fit_null <- function(B,
-                     Y, #Y (with augmentations)
-                     X, #design matrix
+                     Y, 
+                     X, 
                      X_cup = NULL,
-                     k_constr, #row index of B to constrain
-                     j_constr, #col index of B to constrain
-                     j_ref, #column index of convenience constraint
-                     constraint_fn, #constraint function
-                     constraint_grad_fn, #gradient of constraint fn\
-                     rho_init = 1, #where to start quadratic penalty parameter
-                     tau = 1.2, #how much to increment rho by each iteration
-                     kappa = 0.8, #cutoff above which to increment rho 
-                                  #( if distance to feasibility doesn't shrink by
-                                  # at least this factor in an iteration, 
-                                  # increment rho by tau)
-                     B_tol = 1e-2, #tolerance for convergence in max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|
-                     inner_tol = 0.01, #tolerance for inner loop
-                     constraint_tol = 1e-4, #tolerance for |B_kj - g(B_k)|
-                     max_step = 5, #maximum step size
-                     c1 = 1e-4, #constant for armijo rule
-                     maxit = 1000, #maximum iterations
-                     inner_maxit = 25, #max iterations per inner loop
-                     verbose = FALSE, #shout at you?
-                     trackB = FALSE #track value of beta across iterations and return?
+                     k_constr, 
+                     j_constr, 
+                     j_ref, 
+                     constraint_fn, 
+                     constraint_grad_fn, 
+                     rho_init = 1, 
+                     tau = 1.2, 
+                     kappa = 0.8, 
+                     B_tol = 1e-2, 
+                     inner_tol = 0.01, 
+                     constraint_tol = 1e-4, 
+                     max_step = 5, 
+                     c1 = 1e-4, 
+                     maxit = 1000, 
+                     inner_maxit = 25, 
+                     verbose = FALSE, 
+                     trackB = FALSE 
 ) {
   
   J <- ncol(Y)

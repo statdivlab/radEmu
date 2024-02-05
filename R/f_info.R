@@ -28,7 +28,6 @@ f_info <- function(Y,
     ident_mat <- Matrix::Diagonal(x = rep(1,J))
     one_mat <- Matrix::Matrix(1,nrow = J,ncol=1)
   for(i in 1:n){
-    print(i)
     which_rows <- 1:J + (i - 1)*J
     mu_i <- exp(X_cup[which_rows,]%*% B_cup + z[i])
     p_i <- mu_i/sum(mu_i)
