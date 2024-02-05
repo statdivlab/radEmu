@@ -3,6 +3,7 @@
 #' @param B description
 #' @param Y Y (with augmentations)
 #' @param X design matrix
+#' @param X_cup design matrix for Y in long format. Defaults to NULL, in which case matrix is computed from X.
 #' @param k_constr row index of B to constrain
 #' @param j_constr col index of B to constrain
 #' @param j_ref column index of convenience constraint
