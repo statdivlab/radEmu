@@ -28,7 +28,10 @@ remotes::install_github("statdivlab/radEmu")
 Next, we can load `radEmu` as well as the `tidyverse` package suite. 
 
 ```{r setup, message = FALSE}
-library(tidyverse)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
 library(radEmu)
 ```
 
