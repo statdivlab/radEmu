@@ -19,6 +19,6 @@ test_that("confirm Matrix Csparse_transpose issue is not happening", {
                          run_score_test = TRUE,
                          return_wald_p = TRUE)
   
-  expect_true("list" %in% class(fitted_model))
+  expect_true("emuFit" %in% class(fitted_model))
   
 })

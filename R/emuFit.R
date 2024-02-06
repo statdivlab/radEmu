@@ -118,6 +118,10 @@ emuFit <- function(Y,
                    
                    
 ) {
+  
+  # Record call
+  call <- match.call(expand.dots = FALSE)
+  
   # check if Y is a phyloseq object
   if ("phyloseq" %in% class(Y)) {
     if (requireNamespace("phyloseq", quietly = TRUE)) {
@@ -503,12 +507,13 @@ and the corresponding gradient function to constraint_grad_fn.")
     Dy <- just_wald_things$Dy
   }
   
-  return(list("coef" = coefficients,
-              "B" = B,
-              "penalized" = penalize,
-              "Y_augmented" = Y_augmented,
-              "I" = I,
-              "Dy" = Dy))
+  return(structure(list("call" = call,
+                        "coef" = coefficients,
+                        "B" = B,
+                        "penalized" = penalize,
+                        "Y_augmented" = Y_augmented,
+                        "I" = I,
+                        "Dy" = Dy), class = "emuFit"))
 }
 
 
