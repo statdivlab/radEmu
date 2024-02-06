@@ -42,9 +42,9 @@ emuFit(
 )
 }
 \arguments{
-\item{Y}{an n x J matrix of nonnegative observations, or a phyloseq object containing an otu table and sample data.}
+\item{Y}{an n x J matrix or dataframe of nonnegative observations, or a phyloseq object containing an otu table and sample data.}
 
-\item{X}{an n x p matrix of covariates (optional)}
+\item{X}{an n x p matrix or dataframe of covariates (optional)}
 
 \item{formula}{a one-sided formula specifying the form of the mean model to be fit}
 
