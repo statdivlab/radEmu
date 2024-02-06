@@ -20,5 +20,12 @@ Depends:
 Suggests: 
     testthat (>= 3.0.0),
     numDeriv,
-    phyloseq
+    phyloseq,
+    knitr,
+    magrittr,
+    dplyr, 
+    ggplot2, 
+    stringr, 
+    rmarkdown
 Config/testthat/edition: 3
+VignetteBuilder: knitr

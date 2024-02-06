@@ -35,6 +35,8 @@ fit_null(
 
 \item{X}{design matrix}
 
+\item{X_cup}{design matrix for Y in long format. Defaults to NULL, in which case matrix is computed from X.}
+
 \item{k_constr}{row index of B to constrain}
 
 \item{j_constr}{col index of B to constrain}

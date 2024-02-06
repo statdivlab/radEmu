@@ -1,7 +1,7 @@
 #' Fit radEmu model
 #'
-#' @param Y an n x J matrix of nonnegative observations, or a phyloseq object containing an otu table and sample data.
-#' @param X an n x p matrix of covariates (optional)
+#' @param Y an n x J matrix or dataframe of nonnegative observations, or a phyloseq object containing an otu table and sample data.
+#' @param X an n x p matrix or dataframe of covariates (optional)
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
@@ -118,6 +118,10 @@ emuFit <- function(Y,
                    
                    
 ) {
+  
+  # Record call
+  call <- match.call(expand.dots = FALSE)
+  
   # check if Y is a phyloseq object
   if ("phyloseq" %in% class(Y)) {
     if (requireNamespace("phyloseq", quietly = TRUE)) {
@@ -131,6 +135,11 @@ emuFit <- function(Y,
     } else {
       stop("You are trying to use a `phyloseq` data object or `phyloseq` helper function without having the `phyloseq` package installed. Please either install the package or use a standard data frame.")
     }
+  } else if ("data.frame" %in% class(Y)) {
+    Y <- as.matrix(Y)
+    if (!is.numeric(Y)) {
+      stop("Y is a data frame that cannot be coerced to a numeric matrix. Please fix and try again.")
+    }
   }
   
   if (is.null(X)) {
@@ -139,7 +148,7 @@ emuFit <- function(Y,
 covariates in formula must be provided.")
     }
     X <- model.matrix(formula, data)
-  }
+  } 
   
   if (min(rowSums(Y))==0) {
     stop("Some rows of Y consist entirely of zeroes, meaning that some samples
@@ -503,12 +512,21 @@ and the corresponding gradient function to constraint_grad_fn.")
     Dy <- just_wald_things$Dy
   }
   
-  return(list("coef" = coefficients,
-              "B" = B,
-              "penalized" = penalize,
-              "Y_augmented" = Y_augmented,
-              "I" = I,
-              "Dy" = Dy))
+  if (is.null(colnames(B))) {
+    colnames(B) <- colnames(Y)
+  }
+  
+  if (is.null(rownames(B))) {
+    rownames(B) <- colnames(X)
+  }
+  
+  return(structure(list("call" = call,
+                        "coef" = coefficients,
+                        "B" = B,
+                        "penalized" = penalize,
+                        "Y_augmented" = Y_augmented,
+                        "I" = I,
+                        "Dy" = Dy), class = "emuFit"))
 }
 
 
