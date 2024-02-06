@@ -1,6 +1,6 @@
 ---
 title: "Introduction to radEmu with phyloseq"
-author: "David Clausen"
+author: "David Clausen, Sarah Teichman and Amy Willis"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -155,3 +155,5 @@ ggplot(ch_df) +
        y = "Estimate") + 
   coord_cartesian(ylim = c(-5,10))
 ```
+
+If you'd like to see more explanations of the `radEmu` software and additional analyses of this data, check out the vignette "intro_radEmu.Rmd". 
