@@ -149,7 +149,15 @@ FALSE. This parameter is used for simulations - in any applied analysis, type of
 p-value to be used should be chosen before conducting tests.}
 }
 \value{
-TODO
+A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
+'I', and 'Dy'.  Parameter estimates by
+covariate and outcome category (e.g., taxon for microbiome data), as well as
+optionally confidence intervals and p-values, are contained in 'coef'. 'B'
+contains parameter estimates in matrix format (rows indexing covariates and
+columns indexing outcome category / taxon). 'penalized' is equal to TRUE
+if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and
+'Dy' contain an information matrix and empirical score covariance matrix
+computed under the full model.
 }
 \description{
 Fit radEmu model
