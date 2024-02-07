@@ -23,7 +23,7 @@ print.emuFit <- function(x,
   cols_NA <- which(colMeans(is.na(x$coef)) == 1)
   category_nums <- as.numeric(stringr::str_extract(coefs_tab$category, "[0-9]+"))
   if (sum(is.na(category_nums)) == 0) {
-    if (all.equal(category_nums, coefs_tab$category_num)) {
+    if (all(category_nums == coefs_tab$category_num)) {
       coefs_tab <- coefs_tab[, -2]
     }
   }
