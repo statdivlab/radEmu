@@ -139,6 +139,12 @@ ch_fit <- emuFit(formula = ~ Group,
                  Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]),
                  run_score_tests = FALSE) 
 ```
+Let's check out what this object looks like!
+
+```{r}
+ch_fit
+```
+
 
 The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. Let's plot our results:
 

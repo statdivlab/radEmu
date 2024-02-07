@@ -32,13 +32,12 @@ library(magrittr)
 library(dplyr)
 library(ggplot2)
 library(stringr)
-
 library(radEmu)
 ```
 
 ## Introduction 
 
-This vignette provides an introduction to using `radEmu` for differential abundance analysis using a `phyloseq` data object. To see the same analysis using data not stored as a `phyloseq` object, see the vignette "intro_radEmu.Rmd". We suggest going through that vignette for more in-depth explanations of how this software works and of this analysis. 
+This vignette provides an introduction to using `radEmu` for differential abundance analysis using a `phyloseq` data object. For more in-depth explanations of how this software works and details on this analysis, see the vignette "intro_radEmu.Rmd". 
 
 In this lab we'll explore a [dataset published by Wirbel et al. (2019)](https://www.nature.com/articles/s41591-019-0406-6). This is a meta-analysis of case-control studies, meaning that Wirbel et al. collected raw sequencing data from studies other researchers conducted and re-analyzed it (in this case, they also collected some new data of their own).
 
@@ -128,10 +127,9 @@ The function that we use to fit our model is called `emuFit`. It can accept your
 
 
 ```{r, eval = phy}
-ch_fit <-
-  emuFit(formula = ~ Group, 
-         Y = wirbel_china, 
-         run_score_tests = FALSE) 
+ch_fit <- emuFit(formula = ~ Group, 
+                 Y = wirbel_china, 
+                 run_score_tests = FALSE) 
 ```
 
 The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. Let's plot our results:
