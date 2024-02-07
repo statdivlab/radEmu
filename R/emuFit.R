@@ -191,20 +191,15 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
   } 
   
+  #choose ref taxon for fitting constrained models / performing wald and score tests
+  j_ref <- get_j_ref(Y)
+  
   ########################################
   ########## fit model if needed
   ########################################
+  
   if (refit) {
-    
-    #choose reference column for convenience constraint
-    detection <- colSums(Y>0)
-    
-    j_ref <- which(detection == max(detection))
-    if (length(j_ref) > 1) {
-      totals <- colSums(Y[ , j_ref])
-      j_ref<- j_ref[which.max(totals)]
-      stopifnot(length(j_ref) == 1)
-    }
+
     
     if (penalize) {
       
@@ -260,15 +255,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   coefficients$lower <- NA
   coefficients$upper <- NA
   coefficients$pval <- coefficients$score_stat <- NA
-  
-  ##### TODO avoid code duplication
-  #choose ref taxon for fitting constrained models / doing wald tests
-  for_ref <- colSums(Y>0)
-  for_ref <- which(for_ref == max(for_ref))
-  if (length(for_ref)>1) {
-    decider <- colSums(Y[ , for_ref])
-    for_ref <- for_ref[which.max(decider)]
-  }
+
   
   
   if (compute_cis) {
@@ -285,7 +272,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                     constraint_grad_fn = constraint_grad_fn,
                                     nominal_coverage = 1 - alpha,
                                     verbose = verbose,
-                                    j_ref = for_ref)
+                                    j_ref = j_ref)
     
     coefficients <- just_wald_things$coefficients
     if (use_fullmodel_cov) {
@@ -320,11 +307,6 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   if (use_fullmodel_info) {
-    j_ref <- which(detection == max(detection))
-    if (length(j_ref)>1) {
-      totals <- colSums(Y[ , j_ref])
-      j_ref<- j_ref[which.max(totals)]
-    }
     indexes_to_remove = (j_ref - 1)*p + 1:p
     I_inv <- Matrix::solve(just_wald_things$I[-indexes_to_remove,-indexes_to_remove],  method = "cholmod_solve")
   } else {
@@ -373,7 +355,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 B_tol = B_null_tol,
                                 inner_tol = inner_tol,
                                 constraint_tol = constraint_tol,
-                                j_ref = for_ref,
+                                j_ref = j_ref,
                                 c1 = c1,
                                 maxit = maxit,
                                 inner_maxit = inner_maxit,
@@ -516,7 +498,6 @@ and the corresponding gradient function to constraint_grad_fn.")
     Dy <- NULL
   } else {
     I <- just_wald_things$I
-    ## TODO Dy? AW added next line Jan 18 2023
     Dy <- just_wald_things$Dy
   }
   
