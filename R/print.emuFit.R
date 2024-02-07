@@ -16,15 +16,22 @@ print.emuFit <- function(x,
   cat("\nCall:\n",
       paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
   
-  cat("\nCoefficients estimates with the largest magnitudes:\n")
+  cat("\nCoefficient estimates with the largest magnitudes:\n")
   n_or_nrow <- min(n, nrow(x$coef))
   sorted_ind <- order(abs(x$coef$estimate), decreasing = TRUE)[1:n_or_nrow]
   coefs_tab <- x$coef[sorted_ind,, drop = FALSE]
   cols_NA <- which(colMeans(is.na(x$coef)) == 1)
+  category_nums <- as.numeric(stringr::str_extract(coefs_tab$category, "[0-9]+"))
+  if (sum(is.na(category_nums)) == 0) {
+    if (all(category_nums == coefs_tab$category_num)) {
+      coefs_tab <- coefs_tab[, -2]
+    }
+  }
   if (length(cols_NA) > 0) {
     coefs_tab <- coefs_tab[, -(cols_NA)]
   }
-  stats::printCoefmat(coefs_tab, na.print = "NA", ...)
+  #stats::printCoefmat(coefs_tab, na.print = "NA", ...)
+  print(data.frame(coefs_tab))
   
   cat("\n")
   
