@@ -19,20 +19,18 @@ micro_wald <- function(Y,
   
   
   if(is.null(j_ref)){
-    nice_ref <- which.max(colSums(Y>0))
-  } else{
-    nice_ref <- j_ref
+    j_ref <- get_j_ref(Y)
   }
   #impose convenience constraint and update z
   for(k in 1:p){
-    B[k,] <- B[k,] - B[k,nice_ref]
+    B[k,] <- B[k,] - B[k,j_ref]
   }
   z <- update_z(Y,X,B)
   #long form B
   B_cup <- B_cup_from_B(B)
   
-  #drop columns corresp. to nice_ref from X_cup
-  to_erase <- (nice_ref - 1)*p + 1:p
+  #drop columns corresp. to j_ref from X_cup
+  to_erase <- (j_ref - 1)*p + 1:p
   # X_cup_smaller <- X_cup[,-to_erase]
   
   
@@ -100,11 +98,11 @@ micro_wald <- function(Y,
     }
     
     H <- matrix(0,nrow = p, ncol = J - 1 )
-    H[null_k,] <- constraint_grad_fn(B[null_k,])[-nice_ref]
+    H[null_k,] <- constraint_grad_fn(B[null_k,])[-j_ref]
     
     
-    if(null_j != nice_ref){
-      null_j_index <- ifelse(null_j< nice_ref,null_j,null_j - 1)
+    if(null_j != j_ref){
+      null_j_index <- ifelse(null_j< j_ref,null_j,null_j - 1)
       H[null_k,null_j_index] <-  H[null_k,null_j_index] - 1
     }
     H_cup <- B_cup_from_B(H)
