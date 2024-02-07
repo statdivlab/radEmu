@@ -136,7 +136,7 @@ and some optional arguments include
 ```{r}
 ch_fit <- emuFit(formula = ~ Group, 
                  data = wirbel_sample[ch_study_obs, ],
-                 Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]),
+                 Y = wirbel_otu[ch_study_obs, restricted_mOTU_names],
                  run_score_tests = FALSE) 
 ```
 Let's check out what this object looks like!
@@ -232,7 +232,7 @@ We could run robust score tests for every taxon in this analysis, but it will ta
 test_all <- emuFit(formula = ~ Group, 
                    data = wirbel_sample[ch_study_obs, ],
                    B = ch_fit,
-                   Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]),
+                   Y = wirbel_otu[ch_study_obs, restricted_mOTU_names],
                    run_score_tests = TRUE)
 ```
 
@@ -245,7 +245,7 @@ all_fit <- emuFit(formula = ~ Group + Study + Gender +
                     Age_spline.1 + Age_spline.2 + 
                     BMI_spline.1 + BMI_spline.2 + Sampling,
                   data = wirbel_sample, 
-                  Y = as.matrix(wirbel_otu[, restricted_mOTU_names]),
+                  Y = wirbel_otu[, restricted_mOTU_names],
                   run_score_tests = FALSE)
 ```
 

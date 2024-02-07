@@ -156,7 +156,13 @@ emuFit <- function(Y,
 covariates in formula must be provided.")
     }
     X <- model.matrix(formula, data)
-  } 
+  }
+  if ("data.frame" %in% class(X)) {
+    X <- as.matrix(X)
+    if (!is.numeric(X)) {
+      stop("X is a data frame that cannot be coerced to a numeric matrix. Please fix and try again.")
+    }
+  }
   
   if (min(rowSums(Y))==0) {
     stop("Some rows of Y consist entirely of zeroes, meaning that some samples
