@@ -48,15 +48,21 @@ We are currently only releasing `radEmu` via GitHub. If you'd like us to conside
 
 ## Use
 
-The vignette demonstrates example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. You can see the vignette by using the following code:
+The vignette demonstrates example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a `phyloseq` object: 
 
 ``` r
-library(radEmu)
-# Use this to view the vignette in the radEmu HTML help
-help(package = "radEmu", help_type = "html")
-# Use this to view the vignette as an isolated HTML file
-utils::browseVignettes(package = "radEmu")
+ch_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling, 
+                 Y = my_phyloseq_object) 
 ```
+
+and if your abundances and covariates are in a dataframe, you can use the following:
+
+```r
+all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
+                  data = my_covariates_df, 
+                  Y = my_abundances_df)
+```
+
 
 ## Citation
 
