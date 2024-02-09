@@ -29,10 +29,10 @@ If you are a **statistician**, some of the things that you may like about `radEm
 - A clearly defined and interpretable target estimand
 - Fast algorithms for estimation under alternative and null hypotheses
 - Type 1 error rate control even under pathological distribution misspecification *and* small sample sizes... at the same time!
-    - Check out the preprint for details! Our model isn't built to cater to zero-inflated Negative Binominally distributed data, but it still did awesome!
+    - Check out the [preprint](https://arxiv.org/abs/2402.05231) for details! Our model isn't built to cater to zero-inflated Negative Binominally distributed data, but it still did awesome!
     - Note that the robust score tests have better error rate control than the robust Wald tests (they are a bit slower)
 
-Sadly we do not yet have a logo. If you would like to design us one, please let Amy know! 
+Sadly we do not yet have a ~~logo~~ nice-looking logo. If you would like to design us one, please let Amy know! 
 
 ## Installation
 
@@ -62,7 +62,7 @@ utils::browseVignettes(package = "radEmu")
 
 If you use `radEmu` for your analysis, please cite our open-access preprint, available on arXiv. 
 
-David S Clausen and Amy D Willis. 2024+. "Estimating Fold Changes from Partially Observed Outcomes with Applications in Microbial Metagenomics."
+David S Clausen and Amy D Willis. 2024+. "Estimating Fold Changes from Partially Observed Outcomes with Applications in Microbial Metagenomics." [arxiv.org/abs/2402.05231](https://arxiv.org/abs/2402.05231)
 
 Huge thanks to the NIGMS for funding this work through Amy's R35! 
 
