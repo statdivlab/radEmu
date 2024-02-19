@@ -4,6 +4,9 @@
 #' @param X an n x p matrix or dataframe of covariates (optional)
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
+#' @param cluster a numeric vector giving cluster membership for each row of Y to 
+#' be used in computing GEE test statistics. Default is NULL, in which case rows of 
+#' Y are treated as independent.
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
 #' @param B starting value of coefficient matrix (p x J). If not provided,
 #' B will be initiated as a zero matrix.
@@ -93,6 +96,7 @@ emuFit <- function(Y,
                    X = NULL,
                    formula = NULL,
                    data = NULL,
+                   cluster = NULL,
                    penalize = TRUE,
                    B = NULL,
                    fitted_model = NULL,
@@ -167,6 +171,22 @@ covariates in formula must be provided.")
   if (min(rowSums(Y))==0) {
     stop("Some rows of Y consist entirely of zeroes, meaning that some samples
 have no observations. These samples must be excluded before fitting model.")
+  }
+  
+  #check that cluster is correctly type if provided
+  if(!is.null(cluster)){
+    if(!is.numeric(cluster)){
+      stop("If provided, argument 'cluster' must be a numeric vector.")
+    }
+    if(length(cluster)!=nrow(Y)){
+      stop("If provided, argument 'cluster' must be a numeric vector with 
+length equal to n (the number of rows in Y).")
+    }
+    if(length(unique(cluster)) == nrow(Y)){
+      warning("Number of unique values in 'cluster' equal to number of rows of Y; 
+ignoring argument 'cluster'.")
+      cluster <- NULL
+    }
   }
   
   n <- nrow(Y)
@@ -278,7 +298,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                                     constraint_grad_fn = constraint_grad_fn,
                                     nominal_coverage = 1 - alpha,
                                     verbose = verbose,
-                                    j_ref = j_ref)
+                                    j_ref = j_ref,
+                                    cluster = cluster)
     
     coefficients <- just_wald_things$coefficients
     if (use_fullmodel_cov) {
@@ -370,7 +391,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 trackB = trackB,
                                 I_inv = I_inv,
                                 Dy = Dy,
-                                return_both_score_pvals = return_both_score_pvals)
+                                return_both_score_pvals = return_both_score_pvals,
+                                cluster = cluster)
       
       which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
                            (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
@@ -387,6 +409,13 @@ and the corresponding gradient function to constraint_grad_fn.")
       
       if (use_both_cov) {
         
+        #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
+        if(is.null(cluster)){
+          score_adj <- n/(n - 1)
+        } else{
+          nclust <- length(unique(cluster))
+          score_adj <- nclust/(nclust - 1)
+        }
         alt_score_stat <- get_score_stat(Y = Y_test,
                                          X_cup = X_cup,
                                          X = X,
@@ -400,7 +429,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                                          n = n,
                                          p = p, 
                                          I_inv=I_inv,
-                                         Dy = just_wald_things$Dy)*(n/(n - 1))
+                                         Dy = just_wald_things$Dy,
+                                         cluster = cluster)*score_adj
         
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
@@ -528,7 +558,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                         "penalized" = penalize,
                         "Y_augmented" = Y_augmented,
                         "I" = I,
-                        "Dy" = Dy), class = "emuFit"))
+                        "Dy" = Dy,
+                        "cluster" = cluster), class = "emuFit"))
 }
 
 

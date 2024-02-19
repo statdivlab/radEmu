@@ -164,6 +164,61 @@ test_that("emuFit takes formulas and actually fits a model", {
   
 })
 
+test_that("emuFit takes cluster argument without breaking ",{
+          expect_silent({
+            fitted_model_cluster <- emuFit(Y = Y,
+                                   X = X,
+                                   formula = ~group,
+                                   data = covariates,
+                                   verbose = FALSE,
+                                   B_null_tol = 1e-2,
+                                   tolerance = 0.01,
+                                   tau = 2,
+                                   return_wald_p = FALSE,
+                                   compute_cis = TRUE,
+                                   run_score_tests = TRUE, 
+                                   use_fullmodel_info = FALSE,
+                                   use_fullmodel_cov = FALSE,
+                                   return_both_score_pvals = FALSE,
+                                   cluster = rep(1:3,each = 4))
+          })
+  
+  expect_silent({
+    fitted_model_nocluster <- emuFit(Y = Y,
+                                   X = X,
+                                   formula = ~group,
+                                   data = covariates,
+                                   verbose = FALSE,
+                                   B_null_tol = 1e-2,
+                                   tolerance = 0.01,
+                                   tau = 2,
+                                   return_wald_p = FALSE,
+                                   compute_cis = TRUE,
+                                   run_score_tests = TRUE, 
+                                   use_fullmodel_info = FALSE,
+                                   use_fullmodel_cov = FALSE,
+                                   return_both_score_pvals = FALSE)
+  })
+  
+  expect_true(all(fitted_model_nocluster$coef$estimate == fitted_model_cluster$coef$estimate))
+  
+  expect_true(all(fitted_model_nocluster$coef$se != fitted_model_cluster$coef$se))
+  
+  expect_true(all(fitted_model_cluster$coef$se != fitted_model_nocluster$coef$se))
+  
+          
+          
+          
+          ## emuFit takes formulas and actually fits a model (with score tests)
+          
+          expect_true(all(fitted_model_cluster$coef$wald_p>0 & fitted_model_cluster$coef$wald_p<1))
+          expect_true(all(fitted_model_cluster$coef$pval>0 & fitted_model_cluster$coef$pval<1))
+          expect_true(inherits(fitted_model_cluster$B,"matrix"))
+          expect_true(inherits(fitted_model_cluster$Y_augmented,"matrix"))
+          expect_true(cor(fitted_model_cluster$B[2,],b[2, ]) > 0.85)
+          
+})
+
 # test_that("emuFit takes formulas and actually fits a model (no score tests) when J is large", {
 #   
 #   b1 <- 1:10

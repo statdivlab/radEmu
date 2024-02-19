@@ -12,7 +12,8 @@ micro_wald <- function(Y,
                        return_info = TRUE,
                        return_Dy = TRUE,
                        return_sandwich = FALSE,
-                       j_ref = NULL){
+                       j_ref = NULL,
+                       cluster = NULL){
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
@@ -54,6 +55,13 @@ micro_wald <- function(Y,
                      # print(i);
                      Y_diff[i,,drop = FALSE]%*%
                        X_cup[(i - 1)*J + 1:J,]})
+  
+  if(!is.null(cluster)){
+    scores <- lapply(unique(cluster),
+                     function(i) 
+                       Reduce("+",scores[cluster == i]))
+  }
+
   
   score_mat <- do.call(rbind,scores)
   score_mat <- methods::as(score_mat,"sparseMatrix")

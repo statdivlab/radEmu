@@ -14,7 +14,8 @@ get_score_stat <- function(Y,
                            n,
                            p,
                            I_inv = NULL, #previously computed I_inv, if desired
-                           Dy = NULL #previously computed estimate of score covariance, if desired
+                           Dy = NULL, #previously computed estimate of score covariance, if desired
+                           cluster = NULL #numeric vector giving cluster membership for GEE
                            ){
   scores <- vector(n,mode = "list")
   
@@ -38,6 +39,12 @@ get_score_stat <- function(Y,
     X_cup_i <- X_cup[(i - 1)*J + 1:J, ]
     scores[[i]] <- Matrix::crossprod(X_cup_i, Y[i,] - exp(X_cup_i %*% B_cup + z[i]))
     
+  }
+  
+  if(!is.null(cluster)){
+    scores <- lapply(unique(cluster),
+                     function(i) 
+                       Reduce("+",scores[cluster == i]))
   }
   
   #compute derivative of constraint wrt (long/vector format) B 
