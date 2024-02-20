@@ -198,17 +198,6 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                  I_inv = I_inv,
                  Dy = Dy,
                  cluster = cluster)
-
-  #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
-  if(is.null(cluster)){
-    score_adj <- n/(n - 1)
-  } else{
-    nclust <- length(unique(cluster))
-    score_adj <- nclust/(nclust - 1)
-  }
-
-  score_stat <- score_stat*score_adj
-
  
   if(!return_both_score_pvals){ #typically we want only one score p-value
                                 #(using only one version of information matrix)
@@ -244,7 +233,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                        I_inv = NULL,
                        Dy = Dy)
 
-      score_stat_with_null_info <- score_stat_with_null_info*score_adj
+      score_stat_with_null_info <- score_stat_with_null_info
 
       return(list("score_stat" = score_stat,
                   "pval" = pchisq(score_stat,1,lower.tail = FALSE),

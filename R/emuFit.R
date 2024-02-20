@@ -410,12 +410,6 @@ and the corresponding gradient function to constraint_grad_fn.")
       if (use_both_cov) {
         
         #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
-        if(is.null(cluster)){
-          score_adj <- n/(n - 1)
-        } else{
-          nclust <- length(unique(cluster))
-          score_adj <- nclust/(nclust - 1)
-        }
         alt_score_stat <- get_score_stat(Y = Y_test,
                                          X_cup = X_cup,
                                          X = X,
@@ -430,7 +424,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                          p = p, 
                                          I_inv=I_inv,
                                          Dy = just_wald_things$Dy,
-                                         cluster = cluster)*score_adj
+                                         cluster = cluster)
         
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&

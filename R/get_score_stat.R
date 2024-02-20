@@ -92,10 +92,18 @@ get_score_stat <- function(Y,
   #remove indexes corresponding to convenience constraint
   score <- score[-indexes_to_remove, , drop =FALSE]
   
+  #adjustment factor from Guo et al. GEE paper (https://doi.org/10.1002/sim.2161)
+  if(is.null(cluster)){
+    score_adj <- n/(n - 1)
+  } else{
+    nclust <- length(unique(cluster))
+    score_adj <- nclust/(nclust - 1)
+  }
+  
   #slightly fancy calculation of numerator and denominator of score stat:
   outside <- Matrix::crossprod(score, I_inv_H)
   inside <- Matrix::crossprod(I_inv_H, Dy) %*% I_inv_H
-  score_stat <- as.numeric(as.matrix(outside^2/inside))
+  score_stat <- as.numeric(as.matrix(outside^2/inside))*score_adj
   
   return(as.numeric(score_stat))
 }
