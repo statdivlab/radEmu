@@ -1,5 +1,4 @@
-# radEmu 
-<img src="docs/radEmu_hex.png" align="right" width="165px"/>
+# radEmu <img src="logo.png" align="right" width="165px"/>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/statdivlab/radEmu/workflows/R-CMD-check/badge.svg)](https://github.com/statdivlab/radEmu/actions)
