@@ -7,6 +7,7 @@ Authors@R: as.person(c(
     "Sarah Teichman [aut]"
   ))
 Description: A differential abundance method for the analysis of microbiome data. radEmu estimates fold-differences in the abundance of taxa across samples relative to "typical" fold-differences. Notably, it does not require pseudocounts, nor choosing a denominator taxon. 
+URL: https://github.com/statdivlab/radEmu, https://statdivlab.github.io/radEmu/
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
