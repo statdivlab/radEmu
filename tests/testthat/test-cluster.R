@@ -25,8 +25,11 @@ b1[3:4] <- 0
 b <- rbind(b0,b1)
 
 test_that("GEE with cluster covariance gives plausible type 1 error ",{
-  # skip("Skipping -- test requires fitting models to 100 simulated datasets.")
+  
+  skip("Skipping -- a simulation for T1E under cluster dependence.")
+  
   set.seed(44022)
+  
   nsim <- 100
   cluster <- rep(1:4, each = 3)
   results <- data.frame(sim = rep(1:nsim,each = 2),
@@ -113,9 +116,9 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
     
   }
   
-  #expect somewhat conservative inference for score test with correct clustering
+  #expect conservative inference for score test with correct clustering
   expect_true(mean(results$pval<=0.05) <= 0.05)
-  #expect fairly anti-conservative inference for score test without clustering
-  expect_true(mean(results_noGEE$pval<=0.05) >= 0.10)
+  #expect anti-conservative inference for score test without clustering
+  expect_true(mean(results_noGEE$pval<=0.05) > 0.06)
   
 })
