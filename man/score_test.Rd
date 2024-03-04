@@ -28,7 +28,8 @@ score_test(
   trackB = FALSE,
   I_inv = NULL,
   Dy = NULL,
-  return_both_score_pvals = FALSE
+  return_both_score_pvals = FALSE,
+  cluster = NULL
 )
 }
 \arguments{
@@ -107,6 +108,10 @@ under null, which we recommend.}
 information matrix computed from full model fit and from null model fits? Default is
 FALSE. This parameter is used for simulations - in any applied analysis, type of
 p-value to be used should be chosen before conducting tests.}
+
+\item{cluster}{a numeric vector giving cluster membership for each row of Y to
+be used in computing GEE test statistics. Default is NULL, in which case rows of
+Y are treated as independent.}
 }
 \value{
 A list containing elements 'score_stat', 'pval', 'log_pval','niter',
