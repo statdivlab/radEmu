@@ -9,6 +9,7 @@ emuFit(
   X = NULL,
   formula = NULL,
   data = NULL,
+  cluster = NULL,
   penalize = TRUE,
   B = NULL,
   fitted_model = NULL,
@@ -49,6 +50,10 @@ emuFit(
 \item{formula}{a one-sided formula specifying the form of the mean model to be fit}
 
 \item{data}{an n x p data frame containing variables given in \code{formula}}
+
+\item{cluster}{a numeric vector giving cluster membership for each row of Y to
+be used in computing GEE test statistics. Default is NULL, in which case rows of
+Y are treated as independent.}
 
 \item{penalize}{logical: should Firth penalty be used in fitting model? Default is TRUE.}
 

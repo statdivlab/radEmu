@@ -14,7 +14,8 @@ get_score_stat <- function(Y,
                            n,
                            p,
                            I_inv = NULL, #previously computed I_inv, if desired
-                           Dy = NULL #previously computed estimate of score covariance, if desired
+                           Dy = NULL, #previously computed estimate of score covariance, if desired
+                           cluster = NULL #numeric vector giving cluster membership for GEE
                            ){
   scores <- vector(n,mode = "list")
   
@@ -38,6 +39,12 @@ get_score_stat <- function(Y,
     X_cup_i <- X_cup[(i - 1)*J + 1:J, ]
     scores[[i]] <- Matrix::crossprod(X_cup_i, Y[i,] - exp(X_cup_i %*% B_cup + z[i]))
     
+  }
+  
+  if(!is.null(cluster)){
+    scores <- lapply(unique(cluster),
+                     function(i) 
+                       Reduce("+",scores[cluster == i]))
   }
   
   #compute derivative of constraint wrt (long/vector format) B 
@@ -85,10 +92,18 @@ get_score_stat <- function(Y,
   #remove indexes corresponding to convenience constraint
   score <- score[-indexes_to_remove, , drop =FALSE]
   
+  #adjustment factor from Guo et al. GEE paper (https://doi.org/10.1002/sim.2161)
+  if(is.null(cluster)){
+    score_adj <- n/(n - 1)
+  } else{
+    nclust <- length(unique(cluster))
+    score_adj <- nclust/(nclust - 1)
+  }
+  
   #slightly fancy calculation of numerator and denominator of score stat:
   outside <- Matrix::crossprod(score, I_inv_H)
   inside <- Matrix::crossprod(I_inv_H, Dy) %*% I_inv_H
-  score_stat <- as.numeric(as.matrix(outside^2/inside))
+  score_stat <- as.numeric(as.matrix(outside^2/inside))*score_adj
   
   return(as.numeric(score_stat))
 }

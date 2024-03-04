@@ -104,8 +104,8 @@ we do *not* get same results if we use incorrect info", {
                      p = p,
                      I_inv = diag(rep(1,18)))
 
-    expect_equal((n/(n - 1))*score_stat_with_I_inv,score_test_as_is$score_stat)
-    expect_true((n/(n - 1))*score_stat_with_other_mat !=score_test_as_is$score_stat)
+    expect_equal(score_stat_with_I_inv,score_test_as_is$score_stat)
+    expect_true(score_stat_with_other_mat !=score_test_as_is$score_stat)
 
 })
 # test_that("simple negative binomial example fits reasonably fast and returns reasonable output", {

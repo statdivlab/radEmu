@@ -65,7 +65,10 @@
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
 #' p-value to be used should be chosen before conducting tests.
-#' 
+#' @param cluster a numeric vector giving cluster membership for each row of Y to 
+#' be used in computing GEE test statistics. Default is NULL, in which case rows of 
+#' Y are treated as independent.
+#'
 #' @return A list containing elements 'score_stat', 'pval', 'log_pval','niter',
 #' 'convergence', 'gap', 'u', 'rho', 'null_B', and 'Bs'. 'score_stat' gives the 
 #' value of the robust score statistic for H_0: B_{k_constr,j_constr} = g(B_{k_constr}).
@@ -108,7 +111,8 @@ score_test <- function(B, #B (MPLE)
                        trackB = FALSE,
                        I_inv = NULL,
                        Dy = NULL,
-                       return_both_score_pvals = FALSE){
+                       return_both_score_pvals = FALSE,
+                       cluster = NULL){
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
@@ -192,11 +196,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                  n = n,
                  p = p,
                  I_inv = I_inv,
-                 Dy = Dy)
-
-
-  score_stat <- score_stat*(n/(n - 1))
-
+                 Dy = Dy,
+                 cluster = cluster)
  
   if(!return_both_score_pvals){ #typically we want only one score p-value
                                 #(using only one version of information matrix)
@@ -232,7 +233,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                        I_inv = NULL,
                        Dy = Dy)
 
-      score_stat_with_null_info <- score_stat_with_null_info*(n/(n - 1))
+      score_stat_with_null_info <- score_stat_with_null_info
 
       return(list("score_stat" = score_stat,
                   "pval" = pchisq(score_stat,1,lower.tail = FALSE),
