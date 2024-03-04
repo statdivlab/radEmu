@@ -1,10 +1,10 @@
-pandoc: 2.19.2
+pandoc: 3.1.11
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   intro_radEmu: intro_radEmu.html
   intro_radEmu_with_phyloseq: intro_radEmu_with_phyloseq.html
-last_built: 2024-02-26T19:21Z
+last_built: 2024-03-04T20:58Z
 urls:
   reference: https://statdivlab.github.io/radEmu/reference
   article: https://statdivlab.github.io/radEmu/articles

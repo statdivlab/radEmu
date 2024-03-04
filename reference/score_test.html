@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,7 +79,8 @@
 <span>  trackB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  I_inv <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  Dy <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  cluster <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -207,6 +208,12 @@ under null, which we recommend.</p></dd>
 information matrix computed from full model fit and from null model fits? Default is
 FALSE. This parameter is used for simulations - in any applied analysis, type of
 p-value to be used should be chosen before conducting tests.</p></dd>
+
+
+<dt>cluster</dt>
+<dd><p>a numeric vector giving cluster membership for each row of Y to
+be used in computing GEE test statistics. Default is NULL, in which case rows of
+Y are treated as independent.</p></dd>
 
 </dl></div>
     <div class="section level2">

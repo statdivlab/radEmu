@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,6 +60,7 @@
 <span>  X <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  penalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  B <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fitted_model <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -109,6 +110,12 @@
 
 <dt>data</dt>
 <dd><p>an n x p data frame containing variables given in <code>formula</code></p></dd>
+
+
+<dt>cluster</dt>
+<dd><p>a numeric vector giving cluster membership for each row of Y to
+be used in computing GEE test statistics. Default is NULL, in which case rows of
+Y are treated as independent.</p></dd>
 
 
 <dt>penalize</dt>
