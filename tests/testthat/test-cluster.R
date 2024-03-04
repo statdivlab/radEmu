@@ -1,3 +1,38 @@
+test_that("clusters work as I want", {
+  
+  set.seed(100)
+  n <- 64
+  J <- 50
+  Y <- matrix(rpois(n*J, 100)*rbinom(n*J, 100, 0.7), nrow=n, ncol = J)
+  cage <- rep(c(1:16), 4) 
+  treatment <- (cage <= 8)
+  XX <- data.frame(cage, treatment)
+  ef <- emuFit(formula = ~ treatment, 
+               data = XX, 
+               Y = Y, 
+               cluster=cage, 
+               run_score_tests=FALSE) #### very fast
+  expect_equal(ef$coef %>% class, "data.frame")
+  
+  set.seed(101)
+  n <- 64
+  J <- 50
+  Y <- matrix(rpois(n*J, 100)*rbinom(n*J, 100, 0.7), nrow=n, ncol = J)
+  cage <- rep(c(LETTERS[1:16]), 4) %>% as.factor
+  treatment <- (cage %in% LETTERS[1:8])
+  XX <- data.frame(cage, treatment)
+  
+  ##### FAILS
+  # expect_equal(emuFit(formula = ~ treatment, 
+  #                      data = XX, 
+  #                      Y = Y, 
+  #                      cluster=cage, 
+  #                      run_score_tests=FALSE) %>% class, 
+  #              "data.frame")
+  
+})
+
+
 set.seed(11)
 J <- 6
 p <- 2
@@ -24,6 +59,7 @@ b1 <- b1 - mean(b1)
 b1[3:4] <- 0
 b <- rbind(b0,b1)
 
+
 test_that("GEE with cluster covariance gives plausible type 1 error ",{
   
   skip("Skipping -- a simulation for T1E under cluster dependence.")
@@ -39,7 +75,7 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
                         pval = numeric(2*nsim))[-(1:(2*nsim)),]
   results_noGEE <- results
   for(sim in 1:nsim){
-    print(sim)
+    # print(sim)
     X <- cbind(1,rnorm(n))
     covariates <- data.frame(group = X[,2])
     Y <- matrix(NA,ncol = J, nrow = n)
