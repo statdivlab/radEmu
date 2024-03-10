@@ -4,31 +4,54 @@ test_that("clusters work as I want", {
   n <- 64
   J <- 50
   Y <- matrix(rpois(n*J, 100)*rbinom(n*J, 100, 0.7), nrow=n, ncol = J)
-  cage <- rep(c(1:16), 4) 
-  treatment <- (cage <= 8)
-  XX <- data.frame(cage, treatment)
-  ef <- emuFit(formula = ~ treatment, 
+  cage_num <- rep(c(1:16), 4) 
+  treatment <- (cage_num <= 8)
+  XX <- data.frame(treatment)
+  
+  # check that cluster argument works as a numeric vector 
+  ef_num <- emuFit(formula = ~ treatment, 
                data = XX, 
                Y = Y, 
-               cluster=cage, 
+               cluster=cage_num, 
                run_score_tests=FALSE) #### very fast
-  expect_equal(ef$coef %>% class, "data.frame")
+  expect_equal(ef_num$coef %>% class, "data.frame")
   
-  set.seed(101)
-  n <- 64
-  J <- 50
-  Y <- matrix(rpois(n*J, 100)*rbinom(n*J, 100, 0.7), nrow=n, ncol = J)
-  cage <- rep(c(LETTERS[1:16]), 4) %>% as.factor
-  treatment <- (cage %in% LETTERS[1:8])
-  XX <- data.frame(cage, treatment)
+  # check that cluster argument works as character vector and gives 
+  # equivalent results to numeric vector 
+  cage_char <- rep(c(LETTERS[1:16]), 4)
+  ef_char <- emuFit(formula = ~ treatment, 
+                   data = XX, 
+                   Y = Y, 
+                   cluster=cage_char, 
+                   run_score_tests=FALSE) 
+  expect_equal(ef_num$coef, ef_char$coef)
   
-  ##### FAILS
-  # expect_equal(emuFit(formula = ~ treatment, 
-  #                      data = XX, 
-  #                      Y = Y, 
-  #                      cluster=cage, 
-  #                      run_score_tests=FALSE) %>% class, 
-  #              "data.frame")
+  # check that cluster argument works as factor and gives equivalent results
+  # to numeric vector 
+  cage_fact <- cage_char %>% as.factor
+  ef_fact <- emuFit(formula = ~ treatment, 
+                    data = XX, 
+                    Y = Y, 
+                    cluster=cage_fact, 
+                    run_score_tests=FALSE) 
+  expect_equal(ef_num$coef, ef_fact$coef)
+  
+  # check that cluster argument works as variable name in quotes 
+  XX$cage <- cage_num 
+  ef_name <- emuFit(formula = ~ treatment, 
+                    data = XX, 
+                    Y = Y, 
+                    cluster="cage", 
+                    run_score_tests=FALSE) 
+  expect_equal(ef_num$coef, ef_name$coef)
+  
+  # check that cluster argument works as variable name not in quotes
+  ef_name2 <- emuFit(formula = ~ treatment, 
+                    data = XX, 
+                    Y = Y, 
+                    cluster=cage, 
+                    run_score_tests=FALSE) 
+  expect_equal(ef_num$coef, ef_name2$coef)
   
 })
 

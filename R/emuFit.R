@@ -4,8 +4,8 @@
 #' @param X an n x p matrix or dataframe of covariates (optional)
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
-#' @param cluster a numeric vector giving cluster membership for each row of Y to 
-#' be used in computing GEE test statistics. Default is NULL, in which case rows of 
+#' @param cluster a vector giving cluster membership for each row of Y or the name of a variable included in \code{data} object 
+#' to be used in computing GEE test statistics. Default is NULL, in which case rows of 
 #' Y are treated as independent.
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
 #' @param B starting value of coefficient matrix (p x J). If not provided,
@@ -174,13 +174,21 @@ have no observations. These samples must be excluded before fitting model.")
   }
   
   #check that cluster is correctly type if provided
-  if(!is.null(cluster)){
-    if(!is.numeric(cluster)){
-      stop("If provided, argument 'cluster' must be a numeric vector.")
-    }
-    if(length(cluster)!=nrow(Y)){
-      stop("If provided, argument 'cluster' must be a numeric vector with 
+  if(length(paste0(substitute(cluster))) > 0){
+    cluster_name <- paste0(substitute(cluster))
+    if(!exists(cluster_name, envir = rlang::caller_env())){
+      # if cluster argument doesn't exist in environment, check whether it is 
+      # the name of a variable in data 
+      if (cluster_name %in% names(data)) {
+        cluster <- data[, which(names(data) == cluster_name)]
+      } else {
+        stop("Argument 'cluster' does not refer to a vector in the environment or the name of a variable in 'data'.")
+      }
+    } else {
+      if(length(cluster)!=nrow(Y)){
+        stop("If provided as a vector, argument 'cluster' must have 
 length equal to n (the number of rows in Y).")
+      }
     }
     if(length(unique(cluster)) == nrow(Y)){
       warning("Number of unique values in 'cluster' equal to number of rows of Y; 
