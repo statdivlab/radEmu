@@ -88,8 +88,7 @@ for (i in 1:n) {
 }
 ```
 
-Now that we have our data, we can get estimates of our parameters using the radEmu model and do inference. We will specifically test the $\beta_1$ parameter for the 3rd category, because we know that the true $\beta_1^3 = 0$. 
-
+Now that we have our data, we can get estimates of our parameters using the radEmu model and do inference. We will specifically test the log fold difference parameter for the 3rd category, because we know that the true log fold difference for the third category associated with our covariate is $0$. 
 ```{r}
 ef_no_cluster <- emuFit(formula = ~ cov,
                         data = cov_dat, 
@@ -97,7 +96,7 @@ ef_no_cluster <- emuFit(formula = ~ cov,
                         test_kj = data.frame(k = 2, j = 3))
 ```
 
-When we ignore clustering, we get an estimate of $\hat{\beta}_1^3$ of `r round(ef_no_cluster$coef$estimate[3], 3)` and a p-value of `r round(ef_no_cluster$coef$pval[3], 3)`.
+When we ignore clustering, we get an estimate of the log fold difference in category 3 across values of our covariate of `r round(ef_no_cluster$coef$estimate[3], 3)` and a p-value of `r round(ef_no_cluster$coef$pval[3], 3)`.
 
 ```{r}
 ef_cluster <- emuFit(formula = ~ cov,
@@ -107,4 +106,4 @@ ef_cluster <- emuFit(formula = ~ cov,
                      test_kj = data.frame(k = 2, j = 3))
 ```
 
-Here, when we account for clustering, we get an estimate of  $\hat{\beta}_1^3$ of `r round(ef_cluster$coef$estimate[3], 3)` and a p-value of `r round(ef_cluster$coef$pval[3], 3)`. We can see that our estimates are the same whether or not we account for cluster, but our p-value is different.
+Here, when we account for clustering, we get an estimate of the log fold difference in category 3 across values of our covariate of `r round(ef_cluster$coef$estimate[3], 3)` and a p-value of `r round(ef_cluster$coef$pval[3], 3)`. We can see that our estimates are the same whether or not we account for cluster, but our p-values are different.
