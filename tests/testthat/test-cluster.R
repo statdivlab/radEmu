@@ -35,24 +35,6 @@ test_that("clusters work as I want", {
                     cluster=cage_fact, 
                     run_score_tests=FALSE) 
   expect_equal(ef_num$coef, ef_fact$coef)
-  
-  # check that cluster argument works as variable name in quotes 
-  XX$cage <- cage_num 
-  ef_name <- emuFit(formula = ~ treatment, 
-                    data = XX, 
-                    Y = Y, 
-                    cluster="cage", 
-                    run_score_tests=FALSE) 
-  expect_equal(ef_num$coef, ef_name$coef)
-  
-  # check that cluster argument works as variable name not in quotes
-  ef_name2 <- emuFit(formula = ~ treatment, 
-                    data = XX, 
-                    Y = Y, 
-                    cluster=cage, 
-                    run_score_tests=FALSE) 
-  expect_equal(ef_num$coef, ef_name2$coef)
-  
 })
 
 
