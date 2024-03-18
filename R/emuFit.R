@@ -174,7 +174,6 @@ have no observations. These samples must be excluded before fitting model.")
   
   #check that cluster is correctly type if provided
   if(!is.null(cluster)){
-    cluster_name <- paste0(substitute(cluster))
     if(length(cluster)!=nrow(Y)){
         stop("If provided as a vector, argument 'cluster' must have 
 length equal to n (the number of rows in Y).")
