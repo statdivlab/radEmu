@@ -134,25 +134,31 @@ emuTest <- function(category) {
 Now, we can run our score tests in parallel. This may take a minute or so. 
 
 ```{r}
-# first check if we are on a Windows platform, only run if we are not
 if (.Platform$OS.type != "windows") {
+  # run if we are on a Mac or Linux machine
   score_res <- mclapply(1:5,
                       emuTest,
                       mc.cores = ncores)
+} else {
+  # don't run if we are on a Windows machine
+  score_res <- NULL
 }
 ```
 
 Now, we can see that this barely took more time than running a single score test, because we were able to parallelize over cores (on my laptop, I'm using more than five cores, so I can run all five tests at the same time). The results are saved in a list. 
 
 ```{r}
-score_res[[1]]$coef$pval
-score_res[[2]]$coef$pval
+if (!is.null(score_res)) {
+  score_res[[1]]$coef$pval
+  score_res[[2]]$coef$pval
+}
 ```
 
 Finally, we can make a coefficient matrix that combines the information from each component in our list. 
 
 ```{r}
-full_score <- sapply(1:length(score_res), 
+if (!is.null(score_res)) {
+  full_score <- sapply(1:length(score_res), 
                      function(x) score_res[[x]]$coef$score_stat[x])
 full_pval <- sapply(1:length(score_res), 
                      function(x) score_res[[x]]$coef$pval[x])
@@ -162,5 +168,6 @@ full_coef <- ch_fit$coef %>%
   mutate(score_stat = full_score,
          pval = full_pval)
 full_coef
+}
 ```
 
