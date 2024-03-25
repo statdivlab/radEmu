@@ -159,15 +159,15 @@ Finally, we can make a coefficient matrix that combines the information from eac
 ```{r}
 if (!is.null(score_res)) {
   full_score <- sapply(1:length(score_res), 
-                     function(x) score_res[[x]]$coef$score_stat[x])
-full_pval <- sapply(1:length(score_res), 
-                     function(x) score_res[[x]]$coef$pval[x])
-full_coef <- ch_fit$coef %>%
-  dplyr::select(-score_stat, -pval) %>%
-  filter(category_num %in% 1:5) %>%
-  mutate(score_stat = full_score,
-         pval = full_pval)
-full_coef
+                       function(x) score_res[[x]]$coef$score_stat[x])
+  full_pval <- sapply(1:length(score_res), 
+                      function(x) score_res[[x]]$coef$pval[x])
+  full_coef <- ch_fit$coef %>%
+    dplyr::select(-score_stat, -pval) %>%
+    filter(category_num %in% 1:5) %>%
+    mutate(score_stat = full_score,
+           pval = full_pval)
+  full_coef
 }
 ```
 
