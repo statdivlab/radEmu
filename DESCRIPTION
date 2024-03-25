@@ -27,6 +27,7 @@ Suggests:
     dplyr, 
     ggplot2, 
     stringr, 
+    parallel
     rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
