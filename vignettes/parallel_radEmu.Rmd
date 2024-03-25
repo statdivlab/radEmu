@@ -134,9 +134,12 @@ emuTest <- function(category) {
 Now, we can run our score tests in parallel. This may take a minute or so. 
 
 ```{r}
-score_res <- mclapply(1:5,
+# first check if we are on a Windows platform, only run if we are not
+if (.Platform$OS.type != "windows") {
+  score_res <- mclapply(1:5,
                       emuTest,
                       mc.cores = ncores)
+}
 ```
 
 Now, we can see that this barely took more time than running a single score test, because we were able to parallelize over cores (on my laptop, I'm using more than five cores, so I can run all five tests at the same time). The results are saved in a list. 
