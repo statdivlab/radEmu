@@ -70,6 +70,7 @@
 #' @param c1 numeric: parameter for Armijo line search. Default is 1e-4.
 #' @param trackB logical: should values of B be recorded across optimization
 #' iterations and be returned? Primarily used for debugging. Default is FALSE.
+#' @param return_nullB logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE. 
 #' @param return_both_score_pvals logical: should score p-values be returned using both
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
@@ -125,6 +126,7 @@ emuFit <- function(Y,
                    inner_maxit = 25,
                    max_step = 1,
                    trackB = FALSE,
+                   return_nullB = FALSE,
                    return_both_score_pvals = FALSE
                    
                    
@@ -356,7 +358,9 @@ and the corresponding gradient function to constraint_grad_fn.")
       }
     }
     
-    
+    if (return_nullB) {
+      nullB_list <- vector(mode = "list", length = nrow(test_kj))
+    }
     for(test_ind in 1:nrow(test_kj)) {
       
       if (verbose) {
@@ -390,6 +394,14 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 Dy = Dy,
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
+      
+      if (return_nullB) {
+        null_B <- test_result$null_B
+        for (k in 1:p) {
+          null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+        }
+        nullB_list[[test_ind]] <- null_B
+      }
       
       which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
                            (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
@@ -549,14 +561,19 @@ and the corresponding gradient function to constraint_grad_fn.")
     rownames(B) <- colnames(X)
   }
   
-  return(structure(list("call" = call,
-                        "coef" = coefficients,
-                        "B" = B,
-                        "penalized" = penalize,
-                        "Y_augmented" = Y_augmented,
-                        "I" = I,
-                        "Dy" = Dy,
-                        "cluster" = cluster), class = "emuFit"))
+  results <- list("call" = call,
+                  "coef" = coefficients,
+                  "B" = B,
+                  "penalized" = penalize,
+                  "Y_augmented" = Y_augmented,
+                  "I" = I,
+                  "Dy" = Dy,
+                  "cluster" = cluster)
+  if (run_score_tests & return_nullB) {
+    results$null_B <- nullB_list
+  }
+  
+  return(structure(results, class = "emuFit"))
 }
 
 
