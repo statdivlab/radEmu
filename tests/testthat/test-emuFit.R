@@ -386,3 +386,24 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
 #   expect_true(cor(fitted_model$B[2,],b1)>0.95)
 #   
 # })
+
+test_that("emuFit runs without penalty", {
+  
+  expect_silent({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           penalize = FALSE,
+                           formula = ~group,
+                           data = covariates,
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
+})
