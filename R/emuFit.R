@@ -248,7 +248,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                      maxit = maxit,
                      max_stepsize = max_step,
                      tolerance = tolerance,
-                     j_ref = j_ref)
+                     j_ref = j_ref,
+                     verbose = verbose)
       fitted_B <- fitted_model
       Y_test <- Y
     }
@@ -515,15 +516,21 @@ and the corresponding gradient function to constraint_grad_fn.")
   if (penalize) {
     Y_augmented <- fitted_model$Y_augmented
   } else {
-    if (!is.null(fitted_model)) {
-      Y_augmented <- fitted_model$Y_augmented
-    } else {
-      Y_augmented <- NULL
-    }
+    # set Y_augmented to NUll because without penalty there is no Y augmentation
+    Y_augmented <- NULL
+    # if (!is.null(fitted_model)) {
+    #   Y_augmented <- fitted_model$Y_augmented
+    # } else {
+    #   Y_augmented <- NULL
+    # }
   }
   
   if (!is.null(fitted_model)) {
-    B <- fitted_model$B
+    if (penalize) {
+      B <- fitted_model$B
+    } else {
+      B <- fitted_model
+    }
   }
   
   if (is.null(just_wald_things)) {
