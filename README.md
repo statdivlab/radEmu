@@ -61,7 +61,9 @@ all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
                   data = my_covariates_df, 
                   Y = my_abundances_df)
 ```
+## Documentation 
 
+We additionally have a `pkgdown` [website](https://statdivlab.github.io/radEmu/) that contains pre-built versions of our function [documentation](https://statdivlab.github.io/radEmu/reference/index.html) and an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu.html). 
 
 ## Citation
 
