@@ -43,7 +43,7 @@ library(parallel)
 
 ## Introduction 
 
-In this vignette we will introduce parallel computing in order to do more efficient computation for score tests. Our recommendation for testing statistical hypotheses with small to moderate sample sizes with `radEmu` is to run a robust score test. While this test performs well (we like that it controls Type I error rate even in small samples!), it takes some time to run, because we need to fit our model under each null hypothesis. For differential abundance analysis, we often want to run a hypothesis test for each category (taxon, gene, etc) that we care about, so this adds up quickly. 
+In this vignette we will introduce parallel computing in order to do more efficient computation for score tests. Our recommendation for testing statistical hypotheses with small to moderate sample sizes with `radEmu` is to run a robust score test. While this test performs well (we like that it controls Type I error rate even in small samples!), it takes some time to run, because we need to fit the model under each null hypothesis. For differential abundance analysis, we often want to run a hypothesis test for each category (taxon, gene, etc) that we care about, so this adds up quickly. 
 In order to improve computational efficiency, we can run these score tests in parallel using the `parallel` R package. This will let us take advantage of having additional cores on personal computers or computing clusters. Note that we will be using the `mclapply` function from the `parallel` package, which works on Mac and Linux machines, but does not on Windows. If you are using a Windows machine and would like a vignette about parallel computing on Windows, please let us know by opening an issue. 
 
 We recommend that before working through this vignette, you start the an introduction to `radEmu` in "intro_radEmu.Rmd." 
@@ -116,7 +116,7 @@ ncores <- parallel::detectCores() - 1
 ncores
 ```
 
-Next, I will write a function that will be called in parallel. This function will run my robust score test on the correct category. 
+Next, I will write a function that will be called in parallel. This function will fit the model under the null and calculate the robust score test statistics. Note that the output of this function is an `emuFit` object.
 
 ```{r}
 emuTest <- function(category) {
@@ -131,7 +131,7 @@ emuTest <- function(category) {
 }
 ```
 
-Now, we can run our score tests in parallel. This may take a minute or so. 
+Now, we can run our score tests in parallel. We'll just do the first five. It may take a minute or so, depending on your machine. 
 
 ```{r}
 if (.Platform$OS.type != "windows") {
@@ -145,16 +145,17 @@ if (.Platform$OS.type != "windows") {
 }
 ```
 
-Now, we can see that this barely took more time than running a single score test, because we were able to parallelize over cores (on my laptop, I'm using more than five cores, so I can run all five tests at the same time). The results are saved in a list. 
+Now, we can see that this barely took more time than running a single score test, because we were able to parallelize over cores (on my laptop, I'm using more than five cores, so I can run all five tests at the same time). Each p-value can be pulled out of the list as follows: 
+
 
 ```{r}
 if (!is.null(score_res)) {
-  score_res[[1]]$coef$pval
-  score_res[[2]]$coef$pval
+  score_res[[1]]$coef$pval[1] ## robust score test p-value for the first taxon
+  score_res[[2]]$coef$pval[2] ## robust score test p-value for the second taxon
 }
 ```
 
-Finally, we can make a coefficient matrix that combines the information from each component in our list. 
+To help organise this information, we can make a coefficient matrix that combines the information from each component in our list: 
 
 ```{r}
 if (!is.null(score_res)) {
@@ -171,3 +172,6 @@ if (!is.null(score_res)) {
 }
 ```
 
+The column containing our p-values is called `pval`. 
+
+Happy testing! 
