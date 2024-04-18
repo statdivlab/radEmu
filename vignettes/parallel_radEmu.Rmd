@@ -100,7 +100,7 @@ robust_score <- emuFit(formula = ~ Group,
                        test_kj = data.frame(k = covariate_to_test, 
                                             j = mOTU_to_test), 
                        Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]))
-robust_score$coef$pval
+robust_score$coef$pval[mOTU_to_test]
 ```
 
 Now, we can see that it took a little while to run our robust score test. If we investigate the coefficient table in our `robust_score` output, we can see that we have a p-value of `R robust_score$coef$pval[mOTU_to_test]` from our test. 
