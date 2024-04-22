@@ -425,6 +425,23 @@ test_that("emuFit runs with just intercept model", {
                            use_fullmodel_cov = FALSE,
                            return_both_score_pvals = FALSE)
   })
+  
+  expect_message({
+    fitted_model1 <- emuFit(Y = Y,
+                           X = X[, 1, drop = FALSE],
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
+  
+  expect_equal(fitted_model$coef[, 2:9], fitted_model1$coef[, 2:9])
 })
 
 

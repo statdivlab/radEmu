@@ -456,7 +456,11 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   if (is.null(colnames(X))) {
-    colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
+    if (p > 1) {
+      colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
+    } else {
+      colnames(X) <- "Intercept"
+    }
   }
   if (is.null(colnames(Y))) {
     colnames(Y) <- paste0("category_", 1:ncol(Y))
