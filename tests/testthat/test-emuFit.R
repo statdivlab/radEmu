@@ -407,3 +407,24 @@ test_that("emuFit runs without penalty", {
                            return_both_score_pvals = FALSE)
   })
 })
+
+test_that("emuFit runs with just intercept model", {
+  
+  expect_message({
+    fitted_model <- emuFit(Y = Y,
+                           formula = ~1,
+                           data = covariates,
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
+})
+
+

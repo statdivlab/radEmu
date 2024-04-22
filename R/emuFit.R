@@ -272,16 +272,25 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
   }
   
-  
-  coefficients <- expand.grid(1:J, 2:p)
-  coefficients <- data.frame(j = coefficients[ , 1],
-                             k = coefficients[ ,2])
-  coefficients$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
-  coefficients$lower <- NA
-  coefficients$upper <- NA
-  coefficients$pval <- coefficients$score_stat <- NA
-
-  
+  if (p == 1) {
+    message("You are running an intercept-only model. In this model the intercept beta_0^j is an unidentifiable combination of intercept for category j and the detection efficiency of category j. Therefore this parameter is not interpretable.")
+    
+    coefficients <- expand.grid(1:J, 1)
+    coefficients <- data.frame(j = coefficients[ , 1],
+                               k = coefficients[ ,2])
+    coefficients$estimate <- fitted_B[1, ]
+    coefficients$lower <- NA
+    coefficients$upper <- NA
+    coefficients$pval <- coefficients$score_stat <- NA
+  } else {
+    coefficients <- expand.grid(1:J, 2:p)
+    coefficients <- data.frame(j = coefficients[ , 1],
+                               k = coefficients[ ,2])
+    coefficients$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
+    coefficients$lower <- NA
+    coefficients$upper <- NA
+    coefficients$pval <- coefficients$score_stat <- NA
+  }
   
   if (compute_cis) {
     if (verbose) {
