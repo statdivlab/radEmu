@@ -169,7 +169,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
 
 
   if(!good_enough_fit){
-    warning("Optimization for null fit with k = ",k_constr," and j = ",j_constr," failed to converge across ", ntries, ifelse(ntries>1," attempts."," attempt."))
+    warning("Optimization for null fit with k = ",k_constr," and j = ",j_constr," failed to converge across ", ntries, ifelse(ntries>1," attempts."," attempt."), " This score test cannot be run.")
+    return(NULL)
   }
   B <- constrained_fit$B
   z <- update_z(Y,X,B)

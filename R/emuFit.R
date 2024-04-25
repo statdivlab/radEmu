@@ -395,54 +395,59 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
       
-      if (return_nullB) {
-        null_B <- test_result$null_B
-        for (k in 1:p) {
-          null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+      if (is.null(test_results)) {
+        if (return_nullB) {
+          nullB_list[[test_ind]] <- NA
         }
-        nullB_list[[test_ind]] <- null_B
-      }
-      
-      which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
-                           (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
-      
-      if (!return_both_score_pvals) {
-        coefficients[which_row ,c("pval","score_stat")] <-
-          c(test_result$pval,test_result$score_stat)
       } else {
-        coefficients[which_row ,c("score_pval_full_info","score_stat_full_info",
-                                  "score_pval_null_info","score_stat_null_info")] <-
-          c(test_result$pval,test_result$score_stat,
-            test_result$pval_null_info,test_result$score_stat_null_info)
-      }
-      
-      if (use_both_cov) {
-        
-        #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
-        alt_score_stat <- get_score_stat(Y = Y_test,
-                                         X_cup = X_cup,
-                                         X = X,
-                                         B = test_result$null_B,
-                                         k_constr = test_kj$k[test_ind],
-                                         j_constr = test_kj$j[test_ind],
-                                         constraint_grad_fn = constraint_grad_fn,
-                                         indexes_to_remove = (j_ref - 1)*p + 1:p,
-                                         j_ref = j_ref,
-                                         J = J,
-                                         n = n,
-                                         p = p, 
-                                         I_inv=I_inv,
-                                         Dy = just_wald_things$Dy,
-                                         cluster = cluster)
-        
+        if (return_nullB) {
+          null_B <- test_result$null_B
+          for (k in 1:p) {
+            null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+          }
+          nullB_list[[test_ind]] <- null_B
+        }
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
                              (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
-        coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
-                                                                lower.tail = FALSE)
+        
+        if (!return_both_score_pvals) {
+          coefficients[which_row ,c("pval","score_stat")] <-
+            c(test_result$pval,test_result$score_stat)
+        } else {
+          coefficients[which_row ,c("score_pval_full_info","score_stat_full_info",
+                                    "score_pval_null_info","score_stat_null_info")] <-
+            c(test_result$pval,test_result$score_stat,
+              test_result$pval_null_info,test_result$score_stat_null_info)
+        }
+        
+        if (use_both_cov) {
+          
+          #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
+          alt_score_stat <- get_score_stat(Y = Y_test,
+                                           X_cup = X_cup,
+                                           X = X,
+                                           B = test_result$null_B,
+                                           k_constr = test_kj$k[test_ind],
+                                           j_constr = test_kj$j[test_ind],
+                                           constraint_grad_fn = constraint_grad_fn,
+                                           indexes_to_remove = (j_ref - 1)*p + 1:p,
+                                           j_ref = j_ref,
+                                           J = J,
+                                           n = n,
+                                           p = p, 
+                                           I_inv=I_inv,
+                                           Dy = just_wald_things$Dy,
+                                           cluster = cluster)
+          
+          
+          which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
+                               (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
+          coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
+                                                                  lower.tail = FALSE)
+        }
+      
       }
-      
-      
     }
   }
   
