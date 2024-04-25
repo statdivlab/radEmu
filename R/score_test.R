@@ -182,7 +182,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
     #indexes in long format corresponding to the j_constr-th col of B
   #get score stat
   indexes_to_remove <- (j_ref - 1)*p + 1:p
-  score_stat <-
+  score_stat <- try(
     get_score_stat(Y = Y,
                  X_cup = X_cup,
                  X = X,
@@ -197,11 +197,14 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                  p = p,
                  I_inv = I_inv,
                  Dy = Dy,
-                 cluster = cluster)
+                 cluster = cluster))
  
   if(!return_both_score_pvals){ #typically we want only one score p-value
                                 #(using only one version of information matrix)
-
+    if (inherits(score_stat, "try-error")) {
+      warning("score statistic for test of k = ", k_constr, " and j = ", j_constr, " cannot be computed, likely because the information matrix is computationally singular.")
+      score_stat <- NA
+    }
   return(list("score_stat" = score_stat,
               "pval" = pchisq(score_stat,1,lower.tail = FALSE),
               "log_pval" = pchisq(score_stat,1,lower.tail = FALSE, log.p = TRUE),
@@ -234,6 +237,10 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                        Dy = Dy)
 
       score_stat_with_null_info <- score_stat_with_null_info
+      if (inherits(score_stat_with_null_info, "try-error")) {
+        warning("one of the score statistics for test of k = ", k_constr, " and j = ", j_constr, " cannot be computed, likely because the information matrix is computationally singular.")
+        score_stat_with_null_info <- NA
+      }
 
       return(list("score_stat" = score_stat,
                   "pval" = pchisq(score_stat,1,lower.tail = FALSE),
