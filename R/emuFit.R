@@ -395,7 +395,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
       
-      if (is.null(test_results)) {
+      if (is.null(test_result)) {
         if (return_nullB) {
           nullB_list[[test_ind]] <- NA
         }
