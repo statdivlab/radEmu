@@ -350,8 +350,8 @@ and the corresponding gradient function to constraint_grad_fn.")
         "score_pval_full_info"
       colnames(coefficients)[colnames(coefficients) == "score_stat"] <-
         "score_stat_full_info"
-      coefficients$score_pval_null_info <- numeric(nrow(coefficients))
-      coefficients$score_stat_null_info <- numeric(nrow(coefficients))
+      coefficients$score_pval_null_info <- NA
+      coefficients$score_stat_null_info <- NA
       
       if (!use_fullmodel_info) {
         stop("If return_both_score_pvals = TRUE, use_fullmodel_info must be TRUE as well.")
