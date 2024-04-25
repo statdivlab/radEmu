@@ -123,54 +123,54 @@ score_test <- function(B, #B (MPLE)
   good_enough_fit <- FALSE
   while(!accept_try){
     #fit under null
-  constrained_fit <- try(fit_null(B = B, #B (MPLE)
-                                      Y = Y, #Y (with augmentations)
-                                      X = X, #design matrix
-                                      X_cup = X_cup,
-                                      k_constr = k_constr, #row index of B to constrain
-                                      j_constr = j_constr, #col index of B to constrain
-                                      constraint_fn = constraint_fn, #constraint function
-                                      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-                                      # constraint_hess_fn = constraint_hess_fn,
-                                      rho_init = rho_init,
-                                      tau = tau,
-                                      kappa = kappa,
-                                      B_tol = B_tol,
-                                      inner_tol = inner_tol,
-                                      constraint_tol = constraint_tol,
-                                      j_ref = j_ref,
-                                      c1 = c1,
-                                      maxit = maxit,
-                                      inner_maxit = inner_maxit,
-                                      verbose = verbose,
-                                      trackB = trackB
-                                      # I = I,
-                                      # Dy = Dy
-  ))
-  if(inherits(constrained_fit,"try-error")){
-    accept_try <- FALSE
-  } else{
-    if((abs(constrained_fit$gap) <= constraint_tol) &
-       (constrained_fit$niter < maxit)){
-      accept_try <- TRUE
-      good_enough_fit <- TRUE
+    constrained_fit <- try(fit_null(B = B, #B (MPLE)
+                                    Y = Y, #Y (with augmentations)
+                                    X = X, #design matrix
+                                    X_cup = X_cup,
+                                    k_constr = k_constr, #row index of B to constrain
+                                    j_constr = j_constr, #col index of B to constrain
+                                    constraint_fn = constraint_fn, #constraint function
+                                    constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+                                    # constraint_hess_fn = constraint_hess_fn,
+                                    rho_init = rho_init,
+                                    tau = tau,
+                                    kappa = kappa,
+                                    B_tol = B_tol,
+                                    inner_tol = inner_tol,
+                                    constraint_tol = constraint_tol,
+                                    j_ref = j_ref,
+                                    c1 = c1,
+                                    maxit = maxit,
+                                    inner_maxit = inner_maxit,
+                                    verbose = verbose,
+                                    trackB = trackB
+                                    # I = I,
+                                    # Dy = Dy
+    ))
+    if(inherits(constrained_fit,"try-error")){
+      accept_try <- FALSE
     } else{
-      tau <- tau^(3/4)
-      inner_maxit <- 2*inner_maxit
-      message("Constrained optimization failed to converge within iteration limit;
+      if((abs(constrained_fit$gap) <= constraint_tol) &
+         (constrained_fit$niter < maxit)){
+        accept_try <- TRUE
+        good_enough_fit <- TRUE
+      } else{
+        tau <- tau^(3/4)
+        inner_maxit <- 2*inner_maxit
+        message("Constrained optimization failed to converge within iteration limit;
 retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
+      }
     }
-  }
-  tries_so_far <- tries_so_far + 1
-  if(tries_so_far == ntries){
-    accept_try <- TRUE
-  }
+    tries_so_far <- tries_so_far + 1
+    if(tries_so_far == ntries){
+      accept_try <- TRUE
+    }
   }
 
 
   if(!good_enough_fit){
     warning("Optimization for null fit with k = ",k_constr," and j = ",j_constr," failed to converge across ", ntries, ifelse(ntries>1," attempts."," attempt."))
-}
+  }
   B <- constrained_fit$B
   z <- update_z(Y,X,B)
   p <- ncol(X)
