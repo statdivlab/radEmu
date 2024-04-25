@@ -481,60 +481,40 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   if (!compute_cis) {
-    coefficients <-
-      cbind(data.frame(covariate = coefficients$covariate,
-                       category = coefficients$category,
-                       category_num = coefficients$j),
-            coefficients[ , c("estimate","lower","upper","score_stat","pval")])
-  } else {
-    if (!return_wald_p) {
-      coefficients <-
-        cbind(data.frame(covariate = coefficients$covariate,
-                         category = coefficients$category,
-                         category_num = coefficients$j),
-              coefficients[ , c("estimate","se","lower","upper","score_stat","pval")])
-    } else {
-      if (use_both_cov) {
-        coefficients <-
+    coef_df <-
           cbind(data.frame(covariate = coefficients$covariate,
                            category = coefficients$category,
                            category_num = coefficients$j),
-                coefficients[ , c("estimate","se","lower","upper","score_stat","pval",
-                                  "wald_p","score_fullcov_p")])
-      } else {
-        if (return_both_score_pvals) {
-          coefficients <-
-            cbind(data.frame(covariate = coefficients$covariate,
-                             category = coefficients$category,
-                             category_num = coefficients$j),
-                  coefficients[ , c("estimate","se","lower","upper",
-                                    "score_stat_full_info",
-                                    "score_pval_full_info",
-                                    "score_stat_null_info",
-                                    "score_pval_null_info",
-                                    "wald_p")])
-          
-        } else {
-          coefficients <-
-            cbind(data.frame(covariate = coefficients$covariate,
-                             category = coefficients$category,
-                             category_num = coefficients$j),
-                  coefficients[ , c("estimate","se","lower","upper","score_stat","pval","wald_p")])
-        }
-      }
+                coefficients[ , c("estimate","lower","upper")])
+  } else {
+    coef_df <-
+      cbind(data.frame(covariate = coefficients$covariate,
+                       category = coefficients$category,
+                       category_num = coefficients$j),
+            coefficients[ , c("estimate","se", "lower","upper")])
+  }
+  if (use_both_cov) {
+    coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval","score_fullcov_p")])
+  } else {
+    if (return_both_score_pvals) {
+      coef_df <- cbind(coef_df, coefficients[ , c("score_stat_full_info",
+                                                  "score_pval_full_info",
+                                                  "score_stat_null_info",
+                                                  "score_pval_null_info")])
+    } else {
+      coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval")])
     }
   }
+  if (return_wald_p) {
+    coef_df$wald_p <- coefficients[, "wald_p"]
+  }
+  coefficients <- coef_df
   
   if (penalize) {
     Y_augmented <- fitted_model$Y_augmented
   } else {
     # set Y_augmented to NUll because without penalty there is no Y augmentation
     Y_augmented <- NULL
-    # if (!is.null(fitted_model)) {
-    #   Y_augmented <- fitted_model$Y_augmented
-    # } else {
-    #   Y_augmented <- NULL
-    # }
   }
   
   if (!is.null(fitted_model)) {
