@@ -13,8 +13,13 @@ test_that("emuFit works with a phyloseq object", {
     wirbel_smaller <- phyloseq::prune_samples(wirbel_sample$Country == "FRA" &
                                                 wirbel_sample$Gender == "F", 
                                               wirbel_small)
-    fit <- emuFit(wirbel_small, formula = ~ Group, run_score_tests = FALSE)
+    fit <- emuFit(wirbel_small, formula = ~ Group, run_score_tests = FALSE, tolerance = 0.01)
     expect_true(is.matrix(fit$B))
+    
+    wirbel_transpose <- wirbel_small
+    phyloseq::otu_table(wirbel_transpose) <- t(phyloseq::otu_table(wirbel_transpose))
+    fit_transpose <- emuFit(wirbel_transpose, formula = ~ Group, run_score_tests = FALSE, tolerance = 0.01)
+    expect_true(all.equal(fit$coef, fit_transpose$coef))
     
   } else {
     expect_error(stop("You don't have phyloseq installed"))
