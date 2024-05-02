@@ -61,7 +61,9 @@ all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
                   data = my_covariates_df, 
                   Y = my_abundances_df)
 ```
+## Documentation 
 
+We additionally have a `pkgdown` [website](https://statdivlab.github.io/radEmu/) that contains pre-built versions of our function [documentation](https://statdivlab.github.io/radEmu/reference/index.html) and our vignettes (an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu.html), an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html) that uses `phyloseq` data, and a [vignette](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html) for running `radEmu` tests in parallel for more efficient computation). 
 
 ## Citation
 
