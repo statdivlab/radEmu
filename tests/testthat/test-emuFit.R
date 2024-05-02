@@ -443,5 +443,3 @@ test_that("emuFit runs with just intercept model", {
   
   expect_equal(fitted_model$coef[, 2:9], fitted_model1$coef[, 2:9])
 })
-
-
