@@ -359,8 +359,8 @@ and the corresponding gradient function to constraint_grad_fn.")
         "score_pval_full_info"
       colnames(coefficients)[colnames(coefficients) == "score_stat"] <-
         "score_stat_full_info"
-      coefficients$score_pval_null_info <- numeric(nrow(coefficients))
-      coefficients$score_stat_null_info <- numeric(nrow(coefficients))
+      coefficients$score_pval_null_info <- NA
+      coefficients$score_stat_null_info <- NA
       
       if (!use_fullmodel_info) {
         stop("If return_both_score_pvals = TRUE, use_fullmodel_info must be TRUE as well.")
@@ -404,54 +404,59 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
       
-      if (return_nullB) {
-        null_B <- test_result$null_B
-        for (k in 1:p) {
-          null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+      if (is.null(test_result)) {
+        if (return_nullB) {
+          nullB_list[[test_ind]] <- NA
         }
-        nullB_list[[test_ind]] <- null_B
-      }
-      
-      which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
-                           (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
-      
-      if (!return_both_score_pvals) {
-        coefficients[which_row ,c("pval","score_stat")] <-
-          c(test_result$pval,test_result$score_stat)
       } else {
-        coefficients[which_row ,c("score_pval_full_info","score_stat_full_info",
-                                  "score_pval_null_info","score_stat_null_info")] <-
-          c(test_result$pval,test_result$score_stat,
-            test_result$pval_null_info,test_result$score_stat_null_info)
-      }
-      
-      if (use_both_cov) {
-        
-        #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
-        alt_score_stat <- get_score_stat(Y = Y_test,
-                                         X_cup = X_cup,
-                                         X = X,
-                                         B = test_result$null_B,
-                                         k_constr = test_kj$k[test_ind],
-                                         j_constr = test_kj$j[test_ind],
-                                         constraint_grad_fn = constraint_grad_fn,
-                                         indexes_to_remove = (j_ref - 1)*p + 1:p,
-                                         j_ref = j_ref,
-                                         J = J,
-                                         n = n,
-                                         p = p, 
-                                         I_inv=I_inv,
-                                         Dy = just_wald_things$Dy,
-                                         cluster = cluster)
-        
+        if (return_nullB) {
+          null_B <- test_result$null_B
+          for (k in 1:p) {
+            null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+          }
+          nullB_list[[test_ind]] <- null_B
+        }
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
                              (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
-        coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
-                                                                lower.tail = FALSE)
+        
+        if (!return_both_score_pvals) {
+          coefficients[which_row ,c("pval","score_stat")] <-
+            c(test_result$pval,test_result$score_stat)
+        } else {
+          coefficients[which_row ,c("score_pval_full_info","score_stat_full_info",
+                                    "score_pval_null_info","score_stat_null_info")] <-
+            c(test_result$pval,test_result$score_stat,
+              test_result$pval_null_info,test_result$score_stat_null_info)
+        }
+        
+        if (use_both_cov) {
+          
+          #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
+          alt_score_stat <- get_score_stat(Y = Y_test,
+                                           X_cup = X_cup,
+                                           X = X,
+                                           B = test_result$null_B,
+                                           k_constr = test_kj$k[test_ind],
+                                           j_constr = test_kj$j[test_ind],
+                                           constraint_grad_fn = constraint_grad_fn,
+                                           indexes_to_remove = (j_ref - 1)*p + 1:p,
+                                           j_ref = j_ref,
+                                           J = J,
+                                           n = n,
+                                           p = p, 
+                                           I_inv=I_inv,
+                                           Dy = just_wald_things$Dy,
+                                           cluster = cluster)
+          
+          
+          which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
+                               (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
+          coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
+                                                                  lower.tail = FALSE)
+        }
+      
       }
-      
-      
     }
   }
   
@@ -494,60 +499,40 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   if (!compute_cis) {
-    coefficients <-
-      cbind(data.frame(covariate = coefficients$covariate,
-                       category = coefficients$category,
-                       category_num = coefficients$j),
-            coefficients[ , c("estimate","lower","upper","score_stat","pval")])
-  } else {
-    if (!return_wald_p) {
-      coefficients <-
-        cbind(data.frame(covariate = coefficients$covariate,
-                         category = coefficients$category,
-                         category_num = coefficients$j),
-              coefficients[ , c("estimate","se","lower","upper","score_stat","pval")])
-    } else {
-      if (use_both_cov) {
-        coefficients <-
+    coef_df <-
           cbind(data.frame(covariate = coefficients$covariate,
                            category = coefficients$category,
                            category_num = coefficients$j),
-                coefficients[ , c("estimate","se","lower","upper","score_stat","pval",
-                                  "wald_p","score_fullcov_p")])
-      } else {
-        if (return_both_score_pvals) {
-          coefficients <-
-            cbind(data.frame(covariate = coefficients$covariate,
-                             category = coefficients$category,
-                             category_num = coefficients$j),
-                  coefficients[ , c("estimate","se","lower","upper",
-                                    "score_stat_full_info",
-                                    "score_pval_full_info",
-                                    "score_stat_null_info",
-                                    "score_pval_null_info",
-                                    "wald_p")])
-          
-        } else {
-          coefficients <-
-            cbind(data.frame(covariate = coefficients$covariate,
-                             category = coefficients$category,
-                             category_num = coefficients$j),
-                  coefficients[ , c("estimate","se","lower","upper","score_stat","pval","wald_p")])
-        }
-      }
+                coefficients[ , c("estimate","lower","upper")])
+  } else {
+    coef_df <-
+      cbind(data.frame(covariate = coefficients$covariate,
+                       category = coefficients$category,
+                       category_num = coefficients$j),
+            coefficients[ , c("estimate","se", "lower","upper")])
+  }
+  if (use_both_cov) {
+    coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval","score_fullcov_p")])
+  } else {
+    if (return_both_score_pvals) {
+      coef_df <- cbind(coef_df, coefficients[ , c("score_stat_full_info",
+                                                  "score_pval_full_info",
+                                                  "score_stat_null_info",
+                                                  "score_pval_null_info")])
+    } else {
+      coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval")])
     }
   }
+  if (return_wald_p) {
+    coef_df$wald_p <- coefficients[, "wald_p"]
+  }
+  coefficients <- coef_df
   
   if (penalize) {
     Y_augmented <- fitted_model$Y_augmented
   } else {
     # set Y_augmented to NUll because without penalty there is no Y augmentation
     Y_augmented <- NULL
-    # if (!is.null(fitted_model)) {
-    #   Y_augmented <- fitted_model$Y_augmented
-    # } else {
-    #   Y_augmented <- NULL
-    # }
   }
   
   if (!is.null(fitted_model)) {
