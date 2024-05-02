@@ -143,7 +143,11 @@ emuFit <- function(Y,
       } else {
         data <- data.frame(phyloseq::sample_data(Y))
         X <- model.matrix(formula, data)
+        taxa_are_rows <- Y@otu_table@taxa_are_rows
         Y <- as.matrix(phyloseq::otu_table(Y))
+        if (taxa_are_rows) {
+          Y <- t(Y)
+        }
       }
     } else {
       stop("You are trying to use a `phyloseq` data object or `phyloseq` helper function without having the `phyloseq` package installed. Please either install the package or use a standard data frame.")
