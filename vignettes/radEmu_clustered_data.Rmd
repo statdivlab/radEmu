@@ -1,0 +1,109 @@
+---
+title: "Using radEmu on clustered data"
+author: "Sarah Teichman"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using radEmu on clustered data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+First, we will install `radEmu`, if we haven't already. 
+
+```{r, eval = FALSE}
+# if (!require("remotes", quietly = TRUE))
+#     install.packages("remotes")
+# 
+# remotes::install_github("statdivlab/radEmu")
+```
+
+Next, we can load `radEmu` as well as the `tidyverse` package suite. 
+
+```{r setup, message = FALSE}
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(radEmu)
+```
+
+## Introduction 
+
+In this vignette we will explore the use of `radEmu` with clustered data. Data with cluster dependence is a common phenomenon in microbiome studies. This type of dependence can come from experimental factors such as shared cages or tanks for study animals. When cluster dependence is not accounted for, statistical methods often operate under the assumption that all samples are independent. This will typically lead to anti-conservative inference (i.e. p-values that are smaller than they should be). 
+
+Luckily, we have tools to account for cluster dependence in statistical inference, and they are implemented in `radEmu` through the `cluster` argument! This argument is only implemented from `radEmu` v1.2.0.0 forward, so if you are having trouble using the `cluster` argument, check that you have a recent enough version so use this functionality. 
+
+## Generating data with cluster dependence
+
+To start, let's generate a small data example in which there is cluster dependence within our data. 
+
+```{r}
+set.seed(10)
+# 10 categories
+J <- 10
+# 2 columns in the design matrix 
+p <- 2
+# 100 samples 
+n <- 100
+# generate design matrix 
+X <- cbind(1, rnorm(n))
+cov_dat <- data.frame(cov = X[, 2])
+# sample-specific effects
+z <- rnorm(n) + 5
+# cluster membership 
+cluster <- rep(1:4, each = 25)
+cov_dat$cluster <- cluster
+# cluster effects 
+cluster_effs <- lapply(1:4, function(i) log(matrix(rexp(2*J), nrow = 2)))
+# intercepts for each category
+b0 <- rnorm(J)
+# coefficients for X1 for each category 
+b1 <- seq(1, 5, length.out = J)
+# mean center the coefficients
+b1 <- b1 - mean(b1)
+# set the coefficient for the 3rd category to 0
+b1[3] <- 0
+# generate B coefficient matrix 
+b <- rbind(b0, b1)
+
+# set up response matrix 
+Y <- matrix(0, ncol = J, nrow = n)
+for (i in 1:n) {
+  for(j in 1:J){
+    # mean model is exp(X_i %*% B_j + cluster_effect + z_i)
+    temp_mean <- exp(X[i, , drop = FALSE] %*% 
+                       (b[, j, drop = FALSE] + 
+                          cluster_effs[[ cluster[i] ]][,j]) + z[i])
+    # draw from a zero-inflated negative binomial with our mean 
+    Y[i,j] <- rnbinom(1, mu = temp_mean, size = 5) * rbinom(1, 1, 0.8)
+  }
+}
+```
+
+Now that we have our data, we can get estimates of our parameters using the radEmu model and do inference. We will specifically test the log fold difference parameter for the 3rd category, because we know that the true log fold difference for the third category associated with our covariate is $0$. 
+```{r}
+ef_no_cluster <- emuFit(formula = ~ cov,
+                        data = cov_dat, 
+                        Y = Y,
+                        test_kj = data.frame(k = 2, j = 3))
+```
+
+When we ignore clustering, we get an estimate of the log fold difference in category 3 across values of our covariate of `r round(ef_no_cluster$coef$estimate[3], 3)` and a p-value of `r round(ef_no_cluster$coef$pval[3], 3)`.
+
+```{r}
+ef_cluster <- emuFit(formula = ~ cov,
+                     data = cov_dat, 
+                     Y = Y,
+                     cluster = cluster, 
+                     test_kj = data.frame(k = 2, j = 3))
+```
+
+Here, when we account for clustering, we get an estimate of the log fold difference in category 3 across values of our covariate of `r round(ef_cluster$coef$estimate[3], 3)` and a p-value of `r round(ef_cluster$coef$pval[3], 3)`. We can see that our estimates are the same whether or not we account for cluster, but our p-values are different.
