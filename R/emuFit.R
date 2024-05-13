@@ -77,14 +77,16 @@
 #' p-value to be used should be chosen before conducting tests.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-#' 'I', and 'Dy'.  Parameter estimates by 
+#' 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by 
 #' covariate and outcome category (e.g., taxon for microbiome data), as well as 
 #' optionally confidence intervals and p-values, are contained in 'coef'. 'B' 
 #' contains parameter estimates in matrix format (rows indexing covariates and 
 #' columns indexing outcome category / taxon). 'penalized' is equal to TRUE 
 #' if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and 
 #' 'Dy' contain an information matrix and empirical score covariance matrix 
-#' computed under the full model.
+#' computed under the full model. 'score_test_hyperparams' contains parameters and 
+#' hyperparameters related to estimation under the null, including whether or not the 
+#' algorithm converged, which can be helpful for debugging. 
 #'
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
@@ -358,6 +360,13 @@ and the corresponding gradient function to constraint_grad_fn.")
   
   if (run_score_tests) {
     
+    score_test_hyperparams <- data.frame(u = rep(NA, nrow(test_kj)),
+                                         rho = NA,
+                                         tau = NA,
+                                         inner_maxit = NA,
+                                         gap = NA,
+                                         converged = NA)
+    
     if (return_both_score_pvals) {
       colnames(coefficients)[colnames(coefficients) == "pval"] <-
         "score_pval_full_info"
@@ -413,6 +422,11 @@ and the corresponding gradient function to constraint_grad_fn.")
           nullB_list[[test_ind]] <- NA
         }
       } else {
+        
+        score_test_hyperparams[test_ind, ] <- 
+          c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
+            test_result$gap, test_result$convergence)
+        
         if (return_nullB) {
           null_B <- test_result$null_B
           for (k in 1:p) {
@@ -573,6 +587,9 @@ and the corresponding gradient function to constraint_grad_fn.")
                   "cluster" = cluster)
   if (run_score_tests & return_nullB) {
     results$null_B <- nullB_list
+  }
+  if (run_score_tests) {
+    results$score_test_hyperparams <- score_test_hyperparams
   }
   
   return(structure(results, class = "emuFit"))

@@ -157,14 +157,16 @@ p-value to be used should be chosen before conducting tests.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-'I', and 'Dy'.  Parameter estimates by
+'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by
 covariate and outcome category (e.g., taxon for microbiome data), as well as
 optionally confidence intervals and p-values, are contained in 'coef'. 'B'
 contains parameter estimates in matrix format (rows indexing covariates and
 columns indexing outcome category / taxon). 'penalized' is equal to TRUE
 if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and
 'Dy' contain an information matrix and empirical score covariance matrix
-computed under the full model.
+computed under the full model. 'score_test_hyperparams' contains parameters and
+hyperparameters related to estimation under the null, including whether or not the
+algorithm converged, which can be helpful for debugging.
 }
 \description{
 Fit radEmu model
