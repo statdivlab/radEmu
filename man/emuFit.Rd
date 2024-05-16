@@ -12,6 +12,7 @@ emuFit(
   cluster = NULL,
   penalize = TRUE,
   B = NULL,
+  B_null_list = NULL,
   fitted_model = NULL,
   refit = TRUE,
   test_kj = NULL,
@@ -59,6 +60,10 @@ GEE test statistics. Default is NULL, in which case rows of Y are treated as ind
 
 \item{B}{starting value of coefficient matrix (p x J). If not provided,
 B will be initiated as a zero matrix.}
+
+\item{B_null_list}{list of starting values of coefficient matrix (p x J) for null estimation. This should either
+be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+include the other elements of the list as \code{NULL}.}
 
 \item{fitted_model}{a fitted model produced by a separate call to emuFit; to
 be provided if score tests are to be run without refitting the full unrestricted model.

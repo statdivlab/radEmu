@@ -1,6 +1,7 @@
 #' Run robust score test
 
-#' @param B value of coefficient matrix (p x J) returned by full model fit
+#' @param B value of coefficient matrix (p x J) returned by full model fit or value of coefficient 
+#' matrix to start null estimation at given as input to emuFit
 #' @param Y an n x J matrix or dataframe of *augmented* nonnegative observations (i.e.,
 #' observations Y plus augmentations from last iteration of maximum penalized likelihood estimation
 #' for full model)

@@ -33,7 +33,8 @@ score_test(
 )
 }
 \arguments{
-\item{B}{value of coefficient matrix (p x J) returned by full model fit}
+\item{B}{value of coefficient matrix (p x J) returned by full model fit or value of coefficient
+matrix to start null estimation at given as input to emuFit}
 
 \item{Y}{an n x J matrix or dataframe of \emph{augmented} nonnegative observations (i.e.,
 observations Y plus augmentations from last iteration of maximum penalized likelihood estimation

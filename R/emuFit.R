@@ -9,6 +9,9 @@
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
 #' @param B starting value of coefficient matrix (p x J). If not provided,
 #' B will be initiated as a zero matrix.
+#' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation. This should either 
+#' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+#' include the other elements of the list as \code{NULL}.
 #' @param fitted_model a fitted model produced by a separate call to emuFit; to
 #' be provided if score tests are to be run without refitting the full unrestricted model.
 #' Default is NULL.
@@ -101,6 +104,7 @@ emuFit <- function(Y,
                    cluster = NULL,
                    penalize = TRUE,
                    B = NULL,
+                   B_null_list = NULL,
                    fitted_model = NULL,
                    refit = TRUE,
                    test_kj = NULL,
@@ -190,6 +194,14 @@ length equal to n (the number of rows in Y).")
       warning("Number of unique values in 'cluster' equal to number of rows of Y; 
 ignoring argument 'cluster'.")
       cluster <- NULL
+    }
+  }
+  
+  # check that B_null_list is the correct length if provided 
+  if (!is.null(B_null_list)) {
+    if (length(B_null_list) != nrow(test_kj)) {
+      warning("Length of 'B_null_list' is different than the number of tests specified in 'test_kj'. Ignoring object 'B_null_list'.")
+      B_null_list <- NULL
     }
   }
   
@@ -394,8 +406,18 @@ and the corresponding gradient function to constraint_grad_fn.")
                     test_kj$j[test_ind],").",sep = ""))
       }
       
+      B_to_use <- fitted_B
+      if (!is.null(B_null_list)) {
+        if (!is.null(B_null_list[[test_ind]])) {
+          B_to_use <- B_null_list[[test_ind]]
+          if (!(nrow(B_to_use) == nrow(fitted_B) & ncol(B_to_use) == ncol(fitted_B))) {
+            warning("'B_null_list' contains objects that are not the correct dimension for 'B'. The 'B_null_list' argument will be ignored.")
+            B_to_use <- fitted_B
+          }
+        }
+      }
       
-      test_result <- score_test(B = fitted_B, #B (MPLE)
+      test_result <- score_test(B = B_to_use, #B (MPLE or starting value if provided)
                                 Y = Y_test, #Y (with augmentations)
                                 X = X, #design matrix
                                 X_cup = X_cup,

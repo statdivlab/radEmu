@@ -484,3 +484,47 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
   expect_type(fitted_model$null_estimation_unconverged, "list")
 })
 
+("test that 'B_null_list' object can be used and throws appropriate warnings when used incorrectly", {
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(B),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+  expect_silent({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(NULL, b),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(NULL, b[, -3]),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+})
