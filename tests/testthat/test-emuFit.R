@@ -488,7 +488,7 @@ test_that("test that B_null_list object can be used and throws appropriate warni
   expect_warning({
     fitted_model <- emuFit(Y = Y,
                            X = X,
-                           B_null_list = list(B),
+                           B_null_list = list(b),
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
