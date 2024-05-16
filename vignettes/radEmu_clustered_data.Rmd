@@ -1,6 +1,6 @@
 ---
 title: "Using radEmu on clustered data"
-author: "Sarah Teichman"
+author: "Sarah Teichman and Amy Willis"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -68,14 +68,10 @@ J <- 10; n <- 60
 set.seed(10)
 X <- cbind(1, rnorm(n))
 cov_dat <- data.frame(cov = X[, 2])
-# sample-specific effects
-z <- rnorm(n, mean = 5) 
 # cluster membership 
 cluster <- rep(1:4, each = n/4)
 cluster_named <- paste("cage", cluster, sep = "")
 cov_dat$cluster <- cluster
-# cluster effects 
-cluster_effs <- lapply(1:4, function(i) log(matrix(rexp(2*J), nrow = 2)))
 # intercepts for each category
 b0 <- rnorm(J)
 # coefficients for X1 for each category 
@@ -89,18 +85,10 @@ b1[3] <- 4
 # generate B coefficient matrix 
 b <- rbind(b0, b1)
 
-# set up response matrix 
-Y <- matrix(0, ncol = J, nrow = n)
-for (i in 1:n) {
-  for(j in 1:J){
-    # mean model is exp(X_i %*% B_j + cluster_effect + z_i)
-    temp_mean <- exp(X[i, , drop = FALSE] %*% 
-                       (b[, j, drop = FALSE] + 
-                          cluster_effs[[ cluster[i] ]][,j]) + z[i])
-    # draw from a zero-inflated negative binomial with our mean 
-    Y[i,j] <- rnbinom(1, mu = temp_mean, size = 10) * rbinom(1, 1, 0.5)
-  }
-}
+# simulate data according to a zero-inflated negative binomial distribution
+# the mean model used to simulate this data takes into account the cluster membership
+Y <- simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "ZINB", zinb_size = 10,
+                   zinb_zero_prop = 0.3, mean_count_before_ZI = 100, X = X, cluster = cluster)
 ```
 
 Let's just pause to look at the elements of `cluster`:
