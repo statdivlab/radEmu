@@ -47,7 +47,7 @@ We are currently only releasing `radEmu` via GitHub. If you'd like us to conside
 
 ## Use
 
-The vignette demonstrates example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a `phyloseq` object: 
+The vignettes demonstrate example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a `phyloseq` object: 
 
 ``` r
 ch_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling, 
@@ -63,7 +63,7 @@ all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
 ```
 ## Documentation 
 
-We additionally have a `pkgdown` [website](https://statdivlab.github.io/radEmu/) that contains pre-built versions of our function [documentation](https://statdivlab.github.io/radEmu/reference/index.html) and our vignettes (an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu.html), an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html) that uses `phyloseq` data, and a [vignette](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html) for running `radEmu` tests in parallel for more efficient computation). 
+We additionally have a `pkgdown` [website](https://statdivlab.github.io/radEmu/) that contains pre-built versions of our function [documentation](https://statdivlab.github.io/radEmu/reference/index.html) and our vignettes (an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu.html), an introductory [vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html) that uses `phyloseq` data, a [vignette](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html) for running `radEmu` tests in parallel for more efficient computation, and a [vignette](https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html) for running `radEmu` with clustered data). 
 
 ## Citation
 
