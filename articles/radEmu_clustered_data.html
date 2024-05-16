@@ -79,10 +79,10 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Using radEmu on clustered data</h1>
-                        <h4 data-toc-skip class="author">Sarah
-Teichman</h4>
+                        <h4 data-toc-skip class="author">Sarah Teichman
+and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2024-05-02</h4>
+            <h4 data-toc-skip class="date">2024-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/HEAD/vignettes/radEmu_clustered_data.Rmd" class="external-link"><code>vignettes/radEmu_clustered_data.Rmd</code></a></small>
       <div class="d-none name"><code>radEmu_clustered_data.Rmd</code></div>
@@ -111,88 +111,117 @@ already.</p>
 <p>In this vignette we will explore the use of <code>radEmu</code> with
 clustered data. Data with cluster dependence is a common phenomenon in
 microbiome studies. This type of dependence can come from experimental
-factors such as shared cages or tanks for study animals. When cluster
-dependence is not accounted for, statistical methods often operate under
-the assumption that all samples are independent. This will typically
-lead to anti-conservative inference (i.e. p-values that are smaller than
-they should be).</p>
-<p>Luckily, we have tools to account for cluster dependence in
-statistical inference, and they are implemented in <code>radEmu</code>
-through the <code>cluster</code> argument! This argument is only
-implemented from <code>radEmu</code> v1.2.0.0 forward, so if you are
-having trouble using the <code>cluster</code> argument, check that you
-have a recent enough version so use this functionality.</p>
+factors such as shared cages or tanks for study animals. It can also
+arise from repeated measurements in longitudinal studies.</p>
+<p>Sometimes people deal with clustered data via random effects. You
+might have seen the syntax <code>+ (1 | cluster)</code>. We (the
+<code>radEmu</code> developers) don’t want to make strong assumptions
+(such as the random effects being normally distributed), so we handle
+cluster dependence using a GEE framework. We like this approach because
+it’s robust to many forms of model misspecification, and for this
+reason, we find it superior to random effects.</p>
+<p>When dependence is not accounted for, statistical inference in
+<code>radEmu</code> (and most statistical methods!) assume that all
+samples are independent. If you have cluster dependence but assume
+independence, you’ll have anti-conservative inference (i.e., p-values
+that are smaller than they should be). <strong>Therefore, we strongly
+recommend adjusting for cluster dependence if it arose in your sample
+collection!</strong></p>
+<p>Note that cluster dependence won’t change your estimates (<span class="math inline">\(\hat{\beta}_j\)</span>’s), but it will (most
+likely) change your p-values.</p>
+<p>Luckily, we have tools to account for cluster dependence implemented
+in <code>radEmu</code>! This argument is only implemented from
+<code>radEmu</code> v1.2.0.0 forward, so if you are having trouble using
+the <code>cluster</code> argument, check that you reinstalled
+<code>radEmu</code> recently.</p>
+<p>TLDR; the basic syntax is as follows. <code>my_clusters</code> is a
+vector of length <span class="math inline">\(n\)</span> (your number of
+samples), with observations from the same cluster having the same value
+in <code>my_clusters</code>
+(e.g. <code>my_clusters = c(1, 1, 2, 2, 3, 4)</code>).</p>
+<pre><code><span><span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">covariate</span>,</span>
+<span>       data <span class="op">=</span> <span class="va">my_data_frame</span>, </span>
+<span>       Y <span class="op">=</span> <span class="va">my_microbial_abundances</span>,</span>
+<span>       cluster <span class="op">=</span> <span class="va">my_clusters</span><span class="op">)</span></span></code></pre>
+<p>Fun fact! We implemented this functionality because of user requests.
+Therefore, if there’s something that you’d like to see that you don’t
+see, <a href="https://github.com/statdivlab/radEmu/issues" class="external-link">let us
+know</a> and we’ll see what we can do!</p>
 </div>
 <div class="section level2">
 <h2 id="generating-data-with-cluster-dependence">Generating data with cluster dependence<a class="anchor" aria-label="anchor" href="#generating-data-with-cluster-dependence"></a>
 </h2>
-<p>To start, let’s generate a small data example in which there is
-cluster dependence within our data.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co"># 6 categories</span></span>
-<span><span class="va">J</span> <span class="op">&lt;-</span> <span class="fl">6</span></span>
-<span><span class="co"># 2 columns in the design matrix </span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
-<span><span class="co"># 60 samples </span></span>
-<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">60</span></span>
+<p>To start, let’s generate a toy example (10 categories, 60 samples) in
+which there is cluster dependence within our data. The way we simulate
+data isn’t important; it’s just an illustration. <strong>radEmu can
+handle more taxa and samples,</strong> we just did this so that the
+vignette builds quickly.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">J</span> <span class="op">&lt;-</span> <span class="fl">10</span>; <span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">60</span></span>
 <span><span class="co"># generate design matrix </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">cov_dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cov <span class="op">=</span> <span class="va">X</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co"># sample-specific effects</span></span>
-<span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">+</span> <span class="fl">5</span></span>
 <span><span class="co"># cluster membership </span></span>
-<span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, each <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span></span>
+<span><span class="va">cluster_named</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"cage"</span>, <span class="va">cluster</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
 <span><span class="va">cov_dat</span><span class="op">$</span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="va">cluster</span></span>
-<span><span class="co"># cluster effects </span></span>
-<span><span class="va">cluster_effs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="va">J</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># intercepts for each category</span></span>
 <span><span class="va">b0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">J</span><span class="op">)</span></span>
 <span><span class="co"># coefficients for X1 for each category </span></span>
 <span><span class="va">b1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5</span>, length.out <span class="op">=</span> <span class="va">J</span><span class="op">)</span></span>
 <span><span class="co"># mean center the coefficients</span></span>
 <span><span class="va">b1</span> <span class="op">&lt;-</span> <span class="va">b1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">b1</span><span class="op">)</span></span>
-<span><span class="co"># set the coefficient for the 3rd category to 0</span></span>
-<span><span class="va">b1</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span><span class="co"># set the coefficient for the 3rd category to 4 (why not!?)</span></span>
+<span><span class="co"># Note that because of the constraint, we're only able to estimate</span></span>
+<span><span class="co"># b1 - mean(b1), which is ~3.9.  </span></span>
+<span><span class="va">b1</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">4</span></span>
 <span><span class="co"># generate B coefficient matrix </span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">b0</span>, <span class="va">b1</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># set up response matrix </span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, ncol <span class="op">=</span> <span class="va">J</span>, nrow <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">J</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="co"># mean model is exp(X_i %*% B_j + cluster_effect + z_i)</span></span>
-<span>    <span class="va">temp_mean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="va">i</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> </span>
-<span>                       <span class="op">(</span><span class="va">b</span><span class="op">[</span>, <span class="va">j</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span> <span class="op">+</span> </span>
-<span>                          <span class="va">cluster_effs</span><span class="op">[[</span> <span class="va">cluster</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="va">z</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="co"># draw from a zero-inflated negative binomial with our mean </span></span>
-<span>    <span class="va">Y</span><span class="op">[</span><span class="va">i</span>,<span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="fl">1</span>, mu <span class="op">=</span> <span class="va">temp_mean</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0.8</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>Now that we have our data, we can get estimates of our parameters
-using the radEmu model and do inference. We will specifically test the
-log fold difference parameter for the 3rd category, because we know that
-the true log fold difference for the third category associated with our
-covariate is <span class="math inline">\(0\)</span>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<span><span class="co"># simulate data according to a zero-inflated negative binomial distribution</span></span>
+<span><span class="co"># the mean model used to simulate this data takes into account the cluster membership</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_data.html">simulate_data</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n</span>, J <span class="op">=</span> <span class="va">J</span>, b0 <span class="op">=</span> <span class="va">b0</span>, b1 <span class="op">=</span> <span class="va">b1</span>, distn <span class="op">=</span> <span class="st">"ZINB"</span>, zinb_size <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                   zinb_zero_prop <span class="op">=</span> <span class="fl">0.3</span>, mean_count_before_ZI <span class="op">=</span> <span class="fl">100</span>, X <span class="op">=</span> <span class="va">X</span>, cluster <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span></span></code></pre></div>
+<p>Let’s just pause to look at the elements of <code>cluster</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">cluster_named</span><span class="op">)</span></span>
+<span><span class="co">#&gt; cluster_named</span></span>
+<span><span class="co">#&gt; cage1 cage2 cage3 cage4 </span></span>
+<span><span class="co">#&gt;    15    15    15    15</span></span></code></pre></div>
+<p>So all of the observations from the first cage (or person, tank,
+whatever…) have <code>cage1</code> in their corresponding
+<code>cluster_named</code> variable.</p>
+<p>Let’s fit a model to this data! We know that the log-fold difference
+between in the abundance of category 3 when comparing samples that
+differ by 1 unit in <span class="math inline">\(X\)</span> is 3.5, so if
+we have good power, we will reject the null that <span class="math inline">\(\beta_{X_1, 3} = 0\)</span>. We fit a model
+including cluster dependence as follows:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ef_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">cov</span>,</span>
+<span>                     data <span class="op">=</span> <span class="va">cov_dat</span>, </span>
+<span>                     Y <span class="op">=</span> <span class="va">Y</span>,</span>
+<span>                     cluster <span class="op">=</span> <span class="va">cluster_named</span>, </span>
+<span>                     test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>You can check out the full object, but our estimate is 4.6 and a
+p-value for testing that this parameter equals zero is 0.084. Not too
+shabby, especially considering that about half of our observations are
+zero, and we have a lot of noise in our data (arising from a negative
+binomial simulation scheme).</p>
+<p>Let’s also compare that to a situation where we mistakenly ignore
+clustering. In this case, we expect to have a smaller p-value, because
+we are saying that we have more independent observations.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ef_no_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">cov</span>,</span>
 <span>                        data <span class="op">=</span> <span class="va">cov_dat</span>, </span>
 <span>                        Y <span class="op">=</span> <span class="va">Y</span>,</span>
 <span>                        test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>When we ignore clustering, we get an estimate of the log fold
-difference in category 3 across values of our covariate of 0.799 and a
-p-value of 0.1.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ef_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">cov</span>,</span>
-<span>                     data <span class="op">=</span> <span class="va">cov_dat</span>, </span>
-<span>                     Y <span class="op">=</span> <span class="va">Y</span>,</span>
-<span>                     cluster <span class="op">=</span> <span class="va">cluster</span>, </span>
-<span>                     test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Here, when we account for clustering, we get an estimate of the log
-fold difference in category 3 across values of our covariate of 0.799
-and a p-value of 0.111. We can see that our estimates are the same
-whether or not we account for cluster, but our p-values are
-different.</p>
+difference in category 3 across values of our covariate of 4.6 and a
+p-value of 0.007. So we can see that our estimates are the same whether
+or not we account for cluster, but our p-values are different (because
+we are pretending that we have more evidence in the absence of
+clustering).</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

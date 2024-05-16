@@ -51,6 +51,7 @@
     <a class="dropdown-item" href="../articles/intro_radEmu_with_phyloseq.html">Introduction to radEmu with phyloseq</a>
     <a class="dropdown-item" href="../articles/intro_radEmu.html">Introduction to radEmu</a>
     <a class="dropdown-item" href="../articles/parallel_radEmu.html">Parallelizing computation for score tests with radEmu</a>
+    <a class="dropdown-item" href="../articles/radEmu_clustered_data.html">Using radEmu on clustered data</a>
   </div>
 </li>
       </ul>
@@ -81,7 +82,7 @@
                         <h4 data-toc-skip class="author">Sarah
 Teichman</h4>
             
-            <h4 data-toc-skip class="date">2024-05-03</h4>
+            <h4 data-toc-skip class="date">2024-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/HEAD/vignettes/parallel_radEmu.Rmd" class="external-link"><code>vignettes/parallel_radEmu.Rmd</code></a></small>
       <div class="d-none name"><code>parallel_radEmu.Rmd</code></div>
@@ -185,8 +186,9 @@ we will provide <code>ch_fit</code> to the argument
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mOTU_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">restricted_mOTU_names</span>, <span class="st">"7116"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ch_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span></span>
-<span><span class="co">#&gt; [1] "(Intercept)" "GroupCRC"</span></span>
-<span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="st">"GroupCRC"</span> <span class="op">==</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "(Intercept)" "GroupCRC"</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="st">"GroupCRC"</span> <span class="op">==</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span><span class="op">)</span></span>
 <span><span class="va">robust_score</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>,</span>
 <span>                       data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
 <span>                       fitted_model <span class="op">=</span> <span class="va">ch_fit</span>,</span>
@@ -216,7 +218,7 @@ parallelize over pairs of <span class="math inline">\(k\)</span> and
 our dataset. First, I need to check the cores on my computer to see a
 reasonable amount of cores to parallelize over. I tend to use one fewer
 core than the number of cores that I have available.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncores</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span><span class="va">ncores</span></span>
 <span><span class="co">#&gt; [1] 3</span></span></code></pre></div>
@@ -224,7 +226,7 @@ core than the number of cores that I have available.</p>
 function will fit the model under the null and calculate the robust
 score test statistics. Note that the output of this function is an
 <code>emuFit</code> object.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">emuTest</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">category</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>,</span>
 <span>                       data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
@@ -237,7 +239,7 @@ score test statistics. Note that the output of this function is an
 <span><span class="op">}</span></span></code></pre></div>
 <p>Now, we can run our score tests in parallel. We’ll just do the first
 five. It may take a minute or so, depending on your machine.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="va">.Platform</span><span class="op">$</span><span class="va">OS.type</span> <span class="op">!=</span> <span class="st">"windows"</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># run if we are on a Mac or Linux machine</span></span>
 <span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span>
@@ -252,7 +254,7 @@ score test, because we were able to parallelize over cores (on my
 laptop, I’m using more than five cores, so I can run all five tests at
 the same time). Each p-value can be pulled out of the list as
 follows:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">score_res</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="co">## robust score test p-value for the first taxon</span></span>
 <span>  <span class="va">score_res</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="co">## robust score test p-value for the second taxon</span></span>
@@ -260,7 +262,7 @@ follows:</p>
 <span><span class="co">#&gt; [1] 0.03897981</span></span></code></pre></div>
 <p>To help organise this information, we can make a coefficient matrix
 that combines the information from each component in our list:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">full_score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span>, </span>
 <span>                       <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">score_res</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">score_stat</span><span class="op">[</span><span class="va">x</span><span class="op">]</span><span class="op">)</span></span>

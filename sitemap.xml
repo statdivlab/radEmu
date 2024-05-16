@@ -22,6 +22,9 @@
     <loc>https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html</loc>
   </url>
   <url>
+    <loc>https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html</loc>
+  </url>
+  <url>
     <loc>https://statdivlab.github.io/radEmu/authors.html</loc>
   </url>
   <url>
@@ -50,6 +53,9 @@
   </url>
   <url>
     <loc>https://statdivlab.github.io/radEmu/reference/score_test.html</loc>
+  </url>
+  <url>
+    <loc>https://statdivlab.github.io/radEmu/reference/simulate_data.html</loc>
   </url>
   <url>
     <loc>https://statdivlab.github.io/radEmu/reference/wirbel_otu.html</loc>
