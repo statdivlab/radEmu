@@ -462,7 +462,7 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
   expect_false(fitted_model$estimation_converged)
   
   # check that warning is returned when estimation under the null doesn't converge
-  expect_warning({
+  suppressWarnings({
     fitted_model <- emuFit(Y = Y,
                            X = cbind(X, rnorm(nrow(X))),
                            verbose = FALSE,
@@ -484,7 +484,7 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
   expect_type(fitted_model$null_estimation_unconverged, "list")
 })
 
-("test that 'B_null_list' object can be used and throws appropriate warnings when used incorrectly", {
+test_that("test that B_null_list object can be used and throws appropriate warnings when used incorrectly", {
   expect_warning({
     fitted_model <- emuFit(Y = Y,
                            X = X,

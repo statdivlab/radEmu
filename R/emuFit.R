@@ -610,8 +610,11 @@ and the corresponding gradient function to constraint_grad_fn.")
                   "Y_augmented" = Y_augmented,
                   "I" = I,
                   "Dy" = Dy,
-                  "cluster" = cluster,
-                  "estimation_converged" = converged_estimates)
+                  "cluster" = cluster)
+  
+  if (refit & penalize) {
+    results$estimation_converged <- converged_estimates
+  }
   if (run_score_tests & return_nullB) {
     results$null_B <- nullB_list
   }
