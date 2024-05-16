@@ -246,6 +246,10 @@ and the corresponding gradient function to constraint_grad_fn.")
                                j_ref = j_ref)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
+      converged_estimates <- fitted_model$convergence
+      if (!converged_estimates) {
+        warning("Optimization to estimate parameters did not converge. Try running again with a larger value of 'maxit'.")
+      }
     } else {
       
       fitted_model <-
@@ -584,12 +588,18 @@ and the corresponding gradient function to constraint_grad_fn.")
                   "Y_augmented" = Y_augmented,
                   "I" = I,
                   "Dy" = Dy,
-                  "cluster" = cluster)
+                  "cluster" = cluster,
+                  "estimation_converged" = converged_estimates)
   if (run_score_tests & return_nullB) {
     results$null_B <- nullB_list
   }
   if (run_score_tests) {
     results$score_test_hyperparams <- score_test_hyperparams
+    if (sum(score_test_hyperparams$converged != "converged") > 0) {
+      unconverged_test_kj <- test_kj[which(score_test_hyperparams$converged != "converged"), ]
+      results$null_estimation_unconverged <- unconverged_test_kj
+      warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
+    }
   }
   
   return(structure(results, class = "emuFit"))
