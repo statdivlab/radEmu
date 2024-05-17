@@ -442,4 +442,89 @@ test_that("emuFit runs with just intercept model", {
   })
   
   expect_equal(fitted_model$coef[, 2:9], fitted_model1$coef[, 2:9])
+  
+})
+
+test_that("emuFit has 'score_test_hyperparams' object and throws warnings when convergence isn't hit", {
+  # check that warning is returned when estimation under the alternative doesn't converge
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = cbind(X, rnorm(nrow(X))),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = FALSE, 
+                           maxit = 1)
+  })
+  expect_false(fitted_model$estimation_converged)
+  
+  # check that warning is returned when estimation under the null doesn't converge
+  suppressWarnings({
+    fitted_model <- emuFit(Y = Y,
+                           X = cbind(X, rnorm(nrow(X))),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2),
+                           maxit = 1,
+                           inner_maxit = 1)
+  })
+  
+  # check that fitted model contains score_test_hyperparams object
+  expect_true("score_test_hyperparams" %in% names(fitted_model))
+  
+  # check that fitted model contains data frame of unconverged test_kj
+  expect_type(fitted_model$null_estimation_unconverged, "list")
+})
+
+test_that("test that B_null_list object can be used and throws appropriate warnings when used incorrectly", {
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(b),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+  expect_silent({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(NULL, b),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(NULL, b[, -3]),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
 })

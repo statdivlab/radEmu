@@ -9,6 +9,9 @@
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
 #' @param B starting value of coefficient matrix (p x J). If not provided,
 #' B will be initiated as a zero matrix.
+#' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation. This should either 
+#' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+#' include the other elements of the list as \code{NULL}.
 #' @param fitted_model a fitted model produced by a separate call to emuFit; to
 #' be provided if score tests are to be run without refitting the full unrestricted model.
 #' Default is NULL.
@@ -77,14 +80,16 @@
 #' p-value to be used should be chosen before conducting tests.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-#' 'I', and 'Dy'.  Parameter estimates by 
+#' 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by 
 #' covariate and outcome category (e.g., taxon for microbiome data), as well as 
 #' optionally confidence intervals and p-values, are contained in 'coef'. 'B' 
 #' contains parameter estimates in matrix format (rows indexing covariates and 
 #' columns indexing outcome category / taxon). 'penalized' is equal to TRUE 
 #' if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and 
 #' 'Dy' contain an information matrix and empirical score covariance matrix 
-#' computed under the full model.
+#' computed under the full model. 'score_test_hyperparams' contains parameters and 
+#' hyperparameters related to estimation under the null, including whether or not the 
+#' algorithm converged, which can be helpful for debugging. 
 #'
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
@@ -99,6 +104,7 @@ emuFit <- function(Y,
                    cluster = NULL,
                    penalize = TRUE,
                    B = NULL,
+                   B_null_list = NULL,
                    fitted_model = NULL,
                    refit = TRUE,
                    test_kj = NULL,
@@ -191,6 +197,14 @@ ignoring argument 'cluster'.")
     }
   }
   
+  # check that B_null_list is the correct length if provided 
+  if (!is.null(B_null_list)) {
+    if (length(B_null_list) != nrow(test_kj)) {
+      warning("Length of 'B_null_list' is different than the number of tests specified in 'test_kj'. Ignoring object 'B_null_list'.")
+      B_null_list <- NULL
+    }
+  }
+  
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
@@ -244,6 +258,10 @@ and the corresponding gradient function to constraint_grad_fn.")
                                j_ref = j_ref)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
+      converged_estimates <- fitted_model$convergence
+      if (!converged_estimates) {
+        warning("Optimization to estimate parameters did not converge. Try running again with a larger value of 'maxit'.")
+      }
     } else {
       
       fitted_model <-
@@ -358,6 +376,13 @@ and the corresponding gradient function to constraint_grad_fn.")
   
   if (run_score_tests) {
     
+    score_test_hyperparams <- data.frame(u = rep(NA, nrow(test_kj)),
+                                         rho = NA,
+                                         tau = NA,
+                                         inner_maxit = NA,
+                                         gap = NA,
+                                         converged = NA)
+    
     if (return_both_score_pvals) {
       colnames(coefficients)[colnames(coefficients) == "pval"] <-
         "score_pval_full_info"
@@ -381,8 +406,18 @@ and the corresponding gradient function to constraint_grad_fn.")
                     test_kj$j[test_ind],").",sep = ""))
       }
       
+      B_to_use <- fitted_B
+      if (!is.null(B_null_list)) {
+        if (!is.null(B_null_list[[test_ind]])) {
+          B_to_use <- B_null_list[[test_ind]]
+          if (!(nrow(B_to_use) == nrow(fitted_B) & ncol(B_to_use) == ncol(fitted_B))) {
+            warning("'B_null_list' contains objects that are not the correct dimension for 'B'. The 'B_null_list' argument will be ignored.")
+            B_to_use <- fitted_B
+          }
+        }
+      }
       
-      test_result <- score_test(B = fitted_B, #B (MPLE)
+      test_result <- score_test(B = B_to_use, #B (MPLE or starting value if provided)
                                 Y = Y_test, #Y (with augmentations)
                                 X = X, #design matrix
                                 X_cup = X_cup,
@@ -413,6 +448,11 @@ and the corresponding gradient function to constraint_grad_fn.")
           nullB_list[[test_ind]] <- NA
         }
       } else {
+        
+        score_test_hyperparams[test_ind, ] <- 
+          c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
+            test_result$gap, test_result$convergence)
+        
         if (return_nullB) {
           null_B <- test_result$null_B
           for (k in 1:p) {
@@ -571,8 +611,20 @@ and the corresponding gradient function to constraint_grad_fn.")
                   "I" = I,
                   "Dy" = Dy,
                   "cluster" = cluster)
+  
+  if (refit & penalize) {
+    results$estimation_converged <- converged_estimates
+  }
   if (run_score_tests & return_nullB) {
     results$null_B <- nullB_list
+  }
+  if (run_score_tests) {
+    results$score_test_hyperparams <- score_test_hyperparams
+    if (sum(score_test_hyperparams$converged != "converged") > 0) {
+      unconverged_test_kj <- test_kj[which(score_test_hyperparams$converged != "converged"), ]
+      results$null_estimation_unconverged <- unconverged_test_kj
+      warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
+    }
   }
   
   return(structure(results, class = "emuFit"))

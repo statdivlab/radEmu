@@ -12,6 +12,7 @@ emuFit(
   cluster = NULL,
   penalize = TRUE,
   B = NULL,
+  B_null_list = NULL,
   fitted_model = NULL,
   refit = TRUE,
   test_kj = NULL,
@@ -59,6 +60,10 @@ GEE test statistics. Default is NULL, in which case rows of Y are treated as ind
 
 \item{B}{starting value of coefficient matrix (p x J). If not provided,
 B will be initiated as a zero matrix.}
+
+\item{B_null_list}{list of starting values of coefficient matrix (p x J) for null estimation. This should either
+be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+include the other elements of the list as \code{NULL}.}
 
 \item{fitted_model}{a fitted model produced by a separate call to emuFit; to
 be provided if score tests are to be run without refitting the full unrestricted model.
@@ -157,14 +162,16 @@ p-value to be used should be chosen before conducting tests.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-'I', and 'Dy'.  Parameter estimates by
+'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by
 covariate and outcome category (e.g., taxon for microbiome data), as well as
 optionally confidence intervals and p-values, are contained in 'coef'. 'B'
 contains parameter estimates in matrix format (rows indexing covariates and
 columns indexing outcome category / taxon). 'penalized' is equal to TRUE
 if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and
 'Dy' contain an information matrix and empirical score covariance matrix
-computed under the full model.
+computed under the full model. 'score_test_hyperparams' contains parameters and
+hyperparameters related to estimation under the null, including whether or not the
+algorithm converged, which can be helpful for debugging.
 }
 \description{
 Fit radEmu model

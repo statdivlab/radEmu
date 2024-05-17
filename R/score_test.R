@@ -1,6 +1,7 @@
 #' Run robust score test
 
-#' @param B value of coefficient matrix (p x J) returned by full model fit
+#' @param B value of coefficient matrix (p x J) returned by full model fit or value of coefficient 
+#' matrix to start null estimation at given as input to emuFit
 #' @param Y an n x J matrix or dataframe of *augmented* nonnegative observations (i.e.,
 #' observations Y plus augmentations from last iteration of maximum penalized likelihood estimation
 #' for full model)
@@ -70,13 +71,16 @@
 #' Y are treated as independent.
 #'
 #' @return A list containing elements 'score_stat', 'pval', 'log_pval','niter',
-#' 'convergence', 'gap', 'u', 'rho', 'null_B', and 'Bs'. 'score_stat' gives the 
+#' 'convergence', 'gap', 'u', 'rho', 'tau', 'inner_maxit', 'null_B', and 'Bs'. 'score_stat' gives the 
 #' value of the robust score statistic for H_0: B_{k_constr,j_constr} = g(B_{k_constr}).
 #' 'pval' and 'log_pval' are the p-value (on natural and log scales) corresponding to
 #' the score statistic (log_pval may be useful when the p-value is very close to zero). 
 #' 'gap' is the final value of g(B_{k_constr}) - B_{k_constr, j_constr} obtained in 
 #' optimization under the null. 'u' and 'rho' are final values of augmented 
-#' Lagrangian parameters returned by null fitting algorithm. 'null_B' is the value of 
+#' Lagrangian parameters returned by null fitting algorithm. 'tau' is the final value of 'tau' that 
+#' is used to update the 'rho' values and 'inner_maxit' is the final maximum number of iterations for 
+#' the inner optimization loop in optimization under the null, in which B and z parameter values are
+#' maximized for specific 'u' and 'rho' parameters. 'null_B' is the value of 
 #' B returned but the null fitting algorithm. 'Bs' is by default NULL; if trackB = TRUE,
 #' 'Bs is a data frame containing values of B by outcome category, covariate, and 
 #' iteration.
@@ -214,6 +218,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
               "gap" = constrained_fit$gap,
               "u" = constrained_fit$u,
               "rho" = constrained_fit$rho,
+              "tau" = tau,
+              "inner_maxit" = inner_maxit, 
               "null_B" = constrained_fit$B,
               # "score_stats" = constrained_fit$score_stats,
               "Bs" = constrained_fit$Bs))
@@ -254,6 +260,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                   "gap" = constrained_fit$gap,
                   "u" = constrained_fit$u,
                   "rho" = constrained_fit$rho,
+                  "tau" = tau,
+                  "inner_maxit" = inner_maxit, 
                   "null_B" = constrained_fit$B,
                   # "score_stats" = constrained_fit$score_stats,
                   "Bs" = constrained_fit$Bs))
