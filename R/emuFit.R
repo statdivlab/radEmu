@@ -179,6 +179,14 @@ covariates in formula must be provided.")
     }
   }
   
+  # check that if X and Y have rownames, they match 
+  if (!is.null(rownames(Y)) & !is.null(rownames(X))) {
+    if (all.equal(rownames(Y), rownames(X)) != TRUE) {
+      message("There is a different row ordering between covariate data and response data. Covariate data will be reordered to match response data.")
+      X <- X[rownames(Y), ]
+    }
+  }
+  
   if (min(rowSums(Y))==0) {
     stop("Some rows of Y consist entirely of zeroes, meaning that some samples
 have no observations. These samples must be excluded before fitting model.")
