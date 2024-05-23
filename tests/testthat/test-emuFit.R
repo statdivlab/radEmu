@@ -528,3 +528,29 @@ test_that("test that B_null_list object can be used and throws appropriate warni
   })
   
 })
+
+test_that("emuFit reorders X and X and Y rownames don't match", {
+  dat1 <- data.frame(group = c(covariates$group[12], covariates$group[1:11]))
+  rownames(dat1) <- paste0("sample", c(12, 1:11)) 
+  dat2 <- covariates
+  rownames(dat2) <- paste0("sample", 1:12)
+  rownames(Y) <- paste0("sample", 1:12)
+  
+  expect_message({
+    fitted_model1 <- emuFit(formula = ~ group,
+                            data = dat1,
+                            Y = Y,
+                            compute_cis = FALSE,
+                            run_score_tests = FALSE)
+  })
+  
+  expect_silent({
+    fitted_model2 <- emuFit(formula = ~ group,
+                            data = dat2,
+                            Y = Y,
+                            compute_cis = FALSE,
+                            run_score_tests = FALSE)
+  })
+  
+  expect_true(all.equal(fitted_model1$coef, fitted_model2$coef))
+})
