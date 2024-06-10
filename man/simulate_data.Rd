@@ -7,13 +7,14 @@
 simulate_data(
   n,
   J,
-  b0,
-  b1,
+  b0 = NULL,
+  b1 = NULL,
   distn,
   zinb_size = NULL,
   zinb_zero_prop = NULL,
   mean_count_before_ZI,
   X = NULL,
+  B = NULL,
   cluster = NULL
 )
 }
@@ -35,6 +36,8 @@ simulate_data(
 \item{mean_count_before_ZI}{Parameter for construction of z_i in mean model. Setting this to \code{50} works well in practice.}
 
 \item{X}{Optional design matrix, this must have two columns and n rows.}
+
+\item{B}{Optional B matrix, if p is not equal to 2}
 
 \item{cluster}{Optional cluster vector, this must have n elements.}
 }
