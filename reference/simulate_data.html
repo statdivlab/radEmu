@@ -60,13 +60,14 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">simulate_data</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
 <span>  <span class="va">J</span>,</span>
-<span>  <span class="va">b0</span>,</span>
-<span>  <span class="va">b1</span>,</span>
+<span>  b0 <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  b1 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">distn</span>,</span>
 <span>  zinb_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  zinb_zero_prop <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">mean_count_before_ZI</span>,</span>
 <span>  X <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  B <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -107,6 +108,10 @@
 
 <dt>X</dt>
 <dd><p>Optional design matrix, this must have two columns and n rows.</p></dd>
+
+
+<dt>B</dt>
+<dd><p>Optional B matrix, if p is not equal to 2</p></dd>
 
 
 <dt>cluster</dt>
