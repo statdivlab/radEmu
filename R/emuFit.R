@@ -192,6 +192,11 @@ covariates in formula must be provided.")
 have no observations. These samples must be excluded before fitting model.")
   }
   
+  if (min(colSums(Y)) == 0) {
+    stop("Some columns of Y consist entirely of zeroes, meaning that some categories have zero counts for all samples. These
+         categories must be excluded before fitting the model.")
+  }
+  
   #check that cluster is correctly type if provided
   if(!is.null(cluster)){
     if(length(cluster)!=nrow(Y)){
