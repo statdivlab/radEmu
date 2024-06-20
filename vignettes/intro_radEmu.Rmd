@@ -122,6 +122,18 @@ Again, while we would generally fit a model using all of our samples, for this t
 ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
 ```
 
+Next, we want to confirm that all samples have at least one non-zero count across the categories we've chosen and that all categories have at least one non-zero count across the samples we've chosen.
+
+```{r}
+small_Y <- wirbel_otu[ch_study_obs, restricted_mOTU_names]
+sum(rowSums(small_Y) == 0) # no samples have a count sum of 0 
+sum(colSums(small_Y) == 0) # one category has a count sum of 0
+
+category_to_rm <- which(colSums(small_Y) == 0)
+small_Y <- small_Y[, -category_to_rm]
+sum(colSums(small_Y) == 0)
+```
+
 The function that we use to fit our model is called `emuFit`. It can accept your data in various forms, and here we will show how to use it with data frames as input. Check out the `phyloseq` vignette if you'd like to know how `radEmu` plays with `phyloseq` objects! One version of inputs to `emuFit` are 
 
   - `formula`: This is a formula telling radEmu what predictors to use in its model. We are using Group, which is an indicator for case (CRC) vs control (CTR). 
@@ -136,7 +148,7 @@ and some optional arguments include
 ```{r}
 ch_fit <- emuFit(formula = ~ Group, 
                  data = wirbel_sample[ch_study_obs, ],
-                 Y = wirbel_otu[ch_study_obs, restricted_mOTU_names],
+                 Y = small_Y,
                  run_score_tests = FALSE) 
 ```
 Let's check out what this object looks like!
@@ -150,9 +162,9 @@ The way to access estimated coefficients and confidence intervals from the model
 
 ```{r, fig.width= 7, fig.height = 4}
 ch_df <- ch_fit$coef %>%
-  mutate(Genus = mOTU_name_df %>% 
+  mutate(Genus = (mOTU_name_df %>% 
            filter(genus_name %in% chosen_genera) %>% 
-           pull(genus_name)) %>%
+           pull(genus_name))[-category_to_rm]) %>%
   # add genus name to output from emuFit
   mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
                             stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
@@ -192,7 +204,7 @@ two_robust_score_tests <- emuFit(formula = ~ Group,
                                  B = ch_fit,
                                  test_kj = data.frame(k = covariate_to_test, 
                                                       j = taxa_to_test), 
-                                 Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]))
+                                 Y = small_Y)
 ```
 
 Let's take a look at the test output.
@@ -232,7 +244,7 @@ We could run robust score tests for every taxon in this analysis, but it will ta
 test_all <- emuFit(formula = ~ Group, 
                    data = wirbel_sample[ch_study_obs, ],
                    B = ch_fit,
-                   Y = wirbel_otu[ch_study_obs, restricted_mOTU_names],
+                   Y = small_Y,
                    run_score_tests = TRUE)
 ```
 

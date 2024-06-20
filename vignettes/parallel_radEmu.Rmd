@@ -74,6 +74,15 @@ restricted_mOTU_names <- mOTU_name_df %>%
   pull(name)
 # pull out observations from a chinese study within the meta-analysis
 ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
+# make count matrix for chosen samples and genera
+small_Y <- wirbel_otu[ch_study_obs, restricted_mOTU_names]
+# check for samples with only zero counts
+sum(rowSums(small_Y) == 0) # no samples have a count sum of 0 
+# check for genera with only zero counts
+sum(colSums(small_Y) == 0) # one category has a count sum of 0
+# remove the one genus with only zero counts
+category_to_rm <- which(colSums(small_Y) == 0)
+small_Y <- small_Y[, -category_to_rm]
 ```
 
 Now that we've processed our data, we can fit the `radEmu` model. Here we just want to get estimates for our parameters and their standard errors, but we will avoid running score tests by setting `run_score_tests = FALSE`.
@@ -81,7 +90,7 @@ Now that we've processed our data, we can fit the `radEmu` model. Here we just w
 ```{r}
 ch_fit <- emuFit(formula = ~ Group, 
                  data = wirbel_sample[ch_study_obs, ],
-                 Y = wirbel_otu[ch_study_obs, restricted_mOTU_names],
+                 Y = small_Y,
                  run_score_tests = FALSE) 
 ```
 
@@ -99,7 +108,7 @@ robust_score <- emuFit(formula = ~ Group,
                        refit = FALSE,
                        test_kj = data.frame(k = covariate_to_test, 
                                             j = mOTU_to_test), 
-                       Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]))
+                       Y = small_Y)
 robust_score$coef$pval[mOTU_to_test]
 ```
 
@@ -126,7 +135,7 @@ emuTest <- function(category) {
                        refit = FALSE,
                        test_kj = data.frame(k = covariate_to_test, 
                                             j = category), 
-                       Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]))
+                       Y = small_Y)
   return(score_res)
 }
 ```
@@ -150,8 +159,8 @@ Now, we can see that this barely took more time than running a single score test
 
 ```{r}
 if (!is.null(score_res)) {
-  score_res[[1]]$coef$pval[1] ## robust score test p-value for the first taxon
-  score_res[[2]]$coef$pval[2] ## robust score test p-value for the second taxon
+  c(score_res[[1]]$coef$pval[1], ## robust score test p-value for the first taxon
+  score_res[[2]]$coef$pval[2]) ## robust score test p-value for the second taxon
 }
 ```
 
