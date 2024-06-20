@@ -162,9 +162,9 @@ The way to access estimated coefficients and confidence intervals from the model
 
 ```{r, fig.width= 7, fig.height = 4}
 ch_df <- ch_fit$coef %>%
-  mutate(Genus = mOTU_name_df %>% 
+  mutate(Genus = (mOTU_name_df %>% 
            filter(genus_name %in% chosen_genera) %>% 
-           pull(genus_name)) %>%
+           pull(genus_name))[-category_to_rm]) %>%
   # add genus name to output from emuFit
   mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
                             stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
@@ -204,7 +204,7 @@ two_robust_score_tests <- emuFit(formula = ~ Group,
                                  B = ch_fit,
                                  test_kj = data.frame(k = covariate_to_test, 
                                                       j = taxa_to_test), 
-                                 Y = as.matrix(wirbel_otu[ch_study_obs, restricted_mOTU_names]))
+                                 Y = small_Y)
 ```
 
 Let's take a look at the test output.
@@ -244,7 +244,7 @@ We could run robust score tests for every taxon in this analysis, but it will ta
 test_all <- emuFit(formula = ~ Group, 
                    data = wirbel_sample[ch_study_obs, ],
                    B = ch_fit,
-                   Y = wirbel_otu[ch_study_obs, restricted_mOTU_names],
+                   Y = small_Y,
                    run_score_tests = TRUE)
 ```
 
