@@ -600,6 +600,13 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
   }
   
+  if (penalize) {
+    z_hat <- log(rowSums(Y_augmented)) - log(rowSums(exp(X %*% B)))
+  } else {
+    # set z_hat to NUll because without penalty there is no Y augmentation
+    z_hat <- NULL
+  }
+  
   if (is.null(just_wald_things)) {
     I <- NULL
     Dy <- NULL
@@ -621,6 +628,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                   "B" = B,
                   "penalized" = penalize,
                   "Y_augmented" = Y_augmented,
+                  "z_hat" = z_hat,
                   "I" = I,
                   "Dy" = Dy,
                   "cluster" = cluster)

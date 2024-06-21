@@ -574,3 +574,35 @@ test_that("emuFit throws error when there is a category with all zero counts", {
                            run_score_tests = FALSE)
   }) 
 })
+
+test_that("Confirm zi is provided only when model is penalized", {
+  
+  fitted_model1 <- emuFit(Y = Y,
+                          X = X,
+                          formula = ~group,
+                          data = covariates,
+                          verbose = FALSE,
+                          B_null_tol = 1e-2,
+                          tolerance = 0.01,
+                          tau = 2,
+                          return_wald_p = FALSE,
+                          compute_cis = FALSE,
+                          run_score_tests = FALSE)
+  
+  fitted_model2 <- emuFit(Y = Y,
+                          X = X,
+                          formula = ~group,
+                          data = covariates,
+                          verbose = FALSE,
+                          penalize = FALSE,
+                          B_null_tol = 1e-2,
+                          tolerance = 0.01,
+                          tau = 2,
+                          return_wald_p = FALSE,
+                          compute_cis = FALSE,
+                          run_score_tests = FALSE)
+  
+  expect_true(!is.null(fitted_model1$z_hat))
+  
+  expect_true(is.null(fitted_model2$z_hat))
+})
