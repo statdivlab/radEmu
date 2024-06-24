@@ -574,3 +574,35 @@ test_that("emuFit throws error when there is a category with all zero counts", {
                            run_score_tests = FALSE)
   }) 
 })
+
+test_that("Confirm zi is different when penalty is applied or not", {
+  
+  fit_penT <- emuFit(Y = Y,
+                     X = X,
+                     formula = ~group,
+                     data = covariates,
+                     verbose = FALSE,
+                     penalize = TRUE,
+                     B_null_tol = 1e-2,
+                     tolerance = 0.01,
+                     tau = 2,
+                     return_wald_p = FALSE,
+                     compute_cis = FALSE,
+                     run_score_tests = FALSE)
+  
+  fit_penF <- emuFit(Y = Y,
+                     X = X,
+                     formula = ~group,
+                     data = covariates,
+                     verbose = FALSE,
+                     penalize = FALSE,
+                     B_null_tol = 1e-2,
+                     tolerance = 0.01,
+                     tau = 2,
+                     return_wald_p = FALSE,
+                     compute_cis = FALSE,
+                     run_score_tests = FALSE)
+  
+  expect_false(isTRUE(all.equal(fit_penT$z_hat,
+                                fit_penF$z_hat)))
+})
