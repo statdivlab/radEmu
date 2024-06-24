@@ -80,16 +80,18 @@
 #' p-value to be used should be chosen before conducting tests.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-#' 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by 
-#' covariate and outcome category (e.g., taxon for microbiome data), as well as 
-#' optionally confidence intervals and p-values, are contained in 'coef'. 'B' 
-#' contains parameter estimates in matrix format (rows indexing covariates and 
-#' columns indexing outcome category / taxon). 'penalized' is equal to TRUE 
-#' if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and 
-#' 'Dy' contain an information matrix and empirical score covariance matrix 
-#' computed under the full model. 'score_test_hyperparams' contains parameters and 
-#' hyperparameters related to estimation under the null, including whether or not the 
-#' algorithm converged, which can be helpful for debugging. 
+#' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter
+#' estimates by covariate and outcome category (e.g., taxon for microbiome data),
+#' as well as optionally confidence intervals and p-values, are contained in 'coef'.
+#' 'B' contains parameter estimates in matrix format (rows indexing covariates and
+#' columns indexing outcome category / taxon). 'penalized' is equal to TRUE
+#' if Firth penalty is used in estimation (default) and FALSE otherwise. 'z_hat'
+#' returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
+#' corresponding to either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE
+#' or FALSE, respectively. 'I' and 'Dy' contain an information matrix and empirical
+#' score covariance matrix computed under the full model. 'score_test_hyperparams'
+#' contains parameters and hyperparameters related to estimation under the null,
+#' including whether or not the algorithm converged, which can be helpful for debugging. 
 #'
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
@@ -603,8 +605,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   if (penalize) {
     z_hat <- log(rowSums(Y_augmented)) - log(rowSums(exp(X %*% B)))
   } else {
-    # set z_hat to NUll because without penalty there is no Y augmentation
-    z_hat <- NULL
+    z_hat <- log(rowSums(Y)) - log(rowSums(exp(X %*% B)))
   }
   
   if (is.null(just_wald_things)) {
