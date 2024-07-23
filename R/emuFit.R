@@ -35,7 +35,8 @@
 #' Used in simulations
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-#' pseudohuber loss).
+#' pseudohuber loss). If a number is provided a single category constraint will be used
+#' with the provided category as a reference category. 
 #' @param constraint_grad_fn derivative of constraint_fn with respect to its
 #' arguments (i.e., elements of a row of B)
 #' @param constraint_param If pseudohuber centering is used (this is the default),
@@ -218,6 +219,17 @@ ignoring argument 'cluster'.")
       warning("Length of 'B_null_list' is different than the number of tests specified in 'test_kj'. Ignoring object 'B_null_list'.")
       B_null_list <- NULL
     }
+  }
+  
+  if (length(constraint_fn) == 1 & is.numeric(constraint_fn)) {
+    constraint_cat <- constraint_fn
+    constraint_fn <- function(x) {x[constraint_cat]}
+    constraint_grad_fn <- function(x) {
+      grad <- rep(0, length(x))
+      grad[constraint_cat] <- 1
+      return(grad)
+    }
+    constraint_param <- NA
   }
   
   n <- nrow(Y)

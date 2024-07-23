@@ -606,3 +606,13 @@ test_that("Confirm zi is different when penalty is applied or not", {
   expect_false(isTRUE(all.equal(fit_penT$z_hat,
                                 fit_penF$z_hat)))
 })
+
+test_that("Single category constraint works", {
+  
+  emuRes <- emuFit(Y = Y,
+                   X = X,
+                   constraint_fn = 3,
+                   run_score_tests = FALSE)
+  expect_true(emuRes$B[2, 3] == 0)
+  
+})
