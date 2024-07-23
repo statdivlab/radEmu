@@ -98,7 +98,8 @@ Used in simulations}
 
 \item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
 for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-pseudohuber loss).}
+pseudohuber loss). If a number is provided a single category constraint will be used
+with the provided category as a reference category.}
 
 \item{constraint_grad_fn}{derivative of constraint_fn with respect to its
 arguments (i.e., elements of a row of B)}
@@ -162,16 +163,18 @@ p-value to be used should be chosen before conducting tests.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by
-covariate and outcome category (e.g., taxon for microbiome data), as well as
-optionally confidence intervals and p-values, are contained in 'coef'. 'B'
-contains parameter estimates in matrix format (rows indexing covariates and
+'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter
+estimates by covariate and outcome category (e.g., taxon for microbiome data),
+as well as optionally confidence intervals and p-values, are contained in 'coef'.
+'B' contains parameter estimates in matrix format (rows indexing covariates and
 columns indexing outcome category / taxon). 'penalized' is equal to TRUE
-if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and
-'Dy' contain an information matrix and empirical score covariance matrix
-computed under the full model. 'score_test_hyperparams' contains parameters and
-hyperparameters related to estimation under the null, including whether or not the
-algorithm converged, which can be helpful for debugging.
+if Firth penalty is used in estimation (default) and FALSE otherwise. 'z_hat'
+returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
+corresponding to either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE
+or FALSE, respectively. 'I' and 'Dy' contain an information matrix and empirical
+score covariance matrix computed under the full model. 'score_test_hyperparams'
+contains parameters and hyperparameters related to estimation under the null,
+including whether or not the algorithm converged, which can be helpful for debugging.
 }
 \description{
 Fit radEmu model
