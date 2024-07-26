@@ -109,7 +109,7 @@ parameter controlling relative weighting of elements closer and further from cen
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
 
-\item{verbose}{provide updates as model is being fitted? Defaults to TRUE.}
+\item{verbose}{provide updates as model is being fitted? Defaults to FALSE.}
 
 \item{tolerance}{tolerance for stopping criterion in full model fitting; once
 no element of B is updated by more than this value in a single step, we exit
