@@ -43,7 +43,7 @@
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 #' the minimizer of the pseudo-Huber loss approaches the median.)
-#' @param verbose provide updates as model is being fitted? Defaults to TRUE.
+#' @param verbose provide updates as model is being fitted? Defaults to FALSE.
 #' @param tolerance tolerance for stopping criterion in full model fitting; once
 #' no element of B is updated by more than this value in a single step, we exit
 #' optimization. Defaults to 1e-3.
