@@ -84,7 +84,7 @@
 #' a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly 
 #' small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further. 
 #' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
-#' If a value between 0 and 1, all zero-comparison p-values below the quantile represented by the value will be set to NA. 
+#' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.05}. 
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
@@ -672,7 +672,8 @@ and the corresponding gradient function to constraint_grad_fn.")
         if (remove_zero_comparison_pvals == TRUE) {
           coefficients[coefficients$zero_comparison, col] <- NA
         } else {
-          ind <- ifelse(is.na(coefficients[, col]), FALSE, coefficients[, col] <= remove_zero_comparison_pvals)
+          ind <- ifelse(is.na(coefficients[, col]), FALSE, 
+                        coefficients[, col] <= remove_zero_comparison_pvals & coefficients$zero_comparison)
           coefficients[ind, col] <- NA
         }
       }

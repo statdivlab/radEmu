@@ -48,8 +48,9 @@ test_that("remove_zero_comparison_pvals argument works in different ways", {
   expect_true(is.na(emuRes2$coef$score_pval_full_info[1]) &  
                 is.na(emuRes2$coef$score_pval_null_info[1]))
   emuRes3 <- emuFit(Y = Y0, X = X1, remove_zero_comparison_pvals = 0.5,
-                    test_kj = data.frame(k = 2, j = 1))
+                    test_kj = data.frame(k = 2, j = 1:2))
   expect_true(is.na(emuRes3$coef$pval[1]) || emuRes3$coef$pval[1] > 0.5)
+  expect_false(is.na(emuRes3$coef$pval[2]))
   emuRes4 <- emuFit(Y = Y0, X = X1, remove_zero_comparison_pvals = FALSE,
                     test_kj = data.frame(k = 2, j = 1))
   expect_true(emuRes4$coef$zero_comparison[1] & !is.na(emuRes4$coef$pval[1]))

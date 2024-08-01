@@ -167,7 +167,7 @@ for categorical covariates with three or more levels, and represent parameters t
 a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly
 small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further.
 If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
-If a value between 0 and 1, all zero-comparison p-values below the quantile represented by the value will be set to NA.
+If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA.
 Default is \code{0.05}.}
 }
 \value{
