@@ -17,6 +17,7 @@ Depends:
     MASS,
     Matrix,
     methods,
+    dplyr,
     R (>= 2.10)
 Suggests: 
     testthat (>= 3.0.0),
@@ -24,7 +25,6 @@ Suggests:
     phyloseq,
     knitr,
     magrittr,
-    dplyr, 
     ggplot2, 
     stringr, 
     parallel,

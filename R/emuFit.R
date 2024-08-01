@@ -79,19 +79,33 @@
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
 #' p-value to be used should be chosen before conducting tests.
+#' @param remove_zero_comparison_pvals Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur 
+#' for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
+#' a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly 
+#' small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further. 
+#' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
+#' If a value between 0 and 1, all zero-comparison p-values below the quantile represented by the value will be set to NA. 
+#' Default is \code{0.05}. 
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-#' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter
-#' estimates by covariate and outcome category (e.g., taxon for microbiome data),
+#' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
+#' Parameter estimates by covariate and outcome category (e.g., taxon for microbiome data),
 #' as well as optionally confidence intervals and p-values, are contained in 'coef'.
+#' Any robust score statistics and score test p-values are also included in 'coef'. 
+#' If there are any zero-comparison parameters in the model, a column 'zero_comparison'
+#' is also included, which is TRUE for any parameters that compare the level of a categorical
+#' covariate to a reference level for a category with only zero counts for both the comparison
+#' level and the reference level. This check is currently only implemented for a single categorical 
+#' covariate.
 #' 'B' contains parameter estimates in matrix format (rows indexing covariates and
-#' columns indexing outcome category / taxon). 'penalized' is equal to TRUE
-#' if Firth penalty is used in estimation (default) and FALSE otherwise. 'z_hat'
-#' returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
+#' columns indexing outcome category / taxon). 
+#' 'penalized' is equal to TRUE f Firth penalty is used in estimation (default) and FALSE otherwise. 
+#' 'z_hat' returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
 #' corresponding to either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE
-#' or FALSE, respectively. 'I' and 'Dy' contain an information matrix and empirical
-#' score covariance matrix computed under the full model. 'score_test_hyperparams'
-#' contains parameters and hyperparameters related to estimation under the null,
+#' or FALSE, respectively. 
+#' I' and 'Dy' contain an information matrix and empirical score covariance matrix computed under the 
+#' full model. 
+#' 'score_test_hyperparams' contains parameters and hyperparameters related to estimation under the null,
 #' including whether or not the algorithm converged, which can be helpful for debugging. 
 #'
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
@@ -136,7 +150,8 @@ emuFit <- function(Y,
                    max_step = 1,
                    trackB = FALSE,
                    return_nullB = FALSE,
-                   return_both_score_pvals = FALSE
+                   return_both_score_pvals = FALSE,
+                   remove_zero_comparison_pvals = 0.05
                    
                    
 ) {
@@ -221,6 +236,14 @@ ignoring argument 'cluster'.")
     }
   }
   
+  # check for valid argument remove_zero_comparison_pvals 
+  if (remove_zero_comparison_pvals != TRUE & remove_zero_comparison_pvals != FALSE) {
+    if (!(is.numeric(remove_zero_comparison_pvals) & remove_zero_comparison_pvals <= 1 &
+          remove_zero_comparison_pvals >= 0)) {
+      stop("Please set `remove_zero_comparison_pvals` to either TRUE, FALSE, or a numeric value between 0 and 1.")
+    }
+  }
+  
   if (length(constraint_fn) == 1 & is.numeric(constraint_fn)) {
     constraint_cat <- constraint_fn
     constraint_fn <- function(x) {x[constraint_cat]}
@@ -235,6 +258,20 @@ ignoring argument 'cluster'.")
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
+  
+  if (is.null(colnames(X))) {
+    if (p > 1) {
+      colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
+    } else {
+      colnames(X) <- "Intercept"
+    }
+  }
+  if (is.null(colnames(Y))) {
+    colnames(Y) <- paste0("category_", 1:ncol(Y))
+  }
+  
+  # check for zero-comparison parameters
+  zero_comparison_res <- zero_comparison_check(X = X, Y = Y)
   
   X_cup <- X_cup_from_X(X,J)
   
@@ -531,17 +568,6 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
   }
   
-  if (is.null(colnames(X))) {
-    if (p > 1) {
-      colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
-    } else {
-      colnames(X) <- "Intercept"
-    }
-  }
-  if (is.null(colnames(Y))) {
-    colnames(Y) <- paste0("category_", 1:ncol(Y))
-  }
-  
   if (!is.null(colnames(X))) {
     if (length(unique(colnames(X))) == ncol(X)) {
       k_to_covariates <- data.frame(k = 1:p,
@@ -634,6 +660,23 @@ and the corresponding gradient function to constraint_grad_fn.")
   
   if (is.null(rownames(B))) {
     rownames(B) <- colnames(X)
+  }
+  
+  if (!is.null(zero_comparison_res)) {
+    coefficients <- dplyr::full_join(coefficients, zero_comparison_res, 
+                                     by = c("covariate", "category")) 
+    
+    if (remove_zero_comparison_pvals == TRUE | is.numeric(remove_zero_comparison_pvals)) {
+      pval_cols <- which(grepl("pval", names(coefficients)))
+      for (col in pval_cols) {
+        if (remove_zero_comparison_pvals == TRUE) {
+          coefficients[coefficients$zero_comparison, col] <- NA
+        } else {
+          ind <- ifelse(is.na(coefficients[, col]), FALSE, coefficients[, col] <= remove_zero_comparison_pvals)
+          coefficients[ind, col] <- NA
+        }
+      }
+    }
   }
   
   results <- list("call" = call,
