@@ -179,8 +179,9 @@ Any robust score statistics and score test p-values are also included in 'coef'.
 If there are any zero-comparison parameters in the model, a column 'zero_comparison'
 is also included, which is TRUE for any parameters that compare the level of a categorical
 covariate to a reference level for a category with only zero counts for both the comparison
-level and the reference level. This check is currently only implemented for a single categorical
-covariate.
+level and the reference level. This check is currently implemented for an arbitrary design matrix
+generated using the \code{formula} and \code{data} arguments, and for a design matrix with no more
+than one categorical covariate if the design matrix \code{X} is input directly.
 'B' contains parameter estimates in matrix format (rows indexing covariates and
 columns indexing outcome category / taxon).
 'penalized' is equal to TRUE f Firth penalty is used in estimation (default) and FALSE otherwise.
