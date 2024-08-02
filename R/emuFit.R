@@ -85,7 +85,7 @@
 #' small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further. 
 #' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
-#' Default is \code{0.05}. 
+#' Default is \code{0.01}. 
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
 #' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
@@ -151,10 +151,7 @@ emuFit <- function(Y,
                    trackB = FALSE,
                    return_nullB = FALSE,
                    return_both_score_pvals = FALSE,
-                   remove_zero_comparison_pvals = 0.05
-                   
-                   
-) {
+                   remove_zero_comparison_pvals = 0.01) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
