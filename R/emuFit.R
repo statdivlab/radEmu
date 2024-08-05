@@ -616,7 +616,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   coefficients <- coef_df
   
   if (penalize) {
-    if (is.null(Y_augmented)) {
+    if (!is.null(fitted_model)) {
       Y_augmented <- fitted_model$Y_augmented
     }
   } else {
