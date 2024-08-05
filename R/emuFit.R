@@ -311,13 +311,29 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
     if (!is.null(fitted_model)) {
       fitted_B <- fitted_model$B
-      Y_test <- Y_augmented <- fitted_model$Y_augmented
-      penalize <- fitted_model$penalized
+      if (penalize != fitted_model$penalized) {
+        stop("Your argument to `penalize` does not match the `penalize` argument within your `fitted_model` object. Please use the `penalize` argument that matches the `penalized` return object within your `fitted_model`.")
+      }
+      if (penalize) {
+        Y_test <- Y_augmented <- fitted_model$Y_augmented
+      } else {
+        Y_augmented <- NULL
+        Y_test <- Y
+      }
       if (!is.null(B)) {
         warning("B and fitted_model provided to emuFit; B ignored in favor of fitted_model.")
       }
     } else {
       fitted_B <- B
+      if (penalize) {
+        X_cup <- X_cup_from_X(X, J)
+        G <- get_G_for_augmentations(X, J, n, X_cup)
+        Y_test <- Y_augmented <- Y + 
+          get_augmentations(X = X, G = G, Y = Y, B = fitted_B)
+      } else {
+        Y_augmented <- NULL
+        Y_test <- Y
+      }
     }
   }
   
@@ -600,7 +616,9 @@ and the corresponding gradient function to constraint_grad_fn.")
   coefficients <- coef_df
   
   if (penalize) {
-    Y_augmented <- fitted_model$Y_augmented
+    if (!is.null(fitted_model)) {
+      Y_augmented <- fitted_model$Y_augmented
+    }
   } else {
     # set Y_augmented to NUll because without penalty there is no Y augmentation
     Y_augmented <- NULL
