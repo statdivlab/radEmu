@@ -81,7 +81,8 @@
 <span>  max_step <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  trackB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_nullB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  remove_zero_comparison_pvals <span class="op">=</span> <span class="fl">0.01</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -278,21 +279,39 @@ information matrix computed from full model fit and from null model fits? Defaul
 FALSE. This parameter is used for simulations - in any applied analysis, type of
 p-value to be used should be chosen before conducting tests.</p></dd>
 
+
+<dt id="arg-remove-zero-comparison-pvals">remove_zero_comparison_pvals<a class="anchor" aria-label="anchor" href="#arg-remove-zero-comparison-pvals"></a></dt>
+<dd><p>Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur
+for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
+a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly
+small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further.
+If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
+If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA.
+Default is <code>0.01</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter
-estimates by covariate and outcome category (e.g., taxon for microbiome data),
+'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.
+Parameter estimates by covariate and outcome category (e.g., taxon for microbiome data),
 as well as optionally confidence intervals and p-values, are contained in 'coef'.
+Any robust score statistics and score test p-values are also included in 'coef'.
+If there are any zero-comparison parameters in the model, a column 'zero_comparison'
+is also included, which is TRUE for any parameters that compare the level of a categorical
+covariate to a reference level for a category with only zero counts for both the comparison
+level and the reference level. This check is currently implemented for an arbitrary design matrix
+generated using the <code>formula</code> and <code>data</code> arguments, and for a design matrix with no more
+than one categorical covariate if the design matrix <code>X</code> is input directly.
 'B' contains parameter estimates in matrix format (rows indexing covariates and
-columns indexing outcome category / taxon). 'penalized' is equal to TRUE
-if Firth penalty is used in estimation (default) and FALSE otherwise. 'z_hat'
-returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
+columns indexing outcome category / taxon).
+'penalized' is equal to TRUE f Firth penalty is used in estimation (default) and FALSE otherwise.
+'z_hat' returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
 corresponding to either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE
-or FALSE, respectively. 'I' and 'Dy' contain an information matrix and empirical
-score covariance matrix computed under the full model. 'score_test_hyperparams'
-contains parameters and hyperparameters related to estimation under the null,
+or FALSE, respectively.
+I' and 'Dy' contain an information matrix and empirical score covariance matrix computed under the
+full model.
+'score_test_hyperparams' contains parameters and hyperparameters related to estimation under the null,
 including whether or not the algorithm converged, which can be helpful for debugging.</p>
     </div>
 
