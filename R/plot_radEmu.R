@@ -1,12 +1,14 @@
 #' Plotting function
 #'
-#' @param x Object of class \code{radEmu}.
+#' @param x Output from emuFit()
 #' @param plot_key (Optional) Default \code{NULL}. List of named vectors containing names in the "covariate" column of the `coef` output of the radEmu model object. If you wish for multiple covariate values to be plotted on the same plot, then those variables should be included in the same named vector. By default, each column of the design matrix receives its own plot.
 #' @param title (Optional). Default \code{NULL}. Character string. The main title for the graphic.
 #' @param taxon_names (Optional). Default \code{NULL}. Data frame. If \code{NULL}, keep taxon names as listed in radEmu model. Otherwise, users can input a data frame with two columns: one labelled "category" with the same levels as in the radEmu output and another labelled "cat_small" with the preferred labels.
 #' @param display_taxon_names (Optional). Default \code{TRUE}. Boolean. If \code{FALSE}, remove sample names from the plot.
 #' @param data_only (Optional). Default \code{FALSE}. Boolean. If \code{TRUE}, only returns data frame.
 #' @param ... There are no optional parameters at this time.
+#' @import dplyr
+#' @import ggplot2
 #' @importFrom rlang .data
 #'
 #' @return Object of class \code{ggplot}. Plot of \code{radEmu} model fit with 95% confidence intervals.
@@ -15,7 +17,7 @@
 #' data(wirbel_sample)
 #' data(wirbel_otu)
 #' 
-#' ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
+#' subset_studies <- which(wirbel_sample$Study %in% c("FR-CRC", "US-CRC", "AT-CRC"))
 #' 
 #' chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
 #' 
@@ -29,8 +31,10 @@
 #'   filter(genus_name %in% chosen_genera) %>%
 #'   pull(name)
 #' 
-#' small_Y <- wirbel_otu[, restricted_mOTU_names] # ch_study_obs
+#' small_Y <- wirbel_otu[subset_studies, restricted_mOTU_names]
 #' category_to_rm <- which(colSums(small_Y) == 0)
+#' 
+#' small_sample <- wirbel_sample[subset_studies, ]
 #' 
 #' ch_fit <- emuFit(formula = ~ Group + Study, 
 #'                  data = small_sample,
@@ -56,6 +60,18 @@ plot.radEmu <- function(x,
                         display_taxon_names = TRUE,
                         data_only = FALSE, ...) {
   mod <- x
+  
+  # confirm that values in plot_key are actually in the coefficient table
+  if (!all(unlist(plot_key) %in% unique(mod$coef$covariate))) {
+    stop("At least one of the coefficient names included in the plot key is not in
+         the covariate column of the coefficient table of the radEmu() output.")
+  }
+  
+  # confirm that no coefficient is listed multiple times
+  if (length(unlist(plot_key)) != length(unique(unlist(plot_key)))) {
+    stop("One of the coefficient names is included in the plot key multiple times,
+         however each coefficient can only be included in one plot.")
+  }
   
   # determine which levels are not included in the plot key
   remaining_variables <- setdiff(unique(mod$coef$covariate), unlist(plot_key))
@@ -94,8 +110,7 @@ plot.radEmu <- function(x,
   
   # now separate output coefficients into a list for each plot
   coef_list <- mod$coef %>%
-    split(.$plot_key) %>%
-    map(~ as_tibble(.))
+    split(.$plot_key)
   
   # match coefficient names using user-provided "taxon_names" data frame
   coef_list_renamed <- lapply(coef_list, function(coef_subset){
