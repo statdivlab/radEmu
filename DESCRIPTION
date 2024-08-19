@@ -17,7 +17,7 @@ Depends:
     MASS,
     Matrix,
     methods,
-    dplyr, 
+    dplyr,
     ggplot2,
     R (>= 2.10)
 Suggests: 
