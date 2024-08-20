@@ -606,3 +606,37 @@ test_that("Confirm zi is different when penalty is applied or not", {
   expect_false(isTRUE(all.equal(fit_penT$z_hat,
                                 fit_penF$z_hat)))
 })
+
+test_that("Single category constraint works", {
+  
+  emuRes <- emuFit(Y = Y,
+                   X = X,
+                   constraint_fn = 3,
+                   run_score_tests = FALSE)
+  expect_true(emuRes$B[2, 3] == 0)
+  
+})
+
+test_that("emuFit works with fitted objects passed in", {
+  emuRes <- emuFit(Y = Y,
+                   X = X,
+                   run_score_tests = FALSE)
+  # can run emuFit with fitted model
+  expect_silent({
+    emuRes2 <- emuFit(Y = Y, X = X, fitted_model = emuRes, refit = FALSE,
+                      compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1))
+  })
+  # get error if have penalize arguments that don't match 
+  expect_error({
+    emuRes2 <- emuFit(Y = Y, X = X, fitted_model = emuRes, refit = FALSE,
+                      compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
+                      penalize = FALSE)
+  })
+  # can run emuFit with only B 
+  # can run emuFit with fitted model
+  expect_silent({
+    emuRes2 <- emuFit(Y = Y, X = X, B = emuRes$B, refit = FALSE,
+                      compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1))
+  })
+  
+})

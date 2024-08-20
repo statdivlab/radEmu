@@ -41,7 +41,8 @@ emuFit(
   max_step = 1,
   trackB = FALSE,
   return_nullB = FALSE,
-  return_both_score_pvals = FALSE
+  return_both_score_pvals = FALSE,
+  remove_zero_comparison_pvals = 0.01
 )
 }
 \arguments{
@@ -98,7 +99,8 @@ Used in simulations}
 
 \item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
 for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-pseudohuber loss).}
+pseudohuber loss). If a number is provided a single category constraint will be used
+with the provided category as a reference category.}
 
 \item{constraint_grad_fn}{derivative of constraint_fn with respect to its
 arguments (i.e., elements of a row of B)}
@@ -108,7 +110,7 @@ parameter controlling relative weighting of elements closer and further from cen
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
 
-\item{verbose}{provide updates as model is being fitted? Defaults to TRUE.}
+\item{verbose}{provide updates as model is being fitted? Defaults to FALSE.}
 
 \item{tolerance}{tolerance for stopping criterion in full model fitting; once
 no element of B is updated by more than this value in a single step, we exit
@@ -159,19 +161,37 @@ iterations and be returned? Primarily used for debugging. Default is FALSE.}
 information matrix computed from full model fit and from null model fits? Default is
 FALSE. This parameter is used for simulations - in any applied analysis, type of
 p-value to be used should be chosen before conducting tests.}
+
+\item{remove_zero_comparison_pvals}{Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur
+for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
+a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly
+small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further.
+If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
+If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA.
+Default is \code{0.01}.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  Parameter estimates by
-covariate and outcome category (e.g., taxon for microbiome data), as well as
-optionally confidence intervals and p-values, are contained in 'coef'. 'B'
-contains parameter estimates in matrix format (rows indexing covariates and
-columns indexing outcome category / taxon). 'penalized' is equal to TRUE
-if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and
-'Dy' contain an information matrix and empirical score covariance matrix
-computed under the full model. 'score_test_hyperparams' contains parameters and
-hyperparameters related to estimation under the null, including whether or not the
-algorithm converged, which can be helpful for debugging.
+'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.
+Parameter estimates by covariate and outcome category (e.g., taxon for microbiome data),
+as well as optionally confidence intervals and p-values, are contained in 'coef'.
+Any robust score statistics and score test p-values are also included in 'coef'.
+If there are any zero-comparison parameters in the model, a column 'zero_comparison'
+is also included, which is TRUE for any parameters that compare the level of a categorical
+covariate to a reference level for a category with only zero counts for both the comparison
+level and the reference level. This check is currently implemented for an arbitrary design matrix
+generated using the \code{formula} and \code{data} arguments, and for a design matrix with no more
+than one categorical covariate if the design matrix \code{X} is input directly.
+'B' contains parameter estimates in matrix format (rows indexing covariates and
+columns indexing outcome category / taxon).
+'penalized' is equal to TRUE f Firth penalty is used in estimation (default) and FALSE otherwise.
+'z_hat' returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
+corresponding to either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE
+or FALSE, respectively.
+I' and 'Dy' contain an information matrix and empirical score covariance matrix computed under the
+full model.
+'score_test_hyperparams' contains parameters and hyperparameters related to estimation under the null,
+including whether or not the algorithm converged, which can be helpful for debugging.
 }
 \description{
 Fit radEmu model
