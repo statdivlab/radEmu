@@ -681,6 +681,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   if (!is.null(zero_comparison_res)) {
     coefficients <- dplyr::full_join(coefficients, zero_comparison_res, 
                                      by = c("covariate", "category")) 
+    coefficients$zero_comparison[is.na(coefficients$zero_comparison)] <- FALSE
     
     if (remove_zero_comparison_pvals == TRUE | is.numeric(remove_zero_comparison_pvals)) {
       pval_cols <- which(grepl("pval", names(coefficients)))
