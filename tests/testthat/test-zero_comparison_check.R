@@ -103,7 +103,7 @@ test_that("zero_comparison column is added to coef when it should be, model.matr
   emuRes5 <- emuFit(Y = Y0, X = X5, run_score_tests = FALSE, compute_cis = FALSE)
   expect_true("zero_comparison" %in% names(emuRes5$coef))
   expect_true(emuRes5$coef$zero_comparison[1])
-  expect_true(is.na(emuRes5$coef$zero_comparison[13]))
+  expect_false(emuRes5$coef$zero_comparison[13])
   expect_true(emuRes5$coef$zero_comparison[31])
   expect_false(emuRes5$coef$zero_comparison[32])
 })
