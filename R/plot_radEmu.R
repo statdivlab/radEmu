@@ -51,7 +51,6 @@
 #' 
 #' out$plots$p1
 #' out$plots$p2
-#' 
 #' @export
 
 plot.radEmu <- function(x,

@@ -73,5 +73,4 @@ out <- plot.radEmu(x = ch_fit,
 
 out$plots$p1
 out$plots$p2
-
 }
