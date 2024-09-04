@@ -45,13 +45,13 @@ chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyro
 
 mOTU_names <- colnames(wirbel_otu)
 mOTU_name_df <- data.frame(name = mOTU_names) \%>\% 
-  mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") \%>\%
+  dplyr::mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") \%>\%
   stringr::str_remove("uncultured ")) \%>\%
-  mutate(genus_name = stringr::word(base_name, 1))
+  dplyr::mutate(genus_name = stringr::word(base_name, 1))
 
 restricted_mOTU_names <- mOTU_name_df \%>\%
-  filter(genus_name \%in\% chosen_genera) \%>\%
-  pull(name)
+  dplyr::filter(genus_name \%in\% chosen_genera) \%>\%
+  dplyr::pull(name)
 
 small_Y <- wirbel_otu[subset_studies, restricted_mOTU_names]
 category_to_rm <- which(colSums(small_Y) == 0)
