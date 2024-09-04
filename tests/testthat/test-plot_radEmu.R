@@ -35,7 +35,7 @@ fitted_model <- emuFit(Y = Y,
 test_that("plot.radEmu returns data frame and plot", {
   plot_out <- plot.radEmu(x = fitted_model)
   expect_true(is.data.frame(plot_out$data))
-  expect_true(all(sapply(plot_out$plots, is.ggplot)))
+  expect_true(all(sapply(plot_out$plots, ggplot2::is.ggplot)))
 })
 
 
