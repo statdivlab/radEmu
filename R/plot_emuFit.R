@@ -46,15 +46,15 @@
 #'                  p2 = c("FR-Control" = "StudyFR-CRC",
 #'                         "US-Control" = "StudyUS-CRC"))
 #' 
-#' out <- plot_radEmu(x = ch_fit,
-#'                    plot_key = plot_key,
-#'                    display_taxon_names = FALSE)
+#' out <- plot(x = ch_fit,
+#'             plot_key = plot_key,
+#'             display_taxon_names = FALSE)
 #' 
 #' out$plots$p1
 #' out$plots$p2
 #' @export
 
-plot_radEmu <- function(x,
+plot.emuFit <- function(x,
                         plot_key = NULL,
                         title = NULL,
                         taxon_names = NULL,
