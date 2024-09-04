@@ -132,17 +132,17 @@ plot.radEmu <- function(x,
     
     p_list <- lapply(coef_list_renamed, function(coef_subset){
       p <- ggplot2::ggplot(coef_subset) +
-        ggplot2::geom_point(aes(x = estimate,
-                                y = as.character(cat_small),
-                                color = covariate,
-                                group = covariate),
+        ggplot2::geom_point(ggplot2::aes(x = estimate,
+                                         y = as.character(cat_small),
+                                         color = covariate,
+                                         group = covariate),
                             position = ggplot2::position_dodge2(width = 0.5),
                             size = 2) +
-        ggplot2::geom_errorbar(aes(y = cat_small,
-                                   xmin = lower,
-                                   xmax = upper,
-                                   color = covariate,
-                                   group = covariate),
+        ggplot2::geom_errorbar(ggplot2::aes(y = cat_small,
+                                            xmin = lower,
+                                            xmax = upper,
+                                            color = covariate,
+                                            group = covariate),
                                position = ggplot2::position_dodge2(width = 0.5),
                                width = 0.5) +
         ggplot2::geom_vline(xintercept = 0, alpha = 0.5) +
