@@ -17,8 +17,7 @@ Depends:
     MASS,
     Matrix,
     methods,
-    dplyr,
-    ggplot2,
+    magrittr,
     rlang,
     R (>= 2.10)
 Suggests: 
@@ -26,7 +25,8 @@ Suggests:
     numDeriv,
     phyloseq,
     knitr,
-    magrittr,
+    dplyr,
+    ggplot2,
     stringr, 
     parallel,
     rmarkdown

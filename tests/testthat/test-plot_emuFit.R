@@ -32,25 +32,25 @@ fitted_model <- emuFit(Y = Y,
                        use_fullmodel_cov = FALSE,
                        return_both_score_pvals = FALSE)
 
-test_that("plot.radEmu returns data frame and plot", {
-  plot_out <- plot.radEmu(x = fitted_model)
+test_that("plot() returns data frame and plot", {
+  plot_out <- plot(x = fitted_model)
   expect_true(is.data.frame(plot_out$data))
-  expect_true(all(sapply(plot_out$plots, is.ggplot)))
+  expect_true(all(sapply(plot_out$plots, ggplot2::is.ggplot)))
 })
 
 
-test_that("plot.radEmu returns error when plot_key does not match coefficient table", {
+test_that("plot() returns error when plot_key does not match coefficient table", {
   expect_error({
-    plot.radEmu(x = fitted_model,
-                plot_key = list(c("First Covariate" = "covariate1")))
+    plot(x = fitted_model,
+         plot_key = list(c("First Covariate" = "covariate1")))
   })
 })
 
-test_that("plot.radEmu returns error when coefficient is included multiple times in plot_key", {
+test_that("plot() returns error when coefficient is included multiple times in plot_key", {
   expect_error({
-    plot.radEmu(x = fitted_model,
-                plot_key = list(c("First Covariate" = "covariate_1"),
-                                c("Second Covariate" = "covariate_1")))
+    plot(x = fitted_model,
+         plot_key = list(c("First Covariate" = "covariate_1"),
+                         c("Second Covariate" = "covariate_1")))
   })
 })
 

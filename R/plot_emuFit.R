@@ -7,9 +7,10 @@
 #' @param display_taxon_names (Optional). Default \code{TRUE}. Boolean. If \code{FALSE}, remove sample names from the plot.
 #' @param data_only (Optional). Default \code{FALSE}. Boolean. If \code{TRUE}, only returns data frame.
 #' @param ... There are no optional parameters at this time.
-#' @import dplyr
-#' @import ggplot2
+#' @importFrom magrittr %>%
 #' @importFrom rlang .data
+#' @importFrom stats reorder
+#' @importFrom stats setNames
 #'
 #' @return Object of class \code{ggplot}. Plot of \code{radEmu} model fit with 95% confidence intervals.
 #'
@@ -23,13 +24,13 @@
 #' 
 #' mOTU_names <- colnames(wirbel_otu)
 #' mOTU_name_df <- data.frame(name = mOTU_names) %>% 
-#'   mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") %>%
+#'   dplyr::mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") %>%
 #'   stringr::str_remove("uncultured ")) %>%
-#'   mutate(genus_name = stringr::word(base_name, 1))
+#'   dplyr::mutate(genus_name = stringr::word(base_name, 1))
 #' 
 #' restricted_mOTU_names <- mOTU_name_df %>%
-#'   filter(genus_name %in% chosen_genera) %>%
-#'   pull(name)
+#'   dplyr::filter(genus_name %in% chosen_genera) %>%
+#'   dplyr::pull(name)
 #' 
 #' small_Y <- wirbel_otu[subset_studies, restricted_mOTU_names]
 #' category_to_rm <- which(colSums(small_Y) == 0)
@@ -45,15 +46,15 @@
 #'                  p2 = c("FR-Control" = "StudyFR-CRC",
 #'                         "US-Control" = "StudyUS-CRC"))
 #' 
-#' out <- plot.radEmu(x = ch_fit,
-#'                    plot_key = plot_key,
-#'                    display_taxon_names = FALSE)
+#' out <- plot(x = ch_fit,
+#'             plot_key = plot_key,
+#'             display_taxon_names = FALSE)
 #' 
 #' out$plots$p1
 #' out$plots$p2
 #' @export
 
-plot.radEmu <- function(x,
+plot.emuFit <- function(x,
                         plot_key = NULL,
                         title = NULL,
                         taxon_names = NULL,
@@ -104,9 +105,9 @@ plot.radEmu <- function(x,
   new_variable_names <- names(unlist(unname(plot_key_default)))
   old_variable_names <- unname(unlist(unname(plot_key_default)))
   mod$coef <- mod$coef %>%
-    mutate(covariate = factor(covariate,
-                              levels = old_variable_names,
-                              labels = new_variable_names))
+    dplyr::mutate(covariate = factor(covariate,
+                                     levels = old_variable_names,
+                                     labels = new_variable_names))
   
   # now separate output coefficients into a list for each plot
   coef_list <- mod$coef %>%
@@ -115,16 +116,16 @@ plot.radEmu <- function(x,
   # match coefficient names using user-provided "taxon_names" data frame
   coef_list_renamed <- lapply(coef_list, function(coef_subset){
     if (!is.null(taxon_names)) {
-      left_join(coef_subset, taxon_names, by = "category") %>%
-        arrange(covariate, estimate) %>%
-        mutate(cat_small = reorder(cat_small, estimate))
+      dplyr::left_join(coef_subset, taxon_names, by = "category") %>%
+        dplyr::arrange(covariate, estimate) %>%
+        dplyr::mutate(cat_small = reorder(cat_small, estimate))
     } else {
       coef_subset %>%
-        mutate(cat_small = category) %>%
-        arrange(covariate, estimate) %>%
-        mutate(cat_small = factor(cat_small,
-                                  levels = unique(cat_small),
-                                  labels = unique(cat_small)))
+        dplyr::mutate(cat_small = category) %>%
+        dplyr::arrange(covariate, estimate) %>%
+        dplyr::mutate(cat_small = factor(cat_small,
+                                         levels = unique(cat_small),
+                                         labels = unique(cat_small)))
     }
   })
   
@@ -132,32 +133,32 @@ plot.radEmu <- function(x,
   if (!data_only) {
     
     p_list <- lapply(coef_list_renamed, function(coef_subset){
-      p <- ggplot(coef_subset) +
-        geom_point(aes(x = estimate,
-                       y = as.character(cat_small),
-                       color = covariate,
-                       group = covariate),
-                   position = position_dodge2(width = 0.5),
-                   size = 2) +
-        geom_errorbar(aes(y = cat_small,
-                          xmin = lower,
-                          xmax = upper,
-                          color = covariate,
-                          group = covariate),
-                      position = position_dodge2(width = 0.5),
-                      width = 0.5) +
-        geom_vline(xintercept = 0, alpha = 0.5) +
-        theme_bw() +
-        labs(title = title) +
-        guides(color = guide_legend(title = "Comparison")) +
-        theme(legend.position = "bottom") +
-        labs(y = "Category") + 
-        labs(x = "Estimate")
+      p <- ggplot2::ggplot(coef_subset) +
+        ggplot2::geom_point(ggplot2::aes(x = estimate,
+                                         y = as.character(cat_small),
+                                         color = covariate,
+                                         group = covariate),
+                            position = ggplot2::position_dodge2(width = 0.5),
+                            size = 2) +
+        ggplot2::geom_errorbar(ggplot2::aes(y = cat_small,
+                                            xmin = lower,
+                                            xmax = upper,
+                                            color = covariate,
+                                            group = covariate),
+                               position = ggplot2::position_dodge2(width = 0.5),
+                               width = 0.5) +
+        ggplot2::geom_vline(xintercept = 0, alpha = 0.5) +
+        ggplot2::theme_bw() +
+        ggplot2::labs(title = title) +
+        ggplot2::guides(color = ggplot2::guide_legend(title = "Comparison")) +
+        ggplot2::theme(legend.position = "bottom") +
+        ggplot2::labs(y = "Category") + 
+        ggplot2::labs(x = "Estimate")
       
       if (!display_taxon_names) {
         p <- p +
-          theme(axis.text.y = element_blank(),
-                axis.ticks.y = element_blank())
+          ggplot2::theme(axis.text.y = ggplot2::element_blank(),
+                         axis.ticks.y = ggplot2::element_blank())
       }
       
       p
@@ -166,13 +167,13 @@ plot.radEmu <- function(x,
     p_list <- setNames(p_list, paste0("p", 1:length(p_list)))
     
     return(list(plots = invisible(p_list),
-                data = bind_rows(coef_list_renamed)))
+                data = dplyr::bind_rows(coef_list_renamed)))
     
   } else {
     
     # return data
     return(list(plots = NULL,
-                data = bind_rows(coef_list_renamed)))
+                data = dplyr::bind_rows(coef_list_renamed)))
   }
 }
 
