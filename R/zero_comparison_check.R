@@ -34,7 +34,7 @@ zero_comparison_check <- function(X, Y) {
         }
         
         # get matrix that is (p - 1) x J that gives whether or not parameter is zero-comparison
-        zero_comp <- matrix(NA, nrow = n_groups - 1, J)
+        zero_comp <- matrix(FALSE, nrow = n_groups - 1, J)
         for (i in 1:(n_groups - 1)) {
           zero_comp[i, ] <- (group_counts[1, ] == 0) * (group_counts[i + 1, ] == 0) == 1
         }

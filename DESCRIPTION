@@ -19,6 +19,7 @@ Depends:
     methods,
     dplyr,
     ggplot2,
+    rlang,
     R (>= 2.10)
 Suggests: 
     testthat (>= 3.0.0),
