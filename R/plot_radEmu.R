@@ -9,6 +9,8 @@
 #' @param ... There are no optional parameters at this time.
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
+#' @importFrom stats reorder
+#' @importFrom stats setNames
 #'
 #' @return Object of class \code{ggplot}. Plot of \code{radEmu} model fit with 95% confidence intervals.
 #'
@@ -44,7 +46,7 @@
 #'                  p2 = c("FR-Control" = "StudyFR-CRC",
 #'                         "US-Control" = "StudyUS-CRC"))
 #' 
-#' out <- plot.radEmu(x = ch_fit,
+#' out <- plot_radEmu(x = ch_fit,
 #'                    plot_key = plot_key,
 #'                    display_taxon_names = FALSE)
 #' 
@@ -52,7 +54,7 @@
 #' out$plots$p2
 #' @export
 
-plot.radEmu <- function(x,
+plot_radEmu <- function(x,
                         plot_key = NULL,
                         title = NULL,
                         taxon_names = NULL,
