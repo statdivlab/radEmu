@@ -136,27 +136,27 @@ plot.radEmu <- function(x,
                                 y = as.character(cat_small),
                                 color = covariate,
                                 group = covariate),
-                            position = position_dodge2(width = 0.5),
+                            position = ggplot2::position_dodge2(width = 0.5),
                             size = 2) +
         ggplot2::geom_errorbar(aes(y = cat_small,
                                    xmin = lower,
                                    xmax = upper,
                                    color = covariate,
                                    group = covariate),
-                               position = position_dodge2(width = 0.5),
+                               position = ggplot2::position_dodge2(width = 0.5),
                                width = 0.5) +
         ggplot2::geom_vline(xintercept = 0, alpha = 0.5) +
         ggplot2::theme_bw() +
         ggplot2::labs(title = title) +
-        ggplot2::guides(color = guide_legend(title = "Comparison")) +
+        ggplot2::guides(color = ggplot2::guide_legend(title = "Comparison")) +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::labs(y = "Category") + 
         ggplot2::labs(x = "Estimate")
       
       if (!display_taxon_names) {
         p <- p +
-          ggplot2::theme(axis.text.y = element_blank(),
-                         axis.ticks.y = element_blank())
+          ggplot2::theme(axis.text.y = ggplot2::element_blank(),
+                         axis.ticks.y = ggplot2::element_blank())
       }
       
       p
@@ -165,13 +165,13 @@ plot.radEmu <- function(x,
     p_list <- setNames(p_list, paste0("p", 1:length(p_list)))
     
     return(list(plots = invisible(p_list),
-                data = bind_rows(coef_list_renamed)))
+                data = dplyr::bind_rows(coef_list_renamed)))
     
   } else {
     
     # return data
     return(list(plots = NULL,
-                data = bind_rows(coef_list_renamed)))
+                data = dplyr::bind_rows(coef_list_renamed)))
   }
 }
 
