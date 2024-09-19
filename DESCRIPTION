@@ -25,6 +25,7 @@ Suggests:
     numDeriv,
     phyloseq,
     TreeSummarizedExperiment,
+    SummarizedExperiment,
     knitr,
     dplyr,
     ggplot2,
