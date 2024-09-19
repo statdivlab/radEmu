@@ -34,6 +34,14 @@ test_that("emuFit works with a TreeSummarizedExperiment object", {
     # or when data.frames are used directly
     expect_true(all.equal(fit$coef, fit2$coef))
     
+    # confirm an error is returned when assay_name is not provided by Y is
+    # a TreeSummarizedExperiment object
+    expect_error(
+      fit <- emuFit(Y = Y,
+                  formula = ~ Group,
+                  run_score_tests = FALSE, tolerance = 0.01)
+    )
+    
   } else {
     expect_error(stop("You don't have TreeSummarizedExperiment installed."))
   }

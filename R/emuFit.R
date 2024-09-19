@@ -181,7 +181,7 @@ emuFit <- function(Y,
     
   # check if Y is a TreeSummarizedExperiment object
   } else if ("TreeSummarizedExperiment" %in% class(Y)) {
-      if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
+      if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
         if (is.null(assay_name) | is.null(formula)) {
           stop("If Y is a `TreeSummarizedExperiment` object, make sure to include the assay_name and formula arguments.")
         }
@@ -189,7 +189,7 @@ emuFit <- function(Y,
         X <- model.matrix(formula, data)
         Y <- as.data.frame(t(SummarizedExperiment::assay(Y, assay_name)))
       } else {
-        stop("You are trying to use a `TreeSummarizedExperiment` data object or `TreeSummarizedExperiment` helper function without having the `TreeSummarizedExperiment` package installed. Please either install the package or use a standard data frame.")
+        stop("You are trying to use a `TreeSummarizedExperiment` data object or `TreeSummarizedExperiment` helper function without having the `SummarizedExperiment` package installed. Please either install the package or use a standard data frame.")
       }
   }
   
