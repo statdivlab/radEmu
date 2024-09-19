@@ -49,6 +49,7 @@
 <span>  X <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  assay_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  penalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  B <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,6 +105,12 @@
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>an n x p data frame containing variables given in <code>formula</code></p></dd>
+
+
+<dt id="arg-assay-name">assay_name<a class="anchor" aria-label="anchor" href="#arg-assay-name"></a></dt>
+<dd><p>a string containing the desired assay name within a <code>TreeSummarizedExperiment</code> object.
+This is only required if Y is a <code>TreeSummarizedExperiment</code> object, otherwise this argument does nothing
+and can be ignored.</p></dd>
 
 
 <dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
@@ -324,7 +331,7 @@ including whether or not the algorithm converged, which can be helpful for debug
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>
