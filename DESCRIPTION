@@ -24,6 +24,7 @@ Suggests:
     testthat (>= 3.0.0),
     numDeriv,
     phyloseq,
+    TreeSummarizedExperiment,
     knitr,
     dplyr,
     ggplot2,
