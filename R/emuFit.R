@@ -4,6 +4,9 @@
 #' @param X an n x p matrix or dataframe of covariates (optional)
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
+#' @param assay_name a string containing the desired assay name within a `TreeSummarizedExperiment` object.
+#' This is only required if Y is a `TreeSummarizedExperiment` object, otherwise this argument does nothing
+#' and can be ignored.
 #' @param cluster a vector giving cluster membership for each row of Y to be used in computing 
 #' GEE test statistics. Default is NULL, in which case rows of Y are treated as independent.
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
@@ -119,6 +122,7 @@ emuFit <- function(Y,
                    X = NULL,
                    formula = NULL,
                    data = NULL,
+                   assay_name = NULL,
                    cluster = NULL,
                    penalize = TRUE,
                    B = NULL,
@@ -174,7 +178,23 @@ emuFit <- function(Y,
     } else {
       stop("You are trying to use a `phyloseq` data object or `phyloseq` helper function without having the `phyloseq` package installed. Please either install the package or use a standard data frame.")
     }
-  } else if ("data.frame" %in% class(Y)) {
+    
+  # check if Y is a TreeSummarizedExperiment object
+  } else if ("TreeSummarizedExperiment" %in% class(Y)) {
+      if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+        if (is.null(assay_name) | is.null(formula)) {
+          stop("If Y is a `TreeSummarizedExperiment` object, make sure to include the assay_name and formula arguments.")
+        }
+        data <- as.data.frame(SummarizedExperiment::colData(Y))
+        X <- model.matrix(formula, data)
+        Y <- as.data.frame(t(SummarizedExperiment::assay(Y, assay_name)))
+      } else {
+        stop("You are trying to use a `TreeSummarizedExperiment` data object or `TreeSummarizedExperiment` helper function without having the `SummarizedExperiment` package installed. Please either install the package or use a standard data frame.")
+      }
+  }
+  
+  # convert Y from a data.frame object to a matrix, even if it was extracted directly from `phyloseq` or `TreeSummarizedExperiment`
+  if ("data.frame" %in% class(Y)) {
     Y <- as.matrix(Y)
     if (!is.numeric(Y)) {
       stop("Y is a data frame that cannot be coerced to a numeric matrix. Please fix and try again.")

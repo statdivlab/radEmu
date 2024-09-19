@@ -9,6 +9,7 @@ emuFit(
   X = NULL,
   formula = NULL,
   data = NULL,
+  assay_name = NULL,
   cluster = NULL,
   penalize = TRUE,
   B = NULL,
@@ -53,6 +54,10 @@ emuFit(
 \item{formula}{a one-sided formula specifying the form of the mean model to be fit}
 
 \item{data}{an n x p data frame containing variables given in \code{formula}}
+
+\item{assay_name}{a string containing the desired assay name within a \code{TreeSummarizedExperiment} object.
+This is only required if Y is a \code{TreeSummarizedExperiment} object, otherwise this argument does nothing
+and can be ignored.}
 
 \item{cluster}{a vector giving cluster membership for each row of Y to be used in computing
 GEE test statistics. Default is NULL, in which case rows of Y are treated as independent.}
