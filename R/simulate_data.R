@@ -44,13 +44,13 @@ simulate_data <- function(n,
       stop("Please input either parameter vectors b0 and b1, or parameter matrix B.")
     }
   }
-  
   log_means <- do.call(cbind,
                        lapply(1:J,
-                              function(j) X %*% B[,j,drop = FALSE]))
-  
-  z <- mean_count_before_ZI + stats::rnorm(n)
-  
+                              function(j) X%*%B[,j,drop = FALSE]))
+
+  row_means <- rowSums(exp(log_means))/J
+
+  z <- sapply(row_means,function(x) log(mean_count_before_ZI) - log(x) + stats::rnorm(1))
   Y <- matrix(0, ncol = J, nrow = n)
 
   for(i in 1:n){
