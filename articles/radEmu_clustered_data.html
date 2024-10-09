@@ -192,8 +192,8 @@ We fit a model including cluster dependence as follows:</p>
 <span>                     Y <span class="op">=</span> <span class="va">Y</span>,</span>
 <span>                     cluster <span class="op">=</span> <span class="va">cluster_named</span>, </span>
 <span>                     test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>You can check out the full object, but our estimate is 4.5 and a
-p-value for testing that this parameter equals zero is 0.034. Not too
+<p>You can check out the full object, but our estimate is 4.6 and a
+p-value for testing that this parameter equals zero is 0.084. Not too
 shabby, especially considering that about half of our observations are
 zero, and we have a lot of noise in our data (arising from a negative
 binomial simulation scheme).</p>
@@ -206,8 +206,8 @@ we are saying that we have more independent observations.</p>
 <span>                        Y <span class="op">=</span> <span class="va">Y</span>,</span>
 <span>                        test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>When we ignore clustering, we get an estimate of the log fold
-difference in category 3 across values of our covariate of 4.5 and a
-p-value of 0.003. So we can see that our estimates are the same whether
+difference in category 3 across values of our covariate of 4.6 and a
+p-value of 0.007. So we can see that our estimates are the same whether
 or not we account for cluster, but our p-values are different (because
 we are pretending that we have more evidence in the absence of
 clustering).</p>
