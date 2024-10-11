@@ -83,7 +83,8 @@
 <span>  trackB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_nullB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  remove_zero_comparison_pvals <span class="op">=</span> <span class="fl">0.01</span></span>
+<span>  remove_zero_comparison_pvals <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  unobserved_taxon_error <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -295,6 +296,10 @@ small p-values and are not thought to have scientifically interesting signals. W
 If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
 If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA.
 Default is <code>0.01</code>.</p></dd>
+
+
+<dt id="arg-unobserved-taxon-error">unobserved_taxon_error<a class="anchor" aria-label="anchor" href="#arg-unobserved-taxon-error"></a></dt>
+<dd><p>logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.</p></dd>
 
 </dl></div>
     <div class="section level2">
