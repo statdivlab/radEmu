@@ -89,6 +89,7 @@
 #' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
+#' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
 #' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
@@ -156,7 +157,8 @@ emuFit <- function(Y,
                    trackB = FALSE,
                    return_nullB = FALSE,
                    return_both_score_pvals = FALSE,
-                   remove_zero_comparison_pvals = 0.01) {
+                   remove_zero_comparison_pvals = 0.01,
+                   unobserved_taxon_error = TRUE) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
@@ -228,9 +230,11 @@ covariates in formula must be provided.")
 have no observations. These samples must be excluded before fitting model.")
   }
   
-  if (min(colSums(Y)) == 0) {
-    stop("Some columns of Y consist entirely of zeroes, meaning that some categories have zero counts for all samples. These
+  if (unobserved_taxon_error) {
+    if (min(colSums(Y)) == 0) {
+      stop("Some columns of Y consist entirely of zeroes, meaning that some categories have zero counts for all samples. These
          categories must be excluded before fitting the model.")
+    }
   }
   
   #check that cluster is correctly type if provided
