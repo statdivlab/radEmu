@@ -9,7 +9,7 @@
 #' @param distn Distribution to simulate from, either "Poisson" or "ZINB"
 #' @param zinb_size Size parameter for negative binomial draw for ZINB data
 #' @param zinb_zero_prop Proportion of zeros for ZINB data
-#' @param mean_count_before_ZI Parameter for construction of z_i in mean model. Setting this to \code{50} works well in practice. 
+#' @param mean_z Parameter controlling the mean of the sample-specific effects.
 #' @param X Optional design matrix, this must have two columns and n rows.
 #' @param B Optional B matrix, if p is not equal to 2 
 #' @param cluster Optional cluster vector, this must have n elements. 
@@ -18,7 +18,6 @@
 #'
 #' @importFrom stats rnorm rbinom rpois rnbinom
 #'
-#' @export
 simulate_data <- function(n,
                           J,
                           b0 = NULL,
@@ -26,7 +25,7 @@ simulate_data <- function(n,
                           distn,
                           zinb_size = NULL,
                           zinb_zero_prop = NULL,
-                          mean_count_before_ZI,
+                          mean_z,
                           X = NULL,
                           B = NULL,
                           cluster = NULL) {
@@ -44,15 +43,15 @@ simulate_data <- function(n,
       stop("Please input either parameter vectors b0 and b1, or parameter matrix B.")
     }
   }
+  
   log_means <- do.call(cbind,
                        lapply(1:J,
-                              function(j) X%*%B[,j,drop = FALSE]))
-
-  row_means <- rowSums(exp(log_means))/J
-
-  z <- sapply(row_means,function(x) log(mean_count_before_ZI) - log(x) + stats::rnorm(1))
+                              function(j) X %*% B[,j,drop = FALSE]))
+  
+  z <- stats::rnorm(n = n, mean = mean_z, sd = 1)
+  
   Y <- matrix(0, ncol = J, nrow = n)
-
+  
   for(i in 1:n){
     log_means[i,] <- log_means[i,] + z[i]
   }
