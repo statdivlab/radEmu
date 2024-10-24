@@ -67,6 +67,106 @@ test_that("With or without 'working_constraint' we get same results", {
 })
 
 
+
+test_that("PL fit with categorical predictor matches analytical form of MPLE in this case,
+          and does NOT match MLE", {
+            set.seed(90333)
+            X <- cbind(1,rep(c(0,1),each = 20))
+            z <- rnorm(40) 
+            J <- 10
+            p <- 2
+            n <- 40
+            b0 <- rnorm(J)
+            b1 <- seq(1,10,length.out = J)/5
+            b <- rbind(b0,b1)
+            Y <- matrix(NA,ncol = J, nrow = 40)
+            
+            for(i in 1:40){
+              for(j in 1:J){
+                temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
+                Y[i,j] <- rpois(1, lambda = temp_mean)
+              }
+            }
+            pl_fit <- emuFit_micro_penalized(X,
+                                             Y,
+                                             B = matrix(rnorm(20),nrow = 2),
+                                             constraint_fn = function(x) mean(x),
+                                             maxit = 200,
+                                             tolerance = 1e-8,
+                                             verbose= FALSE)
+            
+            ml_fit <- emuFit_micro(X,
+                                   Y,
+                                   B = matrix(rnorm(20),nrow = 2),
+                                   constraint_fn = function(x) mean(x),
+                                   maxit = 200,
+                                   tolerance = 1e-8,
+                                   verbose= FALSE)
+            
+            cs_grp1 <- colSums(Y[1:20,])
+            cs_grp2 <- colSums(Y[21:40,])
+            
+            bhat1 <- log(cs_grp1 + 0.5) - log(cs_grp1[1] + 0.5)
+            bhat2 <- log(cs_grp2 + 0.5) - log(cs_grp2[1] +0.5)
+            bhat2 <- bhat2 - bhat1
+            bhat1 <- bhat1 - mean(bhat1)
+            bhat2 <- bhat2 - mean(bhat2)
+            analytical_B <- rbind(bhat1,bhat2)
+            
+            expect_true(max(abs(pl_fit$B - analytical_B))< 1e-7)
+            expect_true(max(abs(ml_fit - analytical_B))>0.01)
+          })
+
+
+test_that("PL fit with categorical predictor matches analytical form of MPLE in this case,
+          and does NOT match MLE when group sizes are unequal", {
+            set.seed(90333)
+            X <- cbind(1,rep(c(0,0,0,1),each = 10))
+            z <- rnorm(40) 
+            J <- 10
+            p <- 2
+            n <- 40
+            b0 <- rnorm(J)
+            b1 <- seq(1,10,length.out = J)/5
+            b <- rbind(b0,b1)
+            Y <- matrix(NA,ncol = J, nrow = 40)
+            
+            for(i in 1:40){
+              for(j in 1:J){
+                temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
+                Y[i,j] <- rpois(1, lambda = temp_mean)
+              }
+            }
+            pl_fit <- emuFit_micro_penalized(X,
+                                             Y,
+                                             B = matrix(rnorm(20),nrow = 2),
+                                             constraint_fn = function(x) mean(x),
+                                             maxit = 200,
+                                             tolerance = 1e-8,
+                                             verbose= FALSE)
+            
+            ml_fit <- emuFit_micro(X,
+                                   Y,
+                                   B = matrix(rnorm(20),nrow = 2),
+                                   constraint_fn = function(x) mean(x),
+                                   maxit = 200,
+                                   tolerance = 1e-8,
+                                   verbose= FALSE)
+            
+            cs_grp1 <- colSums(Y[1:30,])
+            cs_grp2 <- colSums(Y[31:40,])
+            
+            bhat1 <- log(cs_grp1 + 0.5) - log(cs_grp1[1] + 0.5)
+            bhat2 <- log(cs_grp2 + 0.5) - log(cs_grp2[1] +0.5)
+            bhat2 <- bhat2 - bhat1
+            bhat1 <- bhat1 - mean(bhat1)
+            bhat2 <- bhat2 - mean(bhat2)
+            analytical_B <- rbind(bhat1,bhat2)
+            
+            expect_true(max(abs(pl_fit$B - analytical_B))< 1e-7)
+            expect_true(max(abs(ml_fit - analytical_B))>0.01)
+          })
+
 test_that("We get same results with and without warm start", {
   set.seed(4323)
   X <- cbind(1,rep(c(0,1),each = 20))
