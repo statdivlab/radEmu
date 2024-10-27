@@ -67,6 +67,14 @@ emuFit_micro <-
           Y_start[i,] <- Y_start[i,] - mean(Y_start[i,])
         }
         B <- matrix(nrow = p,ncol = J)
+        
+        ##Checking if design matrix is rank-deficient and soln_mat can be found
+        if (qr(t(X)%*%X)$rank < ncol(X)){
+          stop("Design matrix X inputted for the model is rank-deficient, preventing proper model fitting.
+  This might be due to multicollinearity, overparameterization, or redundant factor levels included in covariates.
+  Consider removing highly correlated covariates or adjusting factor levels to ensure a full-rank design. \n")
+        }
+        
         soln_mat <- qr.solve(t(X)%*%X,t(X))
         for(j in 1:J){
           B[,j] <- as.numeric(as.matrix(soln_mat%*%Y_start[,j,drop = FALSE]))
