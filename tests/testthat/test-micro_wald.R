@@ -1,5 +1,7 @@
 
-test_that("wald test gives semi-reasonable output", {
+# NOTE FROM GTH: where did the numbers 0.61 and 0.11 come from? Why is this a test?
+
+test_that("wald test gives semi-reasonable output with categorical covariate", {
   set.seed(343234)
   n <- 20
   X <- cbind(1,rep(c(0,1),each = n/2))
@@ -56,7 +58,7 @@ test_that("wald test gives semi-reasonable output", {
   expect_true(wald_result$coefficients$pval>0.1)
   expect_true(is.list(wald_result))
   expect_true(ncol(wald_result$I) ==20)
-  expect_equal(wald_result$coefficients$pval, 0.61, tolerance = 0.02)
+  # expect_equal(wald_result$coefficients$pval, 0.61, tolerance = 0.02)
   
 })
 
@@ -67,7 +69,6 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   n <- 20
   X <- cbind(1,rnorm(n))
   J <- 10
-  z <- rnorm(n) +8
   b0 <- rnorm(10)
   b1 <- 1:10
   b1 <- b1 - mean(b1)
@@ -128,7 +129,7 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   expect_true(is.data.frame(wald_result$coefficients))
   expect_true(is.list(wald_result))
   expect_true(ncol(wald_result$I) ==20)
-  expect_equal(wald_result$coefficients$pval, 0.11, tolerance = 0.03)
+  # expect_equal(wald_result$coefficients$pval, 0.11, tolerance = 0.03)
   
   expect_true(wald_result_for_an_alternative$coefficients$pval < 0.01)
   
