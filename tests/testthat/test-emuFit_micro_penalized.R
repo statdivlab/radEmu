@@ -89,7 +89,7 @@ less efficient implementation (and that both substantially differ from MLE", {
                               b1 = seq(1,5,length.out = J),
                               distn = "ZINB",
                               zinb_size = 2,
-                              zinb_zero_prop = 0.4,
+                              zinb_zero_prop = 0.7,
                               mean_z = 10)
   
   ml_fit <-  emuFit_micro(X = as.matrix(X),
@@ -114,7 +114,7 @@ less efficient implementation (and that both substantially differ from MLE", {
                                          Y,
                                          B = NULL,
                                          constraint_fn = function(x) mean(x),
-                                         maxit = 1000,
+                                         maxit = 10000,
                                          tolerance = 1e-3,
                                          verbose= TRUE,
                                          use_legacy_augmentation = TRUE)))
