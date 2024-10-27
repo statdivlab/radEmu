@@ -4,11 +4,12 @@ test_that("ML fit to simple example give reasonable output", {
   X <- cbind(1,rep(c(0,1),each = 20))
   J <- 10
   n <- 40
+  b1 <- 1:J - mean(1:J)
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,
                               b0 = rnorm(J),
-                              b1 = 1:J - mean(1:J),
+                              b1 = b1,
                               distn = "Poisson",
                               mean_z = 10)
   

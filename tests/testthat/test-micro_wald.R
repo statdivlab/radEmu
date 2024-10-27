@@ -9,6 +9,7 @@ test_that("wald test gives semi-reasonable output", {
   b1 <- b1 - mean(b1)
   b1[5] <- pseudohuber_center(b1[-5],0.1)
   b0 <- b0 - mean(b0)
+  b <- rbind(b0, b1)
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,
@@ -72,6 +73,7 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   b1 <- b1 - mean(b1)
   b1[5] <- pseudohuber_center(b1[-5],0.1)
   b0 <- b0 - mean(b0)
+  b <- rbind(b0, b1)
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,

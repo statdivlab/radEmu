@@ -10,6 +10,7 @@ we do *not* get same results if we use incorrect info", {
   b1 <- b1 - mean(b1)
   b1[5] <- pseudohuber_center(b1[-5],0.1)
   b0 <- b0 - mean(b0)
+  b <- rbind(b0, b1)
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,
@@ -29,15 +30,6 @@ we do *not* get same results if we use incorrect info", {
   constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
 
   ##### Arguments to fix:
-
-
-    for(i in 1:40){
-      for(j in 1:10){
-        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-        # Y[i,j] <- rpois(1, lambda = temp_mean)
-        Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
-      }
-    }
 
     full_fit <- emuFit(X = X,
                        Y = Y,

@@ -49,12 +49,12 @@ test_that("clusters work as I want", {
 
 
 set.seed(11)
-X <- cbind(1,rnorm(n))
+X <- cbind(1,rnorm(12))
 Y <- radEmu:::simulate_data(n = 12,
                             J = 6,
                             X = X,
                             b0 = rnorm(J),
-                            b1 = seq(1,5,length.out = J) - mean(seq(1,5,length.out = J)),
+                            b1 = seq(1,5,length.out = 6) - mean(seq(1,5,length.out = 6)),
                             distn = "ZINB",
                             zinb_size = 2,
                             zinb_zero_prop = 0.8,

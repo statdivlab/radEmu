@@ -50,20 +50,22 @@ test_that("PL fit to simple example returns reasonable values", {
   X <- cbind(1,rep(c(0,1),each = 20))
   J <- 10
   n <- 40
+  b1 <- seq(1,5,length.out = J) -
+    mean(seq(1,5,length.out = J))
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,
                               b0 = rnorm(J),
-                              b1 = seq(1,5,length.out = J),
+                              b1 = b1,
                               distn = "Poisson",
-                              mean_z = 10)
+                              mean_z = 50)
   
   pl_fit <- emuFit_micro_penalized(X,
                                    Y,
                                    B = matrix(rnorm(20),nrow = 2),
                                    constraint_fn = function(x) mean(x),
                                    maxit = 200,
-                                   tolerance = 1e-5,
+                                   tolerance = 1e-10,
                                    verbose= FALSE)
   
   # plot(b1-mean(b1),ml_fit[2,])

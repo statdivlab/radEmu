@@ -2,12 +2,15 @@ set.seed(11)
 J <- 6
 n <- 12
 X <- cbind(1,rnorm(n))
+b0 <- rnorm(J)
+b1 <- seq(1,5,length.out = J) -
+  mean(seq(1,5,length.out = J))
+b <- rbind(b0, b1)
 Y <- radEmu:::simulate_data(n = n,
                             J = J,
                             X = X,
-                            b0 = rnorm(J),
-                            b1 = seq(1,5,length.out = J) -
-                              mean(seq(1,5,length.out = J)),
+                            b0 = b0,
+                            b1 = b1,
                             distn = "ZINB",
                             zinb_size = 2,
                             zinb_zero_prop = 0.2,
