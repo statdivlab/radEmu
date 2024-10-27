@@ -1,21 +1,16 @@
 set.seed(11)
 J <- 6
-p <- 2
 n <- 12
 X <- cbind(1,rnorm(n))
-z <- rnorm(n) +5
-b0 <- rnorm(J)
-b1 <- seq(1,5,length.out = J)
-b1 <- b1 - mean(b1)
-b <- rbind(b0,b1)
-Y <- matrix(NA,ncol = J, nrow = n)
-
-for(i in 1:n){
-  for(j in 1:J){
-    temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-    Y[i,j] <- rnbinom(1, mu= temp_mean,size = 2)*rbinom(1,1,0.8)
-  }
-}
+Y <- radEmu:::simulate_data(n = n,
+                            J = J,
+                            X = X,
+                            b0 = rnorm(10),
+                            b1 = 1:10 - mean(1:10),
+                            distn = "ZINB",
+                            zinb_size = 3,
+                            zinb_zero_prop = 0.6,
+                            mean_z = 8)
 
 fitted_model <- emuFit(Y = Y,
                        X = X,

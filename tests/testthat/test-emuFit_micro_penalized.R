@@ -48,21 +48,16 @@ test_that("Penalized estimation reduces to Haldane correction in saturated case 
 test_that("PL fit to simple example returns reasonable values", {
   set.seed(4323)
   X <- cbind(1,rep(c(0,1),each = 20))
-  z <- rnorm(40) +10
   J <- 10
-  p <- 2
   n <- 40
-  b0 <- rnorm(J)
-  b1 <- seq(1,10,length.out = J)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = 40)
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J),
+                              distn = "Poisson",
+                              mean_z = 10)
   
-  for(i in 1:40){
-    for(j in 1:J){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-      Y[i,j] <- rpois(1, lambda = temp_mean)
-    }
-  }
   pl_fit <- emuFit_micro_penalized(X,
                                    Y,
                                    B = matrix(rnorm(20),nrow = 2),
@@ -82,23 +77,18 @@ test_that("PL fit to simple example returns numerically identical results
 regardless of whether we use computationally efficient augmentation or older
 less efficient implementation (and that both substantially differ from MLE", {
   set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 5))
-  z <- rnorm(10) +5
+  X <- cbind(1,rep(c(0,1),each = 20))
   J <- 10
-  p <- 2
   n <- 10
-  b0 <- rnorm(J)
-  b1 <- seq(1,5,length.out = J)
-  b1 <- b1 - mean(b1)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
-  
-  for(i in 1:n){
-    for(j in 1:J){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-      Y[i,j] <- rnbinom(1, mu= temp_mean,size = 2)*rbinom(1,1,0.4)
-    }
-  }
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J),
+                              distn = "ZINB",
+                              zinb_size = 2,
+                              zinb_zero_prop = 0.4,
+                              mean_z = 10)
   
   ml_fit <-  emuFit_micro(X,
                           Y,
@@ -138,22 +128,18 @@ regardless of whether we use computationally efficient augmentation or older
 less efficient implementation (and that both substantially differ from MLE", {
   set.seed(4323)
   X <- cbind(1,rnorm(10))
-  z <- rnorm(10) +5
   J <- 10
-  p <- 2
   n <- 10
-  b0 <- rnorm(J)
-  b1 <- seq(1,5,length.out = J)
-  b1 <- b1 - mean(b1)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = J, nrow = n)
-  
-  for(i in 1:n){
-    for(j in 1:J){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-      Y[i,j] <- rnbinom(1, mu= temp_mean,size = 2)*rbinom(1,1,0.2)
-    }
-  }
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J) -
+                                mean(seq(1,5,length.out = J)),
+                              distn = "ZINB",
+                              zinb_size = 2,
+                              zinb_zero_prop = 0.2,
+                              mean_z = 10)
   
   ml_fit <-  emuFit_micro(X,
                           Y,

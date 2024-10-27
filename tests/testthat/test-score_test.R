@@ -2,18 +2,23 @@ test_that("We get same score test results regardless of whether we provide inver
 we do *not* get same results if we use incorrect info", {
   
   set.seed(343234)
-  X <- cbind(1,rep(c(0,1),each = 20))
   J <- 10
   n <- 40
-  p <- 2
-  z <- rnorm(40) +8
-  b0 <- rnorm(10)
-  b1 <- 1:10
+  X <- cbind(1,rep(c(0,1),each = n/2))
+  b0 <- rnorm(J)
+  b1 <- 1:J
   b1 <- b1 - mean(b1)
   b1[5] <- pseudohuber_center(b1[-5],0.1)
   b0 <- b0 - mean(b0)
-  b <- rbind(b0,b1)
-  Y <- matrix(NA,ncol = 10, nrow = 40)
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = b0,
+                              b1 = b1,
+                              distn = "ZINB",
+                              zinb_size = 3,
+                              zinb_zero_prop = 0.6,
+                              mean_z = 4)
 
   k_constr <- 2
   j_constr <- 5
