@@ -217,11 +217,48 @@ covariates in formula must be provided.")
     }
   }
   
-  # check that if X and Y have rownames, they match 
-  if (!is.null(rownames(Y)) & !is.null(rownames(X))) {
-    if (all.equal(rownames(Y), rownames(X)) != TRUE) {
-      message("There is a different row ordering between covariate data and response data. Covariate data will be reordered to match response data.")
-      X <- X[rownames(Y), ]
+  # check that if X and Y match in the row names
+  if (is.null(rownames(X)) || is.null(rownames(Y))){
+    if (nrow(X) == nrow(Y)){
+      if(match_row_names){
+        if(is.null(rownames(X))){
+          warning("Row names are missing from the covariate matrix X. Assuming a one-to-one correspondence with the rows of the observations matrix Y. Please double-check your data to confirm this correspondence.")
+        } else {
+          warning("Row names are missing from the observations matrix Y. Assuming a one-to-one correspondence with the rows of the covariate matrix X. Please double-check your data to confirm this correspondence.")
+        }
+      }
+    } else {
+      if(is.null(rownames(X))){
+        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the observations matrix Y. Please check your data to resolve this inconsistency.")
+      } else {
+        stop("Row names are missing from the observations matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please check your data to resolve this inconsistency.")
+      }
+    }
+  } else{
+    if(match_row_names){
+      names_X <- rownames(X)
+      names_Y <- rownames(Y)
+      
+      #Checking if any row names are duplicated
+      if (any(duplicated(names_X))) stop("Covariate matrix X has duplicated row names. Please ensure all row names are unique.")
+      if (any(duplicated(names_Y))) stop("Observations matrix Y has duplicated row names. Please ensure all row names are unique.")
+      
+      # Find common row names
+      common_names <- intersect(names_X, names_Y)
+      
+      if (length(common_names) < length(names_X) || length(common_names) < length(names_Y)) {
+        warning(sprintf("Row names differ between the covariate matrix (X) and the observations matrix (Y). Subsetting to common rows only, resulting in %d samples.", length(common_names))) 
+        
+        X <- X[common_names, , drop = FALSE]
+        Y <- Y[common_names, , drop = FALSE]
+      } else if(all.equal(rownames(Y), rownames(X)) != TRUE){
+        message("There is a different row ordering between the covariate matrix (X) and the observations matrix (Y). Covariate data will be reordered to match response data.")
+        X <- X[rownames(Y), ]
+      }
+    } else {
+      if(nrow(X) != nrow(Y)){
+        stop("The number of rows does not match between the covariate matrix (X) and the observations matrix (Y), and subsetting/matching by row name has been disabled. Please check your data to resolve this inconsistency.")
+      }
     }
   }
   
