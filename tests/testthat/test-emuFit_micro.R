@@ -61,7 +61,7 @@ test_that("With or without 'working_constraint' we get same results", {
 
 
 test_that("PL fit with categorical predictor matches analytical form of MPLE in this case,
-          and does NOT match MLE", {
+          and does NOT match MLE when group sizes are equal", {
             set.seed(90333)
             X <- cbind(1,rep(c(0,1),each = 20))
             z <- rnorm(40) 
