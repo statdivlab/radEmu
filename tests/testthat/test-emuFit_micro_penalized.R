@@ -79,9 +79,9 @@ test_that("PL fit to simple example returns numerically identical results
 regardless of whether we use computationally efficient augmentation or older
 less efficient implementation (and that both substantially differ from MLE", {
   set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 20))
   J <- 10
   n <- 10
+  X <- cbind(1,rep(c(0,1),each = n/2))
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,
@@ -92,13 +92,14 @@ less efficient implementation (and that both substantially differ from MLE", {
                               zinb_zero_prop = 0.4,
                               mean_z = 10)
   
-  ml_fit <-  emuFit_micro(X,
-                          Y,
+  ml_fit <-  emuFit_micro(X = as.matrix(X),
+                          Y = as.matrix(Y),
                           B = NULL,
                           constraint_fn = function(x) mean(x),
                           maxit = 1000,
                           tolerance = 1e-3,
                           verbose= FALSE)
+  
   pl_fit_new <- emuFit_micro_penalized(X,
                                        Y,
                                        B = NULL,
@@ -136,11 +137,10 @@ less efficient implementation (and that both substantially differ from MLE", {
                               J = J,
                               X = X,
                               b0 = rnorm(J),
-                              b1 = seq(1,5,length.out = J) -
-                                mean(seq(1,5,length.out = J)),
+                              b1 = seq(1,5,length.out = J),
                               distn = "ZINB",
                               zinb_size = 2,
-                              zinb_zero_prop = 0.2,
+                              zinb_zero_prop = 0.7,
                               mean_z = 10)
   
   ml_fit <-  emuFit_micro(X,
@@ -150,6 +150,7 @@ less efficient implementation (and that both substantially differ from MLE", {
                           maxit = 10000,
                           tolerance = 0.01,
                           verbose= FALSE)
+  
   pl_fit_new <- emuFit_micro_penalized(X,
                                        Y,
                                        B = NULL,
