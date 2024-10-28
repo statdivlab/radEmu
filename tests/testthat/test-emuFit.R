@@ -17,6 +17,10 @@ for(i in 1:n){
   }
 }
 
+#To ensure the messages about lack of row names do not show in the tests
+rownames(X) <- paste0("Sample_",1:12)
+rownames(Y) <- paste0("Sample_",1:12)
+
 # Y <- structure(c(534337, 0, 0, 0, 376, 41, 19, 103, 0, 0, 85, 0, 42794, 
 #                  0, 0, 0, 95, 0, 0, 15, 0, 0, 0, 26, 0, 149, 0, 0, 0, 0, 0, 211, 
 #                  0, 0, 0, 0, 0, 103, 0, 0, 0, 1372, 83, 337, 0, 0, 0, 0, 0, 53, 
