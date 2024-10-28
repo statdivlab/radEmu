@@ -24,6 +24,7 @@ emuFit(
   use_fullmodel_info = FALSE,
   use_fullmodel_cov = FALSE,
   use_both_cov = FALSE,
+  match_row_names = TRUE,
   constraint_fn = pseudohuber_center,
   constraint_grad_fn = dpseudohuber_center_dx,
   constraint_param = 0.1,
@@ -102,6 +103,9 @@ recomputed for each null model fit for score testing.}
 \item{use_both_cov}{logical: should score tests be run using information and
 empirical score covariance evaluated both under the null and full models?
 Used in simulations}
+
+\item{match_row_names}{logical: Make sure rows on covariate data and response data correspond to
+the same sample by comparing row names and subsetting/reordering if necessary.}
 
 \item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
 for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
