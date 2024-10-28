@@ -30,29 +30,46 @@ test_that("emuFit throws error on duplicate row names", {
 test_that("emuFit subsets to common row names with warning", {
   X3 <- X.based
   rownames(X3) <- rownames(Y)
-  X3 <- X3[c(1:4,7:14,16:18),]
-  Y3 <- Y[c(1:2,5:18),]
+  X3 <- X3[c(1:4,7:14,16:18), , drop = FALSE]
+  Y3 <- Y[c(1:2,5:18), , drop = FALSE]
   
   expect_warning(emuFit(Y = Y3, X = X3), 
                  regexp = "Row names differ between the covariate matrix \\(X\\) and the response matrix \\(Y\\)\\. Subsetting to common rows only, resulting in [0-9]+ samples\\.")
 })
 
-#------
-
 test_that("emuFit reorders rows of X when", {
-  X <- matrix(1:9, nrow = 3, dimnames = list(c("B", "C", "A"), NULL))
-  Y <- matrix(9:1, nrow = 3, dimnames = list(c("A", "B", "C"), NULL))
-  
-  expect_warning(result <- MyFunc(X, Y, just_do_it = FALSE), 
-                 "Row names do not match in order")
-  expect_equal(rownames(result$X), rownames(result$Y))  # Ensure rows are reordered
+  X4 <- X.based
+  rownames(X4) <- rownames(Y)
+  X4.p <- X4[c(1,(nrow(Y):2)), , drop = FALSE]
+
+  expect_message(model.p <- emuFit(Y = Y, X = X4.p), 
+                 "There is a different row ordering between the covariate matrix \\(X\\) and the response matrix \\(Y\\)\\. Covariate data will be reordered to match response data\\.")
+  model.o <- emuFit(Y = Y, X = X4)
+  expect_equal(model.o$coef$estimate, model.p$coef$estimate)
 })
 
-test_that("MyFunc does not reorder rows of X when just_do_it is TRUE", {
-  X <- matrix(1:9, nrow = 3, dimnames = list(c("B", "C", "A"), NULL))
-  Y <- matrix(9:1, nrow = 3, dimnames = list(c("A", "B", "C"), NULL))
+test_that("emuFit does not reorder rows of X when match_row_names is FALSE", {
+  X5 <- X.based
+  X5.p <- X.based
+  rownames(X5) <- rownames(Y)
+  rownames(X5.p) <- rownames(Y)[c(1,nrow(Y):2)]
   
-  result <- MyFunc(X, Y, just_do_it = TRUE)
-  expect_equal(rownames(result$X), c("B", "C", "A"))   # Original order maintained
-  expect_equal(rownames(result$Y), c("A", "B", "C"))
+  model.o <- emuFit(Y = Y, X = X5)
+  model.p <- emuFit(Y = Y, X = X5.p, match_row_names = FALSE)
+  
+  expect_silent(model.o <- emuFit(Y = Y, X = X5))
+  expect_silent(model.p <- emuFit(Y = Y, X = X5.p, match_row_names = FALSE))
+  
+  expect_equal(model.o$coef$estimate, model.p$coef$estimate)
+})
+
+test_that("emuFit stops when match_row_names is FALSE, but nrow does not coincide",{
+  
+  X6 <- X.based
+  rownames(X6) <- rownames(Y)
+  X6 <- X6[c(1,(nrow(Y):2)),]
+  X6 <- X6[(1:16), , drop = FALSE]
+  
+  expect_error(emuFit(Y = Y, X = X6, match_row_names = FALSE), 
+               "The number of rows does not match between the covariate matrix \\(X\\) and the response matrix \\(Y\\), and subsetting/matching by row name has been disabled\\. Please check your data to resolve this inconsistency\\.")
 })
