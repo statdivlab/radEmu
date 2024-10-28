@@ -36,6 +36,8 @@
 #' @param use_both_cov logical: should score tests be run using information and
 #' empirical score covariance evaluated both under the null and full models?
 #' Used in simulations
+#' @param match_row_names logical: Make sure rows on covariate data and response data correspond to 
+#' the same sample by comparing row names and subsetting/reordering if necessary. 
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
 #' pseudohuber loss). If a number is provided a single category constraint will be used
@@ -138,6 +140,7 @@ emuFit <- function(Y,
                    use_fullmodel_info = FALSE,
                    use_fullmodel_cov = FALSE,
                    use_both_cov = FALSE,
+                   match_row_names = TRUE,
                    constraint_fn = pseudohuber_center,
                    constraint_grad_fn = dpseudohuber_center_dx,
                    constraint_param = 0.1,
@@ -222,16 +225,16 @@ covariates in formula must be provided.")
     if (nrow(X) == nrow(Y)){
       if(match_row_names){
         if(is.null(rownames(X))){
-          warning("Row names are missing from the covariate matrix X. Assuming a one-to-one correspondence with the rows of the observations matrix Y. Please double-check your data to confirm this correspondence.")
+          message("Row names are missing from the covariate matrix X. Assuming a one-to-one correspondence with the rows of the response matrix Y. Please double-check your data to confirm this correspondence.")
         } else {
-          warning("Row names are missing from the observations matrix Y. Assuming a one-to-one correspondence with the rows of the covariate matrix X. Please double-check your data to confirm this correspondence.")
+          message("Row names are missing from the response matrix Y. Assuming a one-to-one correspondence with the rows of the covariate matrix X. Please double-check your data to confirm this correspondence.")
         }
       }
     } else {
       if(is.null(rownames(X))){
-        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the observations matrix Y. Please check your data to resolve this inconsistency.")
+        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the response matrix Y. Please check your data to resolve this inconsistency.")
       } else {
-        stop("Row names are missing from the observations matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please check your data to resolve this inconsistency.")
+        stop("Row names are missing from the response matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please check your data to resolve this inconsistency.")
       }
     }
   } else{
@@ -241,23 +244,23 @@ covariates in formula must be provided.")
       
       #Checking if any row names are duplicated
       if (any(duplicated(names_X))) stop("Covariate matrix X has duplicated row names. Please ensure all row names are unique.")
-      if (any(duplicated(names_Y))) stop("Observations matrix Y has duplicated row names. Please ensure all row names are unique.")
+      if (any(duplicated(names_Y))) stop("Response matrix Y has duplicated row names. Please ensure all row names are unique.")
       
       # Find common row names
       common_names <- intersect(names_X, names_Y)
       
       if (length(common_names) < length(names_X) || length(common_names) < length(names_Y)) {
-        warning(sprintf("Row names differ between the covariate matrix (X) and the observations matrix (Y). Subsetting to common rows only, resulting in %d samples.", length(common_names))) 
+        warning(sprintf("Row names differ between the covariate matrix (X) and the response matrix (Y). Subsetting to common rows only, resulting in %d samples.", length(common_names))) 
         
         X <- X[common_names, , drop = FALSE]
         Y <- Y[common_names, , drop = FALSE]
       } else if(all.equal(rownames(Y), rownames(X)) != TRUE){
-        message("There is a different row ordering between the covariate matrix (X) and the observations matrix (Y). Covariate data will be reordered to match response data.")
-        X <- X[rownames(Y), ]
+        message("There is a different row ordering between the covariate matrix (X) and the response matrix (Y). Covariate data will be reordered to match response data.")
+        X <- X[rownames(Y), , drop = FALSE]
       }
     } else {
       if(nrow(X) != nrow(Y)){
-        stop("The number of rows does not match between the covariate matrix (X) and the observations matrix (Y), and subsetting/matching by row name has been disabled. Please check your data to resolve this inconsistency.")
+        stop("The number of rows does not match between the covariate matrix (X) and the response matrix (Y), and subsetting/matching by row name has been disabled. Please check your data to resolve this inconsistency.")
       }
     }
   }
