@@ -15,7 +15,7 @@ test_that("emuFit handles missing row names", {
   X1 <- matrix(X.based, nrow = 18)            # No row names
   
   expect_message(emuFit(Y = Y, X = X1), 
-                 "Row names are missing from the covariate matrix X. Assuming a one-to-one correspondence with the rows of the response matrix Y. Please double-check your data to confirm this correspondence.")
+                 "Row names are missing from the covariate matrix X. We will assume the rows are in the same order as in the response matrix Y. You are responsible for ensuring the order of your observations is the same in both matrices.")
 })
 
 test_that("emuFit throws error on duplicate row names", {
@@ -24,7 +24,7 @@ test_that("emuFit throws error on duplicate row names", {
   rownames(X2)[5] <- "sample_4" #Repeating one of the sample labels
   
   expect_error(emuFit(Y = Y, X = X2), 
-               "Covariate matrix X has duplicated row names. Please ensure all row names are unique.")
+               "Covariate matrix X has duplicated row names. Please ensure all row names are unique before refitting the model.")
 })
 
 test_that("emuFit subsets to common row names with warning", {
@@ -34,7 +34,7 @@ test_that("emuFit subsets to common row names with warning", {
   Y3 <- Y[c(1:2,5:18), , drop = FALSE]
   
   expect_warning(emuFit(Y = Y3, X = X3), 
-                 regexp = "Row names differ between the covariate matrix \\(X\\) and the response matrix \\(Y\\)\\. Subsetting to common rows only, resulting in [0-9]+ samples\\.")
+                 regexp = "According to the rownames, there are observations that are missing either in the covariate matrix \\(X\\) and/or the response matrix \\(Y\\)\\. We will subset to common rows only, resulting in [0-9]+ samples\\.")
 })
 
 test_that("emuFit reorders rows of X when", {
@@ -71,5 +71,5 @@ test_that("emuFit stops when match_row_names is FALSE, but nrow does not coincid
   X6 <- X6[(1:16), , drop = FALSE]
   
   expect_error(emuFit(Y = Y, X = X6, match_row_names = FALSE), 
-               "The number of rows does not match between the covariate matrix \\(X\\) and the response matrix \\(Y\\), and subsetting/matching by row name has been disabled\\. Please check your data to resolve this inconsistency\\.")
+               "The number of rows does not match between the covariate matrix \\(X\\) and the response matrix \\(Y\\), and subsetting/matching by row name has been disabled\\. Please resolve this issue before refitting the model\\.")
 })

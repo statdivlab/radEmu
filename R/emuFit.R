@@ -225,16 +225,16 @@ covariates in formula must be provided.")
     if (nrow(X) == nrow(Y)){
       if(match_row_names){
         if(is.null(rownames(X))){
-          message("Row names are missing from the covariate matrix X. Assuming a one-to-one correspondence with the rows of the response matrix Y. Please double-check your data to confirm this correspondence.")
+          message("Row names are missing from the covariate matrix X. We will assume the rows are in the same order as in the response matrix Y. You are responsible for ensuring the order of your observations is the same in both matrices.")
         } else {
-          message("Row names are missing from the response matrix Y. Assuming a one-to-one correspondence with the rows of the covariate matrix X. Please double-check your data to confirm this correspondence.")
+          message("Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.")
         }
       }
     } else {
       if(is.null(rownames(X))){
-        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the response matrix Y. Please check your data to resolve this inconsistency.")
+        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the response matrix Y. Please resolve this issue before refitting the model.")
       } else {
-        stop("Row names are missing from the response matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please check your data to resolve this inconsistency.")
+        stop("Row names are missing from the response matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please resolve this issue before refitting the model.")
       }
     }
   } else{
@@ -243,24 +243,25 @@ covariates in formula must be provided.")
       names_Y <- rownames(Y)
       
       #Checking if any row names are duplicated
-      if (any(duplicated(names_X))) stop("Covariate matrix X has duplicated row names. Please ensure all row names are unique.")
-      if (any(duplicated(names_Y))) stop("Response matrix Y has duplicated row names. Please ensure all row names are unique.")
+      if (any(duplicated(names_X))) stop("Covariate matrix X has duplicated row names. Please ensure all row names are unique before refitting the model.")
+      if (any(duplicated(names_Y))) stop("Response matrix Y has duplicated row names. Please ensure all row names are unique before refitting the model.")
       
       # Find common row names
       common_names <- intersect(names_X, names_Y)
       
       if (length(common_names) < length(names_X) || length(common_names) < length(names_Y)) {
-        warning(sprintf("Row names differ between the covariate matrix (X) and the response matrix (Y). Subsetting to common rows only, resulting in %d samples.", length(common_names))) 
+        warning(sprintf("According to the rownames, there are observations that are missing either in the covariate matrix (X) and/or the response matrix (Y). We will subset to common rows only, resulting in %d samples.", length(common_names))) 
         
         X <- X[common_names, , drop = FALSE]
         Y <- Y[common_names, , drop = FALSE]
+        
       } else if(all.equal(rownames(Y), rownames(X)) != TRUE){
         message("There is a different row ordering between the covariate matrix (X) and the response matrix (Y). Covariate data will be reordered to match response data.")
         X <- X[rownames(Y), , drop = FALSE]
       }
     } else {
       if(nrow(X) != nrow(Y)){
-        stop("The number of rows does not match between the covariate matrix (X) and the response matrix (Y), and subsetting/matching by row name has been disabled. Please check your data to resolve this inconsistency.")
+        stop("The number of rows does not match between the covariate matrix (X) and the response matrix (Y), and subsetting/matching by row name has been disabled. Please resolve this issue before refitting the model.")
       }
     }
   }
