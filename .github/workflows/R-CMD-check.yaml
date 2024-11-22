@@ -26,7 +26,6 @@ jobs:
       _R_CHECK_FORCE_SUGGESTS_: false
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
 
     steps:
       - uses: actions/checkout@v3
