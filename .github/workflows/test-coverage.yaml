@@ -13,6 +13,7 @@ jobs:
     runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
     steps:
       - uses: actions/checkout@v3
 
