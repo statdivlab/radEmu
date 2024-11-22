@@ -42,6 +42,7 @@ emuFit(
   max_step = 1,
   trackB = FALSE,
   return_nullB = FALSE,
+  return_score_components = FALSE,
   return_both_score_pvals = FALSE,
   remove_zero_comparison_pvals = 0.01,
   unobserved_taxon_error = TRUE
@@ -162,6 +163,8 @@ will be rescaled if a step in any parameter exceeds this value. Defaults to 0.5.
 iterations and be returned? Primarily used for debugging. Default is FALSE.}
 
 \item{return_nullB}{logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE.}
+
+\item{return_score_components}{logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.}
 
 \item{return_both_score_pvals}{logical: should score p-values be returned using both
 information matrix computed from full model fit and from null model fits? Default is

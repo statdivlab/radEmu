@@ -87,7 +87,7 @@ we do *not* get same results if we use incorrect info", {
                      J = J,
                      n = n,
                      p = p,
-                     I_inv = I_inv)
+                     I_inv = I_inv)$score_stat
 
     score_stat_with_other_mat <-
       get_score_stat(Y = Y_aug,
@@ -102,7 +102,7 @@ we do *not* get same results if we use incorrect info", {
                      J = J,
                      n = n,
                      p = p,
-                     I_inv = diag(rep(1,18)))
+                     I_inv = diag(rep(1,18)))$score_stat
 
     expect_equal(score_stat_with_I_inv,score_test_as_is$score_stat)
     expect_true(score_stat_with_other_mat !=score_test_as_is$score_stat)

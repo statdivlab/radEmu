@@ -186,7 +186,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
     #indexes in long format corresponding to the j_constr-th col of B
   #get score stat
   indexes_to_remove <- (j_ref - 1)*p + 1:p
-  score_stat <- try(
+  score_res <- try(
     get_score_stat(Y = Y,
                  X_cup = X_cup,
                  X = X,
@@ -202,6 +202,11 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                  I_inv = I_inv,
                  Dy = Dy,
                  cluster = cluster))
+  if (inherits(score_res, "try-error")) {
+    score_stat <- score_res
+  } else {
+    score_stat <- score_res$score_stat
+  }
  
   if(!return_both_score_pvals){ #typically we want only one score p-value
                                 #(using only one version of information matrix)
@@ -210,6 +215,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
       score_stat <- NA
     }
   return(list("score_stat" = score_stat,
+              "score_pieces" = score_res, 
               "pval" = pchisq(score_stat,1,lower.tail = FALSE),
               "log_pval" = pchisq(score_stat,1,lower.tail = FALSE, log.p = TRUE),
               "niter" = constrained_fit$niter,
@@ -226,7 +232,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
   } else{ 
     #for simulations -- if we want to return both the score p-value using
     #information from full model fit and from null model
-      score_stat_with_null_info <-
+      score_res_with_null_info <-
         get_score_stat(Y = Y,
                        X_cup = X_cup,
                        X = X,
@@ -241,7 +247,11 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                        p = p,
                        I_inv = NULL,
                        Dy = Dy)
-
+      if (inherits(score_res_with_null_info, "try-error")) {
+        score_stat_with_null_info <- score_res_with_null_info
+      } else {
+        score_stat_with_null_info <- score_res_with_null_info$score_stat
+      }
       score_stat_with_null_info <- score_stat_with_null_info
       if (inherits(score_stat_with_null_info, "try-error")) {
         warning("one of the score statistics for test of k = ", k_constr, " and j = ", j_constr, " cannot be computed, likely because the information matrix is computationally singular.")
@@ -249,9 +259,11 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
       }
 
       return(list("score_stat" = score_stat,
+                  "score_pieces" = score_res,
                   "pval" = pchisq(score_stat,1,lower.tail = FALSE),
                   "log_pval" = pchisq(score_stat,1,lower.tail = FALSE, log.p = TRUE),
                   "score_stat_null_info" = score_stat_with_null_info,
+                  "score_pieces_null_info" = score_res_with_null_info,
                   "pval_null_info" = pchisq(score_stat_with_null_info,1,lower.tail = FALSE),
                   "log_pval_null_info" = pchisq(score_stat_with_null_info,1,lower.tail = FALSE,log.p = TRUE),
                   "niter" = constrained_fit$niter,

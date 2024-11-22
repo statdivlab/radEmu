@@ -640,3 +640,30 @@ test_that("emuFit works with fitted objects passed in", {
   })
   
 })
+
+test_that("emuFit has 'score_components' object when `return_score_componments = T`", {
+  mod <- emuFit(Y = Y,
+                X = X,
+                verbose = FALSE,
+                B_null_tol = 1e-2,
+                tolerance = 0.01,
+                tau = 2,
+                return_wald_p = FALSE,
+                compute_cis = FALSE,
+                run_score_tests = TRUE, 
+                test_kj = data.frame(k = 2, j = 1),
+                return_score_components = T)
+  expect_true("score_components" %in% names(mod))
+  mod <- emuFit(Y = Y,
+                X = X,
+                verbose = FALSE,
+                B_null_tol = 1e-2,
+                tolerance = 0.01,
+                tau = 2,
+                return_wald_p = FALSE,
+                compute_cis = FALSE,
+                run_score_tests = TRUE, 
+                test_kj = data.frame(k = 2, j = 1),
+                return_score_components = F)
+  expect_false("score_components" %in% names(mod))
+})

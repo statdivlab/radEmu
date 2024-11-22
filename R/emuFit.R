@@ -78,6 +78,7 @@
 #' @param trackB logical: should values of B be recorded across optimization
 #' iterations and be returned? Primarily used for debugging. Default is FALSE.
 #' @param return_nullB logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE. 
+#' @param return_score_components logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.
 #' @param return_both_score_pvals logical: should score p-values be returned using both
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
@@ -156,6 +157,7 @@ emuFit <- function(Y,
                    max_step = 1,
                    trackB = FALSE,
                    return_nullB = FALSE,
+                   return_score_components = FALSE,
                    return_both_score_pvals = FALSE,
                    remove_zero_comparison_pvals = 0.01,
                    unobserved_taxon_error = TRUE) {
@@ -485,6 +487,10 @@ and the corresponding gradient function to constraint_grad_fn.")
                                          gap = NA,
                                          converged = NA)
     
+    if (return_score_components) {
+      score_components <- vector(mode = "list", length = nrow(test_kj))
+    }
+    
     if (return_both_score_pvals) {
       colnames(coefficients)[colnames(coefficients) == "pval"] <-
         "score_pval_full_info"
@@ -545,6 +551,10 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
       
+      if (return_score_components & !(is.null(test_result))) {
+        score_components[[test_ind]] <- test_result$score_pieces
+      }
+      
       if (is.null(test_result)) {
         if (return_nullB) {
           nullB_list[[test_ind]] <- NA
@@ -593,7 +603,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                            p = p, 
                                            I_inv=I_inv,
                                            Dy = just_wald_things$Dy,
-                                           cluster = cluster)
+                                           cluster = cluster)$score_stat
           
           
           which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
@@ -744,6 +754,9 @@ and the corresponding gradient function to constraint_grad_fn.")
       results$null_estimation_unconverged <- unconverged_test_kj
       warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
     }
+  }
+  if (run_score_tests & return_score_components) {
+    results$score_components <- score_components
   }
   
   return(structure(results, class = "emuFit"))

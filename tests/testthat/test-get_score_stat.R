@@ -96,7 +96,7 @@ test_that("Robust score statistic is invariant to reference taxon", {
                  n = n,
                  p = p,
                  I = NULL,
-                 Dy = NULL)
+                 Dy = NULL)$score_stat
     )
 
   expect_true(sd(score_stats)<1e-5)
@@ -193,7 +193,7 @@ under null when Poisson assumption is met", {
                  c1 = c1,
                  maxit = maxit,
                  inner_maxit = inner_maxit,
-                 verbose = FALSE)
+                 verbose = FALSE)$score_stat
 
     j_ref <- 5
 
@@ -212,7 +212,7 @@ under null when Poisson assumption is met", {
                                        check_influence = FALSE,
                                        I = NULL,
                                        Dy = NULL,
-                                       model_based = FALSE)
+                                       model_based = FALSE)$score_stat
 
     x <- seq(-10,5,0.01)
     # hist(log(score_stats[1:sim]),breaks = 20,freq = FALSE)
@@ -329,7 +329,7 @@ test_that("model-based score statistic is invariant to reference taxon", {
                                        n = n,
                                        p = p,
                                        I = NULL,
-                                       Dy = NULL)
+                                       Dy = NULL)$score_stat
     })
 
    expect_true(sd(score_stats)<1e-8)
