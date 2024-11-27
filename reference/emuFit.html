@@ -64,6 +64,7 @@
 <span>  use_fullmodel_info <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  use_fullmodel_cov <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  use_both_cov <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  match_row_names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  constraint_fn <span class="op">=</span> <span class="va">pseudohuber_center</span>,</span>
 <span>  constraint_grad_fn <span class="op">=</span> <span class="va">dpseudohuber_center_dx</span>,</span>
 <span>  constraint_param <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -184,6 +185,11 @@ recomputed for each null model fit for score testing.</p></dd>
 <dd><p>logical: should score tests be run using information and
 empirical score covariance evaluated both under the null and full models?
 Used in simulations</p></dd>
+
+
+<dt id="arg-match-row-names">match_row_names<a class="anchor" aria-label="anchor" href="#arg-match-row-names"></a></dt>
+<dd><p>logical: Make sure rows on covariate data and response data correspond to
+the same sample by comparing row names and subsetting/reordering if necessary.</p></dd>
 
 
 <dt id="arg-constraint-fn">constraint_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-fn"></a></dt>

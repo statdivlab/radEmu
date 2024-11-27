@@ -67,7 +67,7 @@
                         <h4 data-toc-skip class="author">Sarah Teichman
 and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/radEmu_clustered_data.Rmd" class="external-link"><code>vignettes/radEmu_clustered_data.Rmd</code></a></small>
       <div class="d-none name"><code>radEmu_clustered_data.Rmd</code></div>
@@ -191,7 +191,8 @@ We fit a model including cluster dependence as follows:</p>
 <span>                     data <span class="op">=</span> <span class="va">cov_dat</span>, </span>
 <span>                     Y <span class="op">=</span> <span class="va">Y</span>,</span>
 <span>                     cluster <span class="op">=</span> <span class="va">cluster_named</span>, </span>
-<span>                     test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                     test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.</span></span></code></pre></div>
 <p>You can check out the full object, but our estimate is 4.6 and a
 p-value for testing that this parameter equals zero is 0.084. Not too
 shabby, especially considering that about half of our observations are
@@ -204,7 +205,8 @@ we are saying that we have more independent observations.</p>
 <code class="sourceCode R"><span><span class="va">ef_no_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">cov</span>,</span>
 <span>                        data <span class="op">=</span> <span class="va">cov_dat</span>, </span>
 <span>                        Y <span class="op">=</span> <span class="va">Y</span>,</span>
-<span>                        test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                        test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.</span></span></code></pre></div>
 <p>When we ignore clustering, we get an estimate of the log fold
 difference in category 3 across values of our covariate of 4.6 and a
 p-value of 0.007. So we can see that our estimates are the same whether
