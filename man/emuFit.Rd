@@ -24,6 +24,7 @@ emuFit(
   use_fullmodel_info = FALSE,
   use_fullmodel_cov = FALSE,
   use_both_cov = FALSE,
+  match_row_names = TRUE,
   constraint_fn = pseudohuber_center,
   constraint_grad_fn = dpseudohuber_center_dx,
   constraint_param = 0.1,
@@ -43,6 +44,7 @@ emuFit(
   max_step = 1,
   trackB = FALSE,
   return_nullB = FALSE,
+  return_score_components = FALSE,
   return_both_score_pvals = FALSE,
   remove_zero_comparison_pvals = 0.01,
   unobserved_taxon_error = TRUE
@@ -103,6 +105,9 @@ recomputed for each null model fit for score testing.}
 \item{use_both_cov}{logical: should score tests be run using information and
 empirical score covariance evaluated both under the null and full models?
 Used in simulations}
+
+\item{match_row_names}{logical: Make sure rows on covariate data and response data correspond to
+the same sample by comparing row names and subsetting/reordering if necessary.}
 
 \item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
 for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
@@ -167,6 +172,8 @@ will be rescaled if a step in any parameter exceeds this value. Defaults to 0.5.
 iterations and be returned? Primarily used for debugging. Default is FALSE.}
 
 \item{return_nullB}{logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE.}
+
+\item{return_score_components}{logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.}
 
 \item{return_both_score_pvals}{logical: should score p-values be returned using both
 information matrix computed from full model fit and from null model fits? Default is

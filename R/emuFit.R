@@ -36,6 +36,8 @@
 #' @param use_both_cov logical: should score tests be run using information and
 #' empirical score covariance evaluated both under the null and full models?
 #' Used in simulations
+#' @param match_row_names logical: Make sure rows on covariate data and response data correspond to 
+#' the same sample by comparing row names and subsetting/reordering if necessary. 
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
 #' pseudohuber loss). If a number is provided a single category constraint will be used
@@ -81,6 +83,7 @@
 #' @param trackB logical: should values of B be recorded across optimization
 #' iterations and be returned? Primarily used for debugging. Default is FALSE.
 #' @param return_nullB logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE. 
+#' @param return_score_components logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.
 #' @param return_both_score_pvals logical: should score p-values be returned using both
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
@@ -141,6 +144,7 @@ emuFit <- function(Y,
                    use_fullmodel_info = FALSE,
                    use_fullmodel_cov = FALSE,
                    use_both_cov = FALSE,
+                   match_row_names = TRUE,
                    constraint_fn = pseudohuber_center,
                    constraint_grad_fn = dpseudohuber_center_dx,
                    constraint_param = 0.1,
@@ -160,6 +164,7 @@ emuFit <- function(Y,
                    max_step = 1,
                    trackB = FALSE,
                    return_nullB = FALSE,
+                   return_score_components = FALSE,
                    return_both_score_pvals = FALSE,
                    remove_zero_comparison_pvals = 0.01,
                    unobserved_taxon_error = TRUE) {
@@ -221,11 +226,49 @@ covariates in formula must be provided.")
     }
   }
   
-  # check that if X and Y have rownames, they match 
-  if (!is.null(rownames(Y)) & !is.null(rownames(X))) {
-    if (all.equal(rownames(Y), rownames(X)) != TRUE) {
-      message("There is a different row ordering between covariate data and response data. Covariate data will be reordered to match response data.")
-      X <- X[rownames(Y), ]
+  # check that if X and Y match in the row names
+  if (is.null(rownames(X)) || is.null(rownames(Y))){
+    if (nrow(X) == nrow(Y)){
+      if(match_row_names){
+        if(is.null(rownames(X))){
+          message("Row names are missing from the covariate matrix X. We will assume the rows are in the same order as in the response matrix Y. You are responsible for ensuring the order of your observations is the same in both matrices.")
+        } else {
+          message("Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.")
+        }
+      }
+    } else {
+      if(is.null(rownames(X))){
+        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the response matrix Y. Please resolve this issue before refitting the model.")
+      } else {
+        stop("Row names are missing from the response matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please resolve this issue before refitting the model.")
+      }
+    }
+  } else{
+    if(match_row_names){
+      names_X <- rownames(X)
+      names_Y <- rownames(Y)
+      
+      #Checking if any row names are duplicated
+      if (any(duplicated(names_X))) stop("Covariate matrix X has duplicated row names. Please ensure all row names are unique before refitting the model.")
+      if (any(duplicated(names_Y))) stop("Response matrix Y has duplicated row names. Please ensure all row names are unique before refitting the model.")
+      
+      # Find common row names
+      common_names <- intersect(names_X, names_Y)
+      
+      if (length(common_names) < length(names_X) || length(common_names) < length(names_Y)) {
+        warning(sprintf("According to the rownames, there are observations that are missing either in the covariate matrix (X) and/or the response matrix (Y). We will subset to common rows only, resulting in %d samples.", length(common_names))) 
+        
+        X <- X[common_names, , drop = FALSE]
+        Y <- Y[common_names, , drop = FALSE]
+        
+      } else if(all.equal(rownames(Y), rownames(X)) != TRUE){
+        message("There is a different row ordering between the covariate matrix (X) and the response matrix (Y). Covariate data will be reordered to match response data.")
+        X <- X[rownames(Y), , drop = FALSE]
+      }
+    } else {
+      if(nrow(X) != nrow(Y)){
+        stop("The number of rows does not match between the covariate matrix (X) and the response matrix (Y), and subsetting/matching by row name has been disabled. Please resolve this issue before refitting the model.")
+      }
     }
   }
   
@@ -491,6 +534,10 @@ and the corresponding gradient function to constraint_grad_fn.")
                                          gap = NA,
                                          converged = NA)
     
+    if (return_score_components) {
+      score_components <- vector(mode = "list", length = nrow(test_kj))
+    }
+    
     if (return_both_score_pvals) {
       colnames(coefficients)[colnames(coefficients) == "pval"] <-
         "score_pval_full_info"
@@ -551,6 +598,10 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
       
+      if (return_score_components & !(is.null(test_result))) {
+        score_components[[test_ind]] <- test_result$score_pieces
+      }
+      
       if (is.null(test_result)) {
         if (return_nullB) {
           nullB_list[[test_ind]] <- NA
@@ -599,7 +650,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                            p = p, 
                                            I_inv=I_inv,
                                            Dy = just_wald_things$Dy,
-                                           cluster = cluster)
+                                           cluster = cluster)$score_stat
           
           
           which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
@@ -750,6 +801,9 @@ and the corresponding gradient function to constraint_grad_fn.")
       results$null_estimation_unconverged <- unconverged_test_kj
       warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
     }
+  }
+  if (run_score_tests & return_score_components) {
+    results$score_components <- score_components
   }
   
   return(structure(results, class = "emuFit"))

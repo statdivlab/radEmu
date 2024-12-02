@@ -15,6 +15,11 @@ Y <- radEmu:::simulate_data(n = n,
                             zinb_size = 2,
                             zinb_zero_prop = 0.2,
                             mean_z = 5)
+
+#To ensure the messages about lack of row names do not show in the tests
+rownames(X) <- paste0("Sample_",1:12)
+rownames(Y) <- paste0("Sample_",1:12)
+
 covariates <- data.frame(group = X[,2])
 
 test_that("emuFit takes formulas and actually fits a model", {
