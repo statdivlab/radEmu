@@ -141,26 +141,12 @@ ch_fit <- emuFit(formula = ~ Group,
                  run_score_tests = FALSE) 
 ```
 
-The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. Let's plot our results:
+The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. 
 
-```{r, fig.width= 7, fig.height = 4, eval = phy}
-ch_df <- ch_fit$coef %>%
-  mutate(Genus = as.vector(phyloseq::tax_table(wirbel_china)[, 6])) %>%
-  # add genus name to output from emuFit
-  mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
-                            stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
-                            "\\]")) %>%
-  mutate(cat_small = factor(cat_small, levels = cat_small[order(Genus)]))
-  # reorder mOTU categories by genus
+Now, we can easily visualize our results using the `plot.emuFit` function!
 
-ggplot(ch_df) + 
-  geom_point(aes(x = cat_small, y = estimate, color = Genus), size = .5) +
-  geom_errorbar(aes(x = cat_small, ymin = lower, ymax = upper, color = Genus), width = .25) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Category",
-       y = "Estimate") + 
-  coord_cartesian(ylim = c(-5,10))
+```{r}
+plot.emuFit(ch_fit)
 ```
 
 If you'd like to see more explanations of the `radEmu` software and additional analyses of this data, check out the vignette "intro_radEmu.Rmd". 
