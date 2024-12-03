@@ -29,7 +29,6 @@ emuFit(
   constraint_grad_fn = dpseudohuber_center_dx,
   constraint_param = 0.1,
   verbose = FALSE,
-  partially_verbose = FALSE,
   tolerance = 1e-04,
   B_null_tol = 0.001,
   rho_init = 1,
@@ -122,11 +121,10 @@ parameter controlling relative weighting of elements closer and further from cen
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
 
-\item{verbose}{provide updates as model is being fitted? Defaults to FALSE.}
-
-\item{partially_verbose}{provide limited updates as model is being fitted? Defaults to FALSE.
-If partially_verbose = TRUE, then it is unnecessary to set verbose = TRUE
-(and setting verbose = FALSE will not change what is printed).}
+\item{verbose}{provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
+then key messages about algorithm progress will be displayed. If user sets verbose = "development",
+then key messages and technical messages about convergence will be displayed. Most users who want status
+updates should set verbose = TRUE.}
 
 \item{tolerance}{tolerance for stopping criterion in full model fitting; once
 no element of B is updated by more than this value in a single step, we exit
