@@ -67,7 +67,7 @@
                         <h4 data-toc-skip class="author">David Clausen,
 Sarah Teichman and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2024-11-27</h4>
+            <h4 data-toc-skip class="date">2024-12-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/intro_radEmu.Rmd" class="external-link"><code>vignettes/intro_radEmu.Rmd</code></a></small>
       <div class="d-none name"><code>intro_radEmu.Rmd</code></div>
@@ -357,30 +357,30 @@ so can require some compute time.</li>
 <span><span class="co">#&gt; 35           35 -0.9817335 1.0406234 -3.02131787  1.05785084</span></span>
 <span><span class="co">#&gt; 15           15 -0.8986574 0.4381476 -1.75741093 -0.03990382</span></span>
 <span><span class="co">#&gt; To obtain the entire coefficient table, use the command `emuFit_object$coef`.</span></span></code></pre></div>
-<p>The way to access estimated coefficients and confidence intervals
-from the model is with <code>ch_fit$coef</code>. Let’s plot our
-results:</p>
+<p>Now, we can easily visualize our results using the <code>plot</code>
+function! So that we only produce the plot, and not the dataframe used
+to produce the plots, we will explicitly extract the plots using the
+<code>$</code> operator to get the <code>plots</code> component.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ch_df</span> <span class="op">&lt;-</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Genus <span class="op">=</span> <span class="op">(</span><span class="va">mOTU_name_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>           <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">genus_name</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">chosen_genera</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>           <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">genus_name</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">category_to_rm</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="co"># add genus name to output from emuFit</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ch_fit</span><span class="op">)</span><span class="op">$</span><span class="va">plots</span></span>
+<span><span class="co">#&gt; $p1</span></span></code></pre></div>
+<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-15-1.png" width="576"></p>
+<p>In the plot above, it is a bit difficult to read the taxa names on
+the y-axis. We can create a data frame that maps the full taxa names in
+our data to simplified labels and plot using those instead, as shown
+below.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#create data frame that has simplified names for taxa</span></span>
+<span><span class="va">taxa_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="st">"category"</span> <span class="op">=</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">category</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cat_small <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html" class="external-link">str_remove</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"mOTU_"</span>, </span>
 <span>                            <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_split.html" class="external-link">str_split</a></span><span class="op">(</span><span class="va">category</span>, <span class="st">'mOTU_v2_'</span>, simplify <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>                            <span class="st">"\\]"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cat_small <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">cat_small</span>, levels <span class="op">=</span> <span class="va">cat_small</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">Genus</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="co"># reorder mOTU categories by genus</span></span>
+<span>                            <span class="st">"\\]"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ch_df</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cat_small</span>, y <span class="op">=</span> <span class="va">estimate</span>,color <span class="op">=</span> <span class="va">Genus</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cat_small</span>, ymin <span class="op">=</span> <span class="va">lower</span>, ymax <span class="op">=</span> <span class="va">upper</span>, color <span class="op">=</span> <span class="va">Genus</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">.25</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Category"</span>,</span>
-<span>       y <span class="op">=</span> <span class="st">"Estimate"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>,<span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-15-1.png" width="672"></p>
+<span></span>
+<span><span class="co">#produce plot with cleaner taxa labels</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ch_fit</span>, taxon_names <span class="op">=</span> <span class="va">taxa_names</span><span class="op">)</span><span class="op">$</span><span class="va">plots</span></span>
+<span><span class="co">#&gt; $p1</span></span></code></pre></div>
+<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-16-1.png" width="576"></p>
 <p>Interestingly, we estimate a meta-mOTU “unknown Eubacterium
 [meta_mOTU_v2_7116]” assigned to Eubacteria to have a much higher ratio
 of abundance (comparing CRC group to control) than is typical across the
@@ -410,7 +410,7 @@ parameters (in <code>ch_fit$B</code>) that we want to test. Below we
 show how to identify these, but <code>j = 3</code> is F. nucleatum and
 <code>j = 36</code> is the <em>Eubacterium</em> meta mOTU.</li>
 </ul>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">taxa_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">restricted_mOTU_names</span>, <span class="st">"0777"</span><span class="op">)</span><span class="op">)</span>, </span>
 <span>                  <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">restricted_mOTU_names</span>, <span class="st">"7116"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ch_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span></span>
@@ -423,7 +423,7 @@ show how to identify these, but <code>j = 3</code> is F. nucleatum and
 <span>                                                      j <span class="op">=</span> <span class="va">taxa_to_test</span><span class="op">)</span>, </span>
 <span>                                 Y <span class="op">=</span> <span class="va">small_Y</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s take a look at the test output.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"covariate"</span>, <span class="st">"category"</span>, <span class="st">"estimate"</span>, <span class="st">"pval"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    covariate                                                category estimate</span></span>
 <span><span class="co">#&gt; 3   GroupCRC Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777] 3.086405</span></span>
@@ -435,7 +435,7 @@ show how to identify these, but <code>j = 3</code> is F. nucleatum and
 p-value of 0.07, while the unknown Eubacterium mOTU has a robust score
 test p-value of 0.3. Does this make sense? Let’s investigate further by
 looking at the Eubacterium mOTU counts by Group.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">wirbel_otu</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="st">"unknown Eubacterium [meta_mOTU_v2_7116]"</span><span class="op">]</span>,</span>
 <span>           group <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">$</span><span class="va">Group</span><span class="op">[</span><span class="va">ch_study_obs</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>eubact_present <span class="op">=</span> <span class="va">counts</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -452,7 +452,7 @@ looking at the Eubacterium mOTU counts by Group.</p>
 cohort! So, yes – it makes sense that our test returns a relatively
 large p-value. Good job, <code>emuFit</code>!</p>
 <p>Now let’s look at <em>F. nucleatum</em>.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">wirbel_otu</span><span class="op">[</span><span class="va">ch_study_obs</span>, </span>
 <span>                               <span class="st">"Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777]"</span><span class="op">]</span>,</span>
 <span>           group <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">$</span><span class="va">Group</span><span class="op">[</span><span class="va">ch_study_obs</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -473,7 +473,7 @@ detect it in only one control participant.</p>
 <p>We could run robust score tests for every taxon in this analysis, but
 it will take a longer amount of time to run. The code below will not run
 in the vignette, but feel free to run it on your own.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">test_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, </span>
 <span>                   data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
 <span>                   B <span class="op">=</span> <span class="va">ch_fit</span>,</span>
@@ -491,7 +491,7 @@ sense to compare across study populations that are similar in their sex,
 age, BMI, country and whether the samples were provided before
 undergoing colonoscopy or after. That’s what we did in our manuscript!
 Code to fit this model is below.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">all_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span> <span class="op">+</span> <span class="va">Study</span> <span class="op">+</span> <span class="va">Gender</span> <span class="op">+</span></span>
 <span>                    <span class="va">Age_spline.1</span> <span class="op">+</span> <span class="va">Age_spline.2</span> <span class="op">+</span> </span>
 <span>                    <span class="va">BMI_spline.1</span> <span class="op">+</span> <span class="va">BMI_spline.2</span> <span class="op">+</span> <span class="va">Sampling</span>,</span>
@@ -501,7 +501,7 @@ Code to fit this model is below.</p>
 <p>Note that we wanted to allow in non-linear trends in age and BMI,
 which we did using B-splines. If you’re interested in doing something
 similar, you could adapt the code below.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">age_spline</span> <span class="op">&lt;-</span> <span class="fu">splines2</span><span class="fu">::</span><span class="fu">bSpline</span><span class="op">(</span><span class="va">wirbel_sample</span><span class="op">$</span><span class="va">Age</span>, degree <span class="op">=</span> <span class="fl">1</span>, knots <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">wirbel_sample</span><span class="op">$</span><span class="va">Age</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">age_spline</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
