@@ -12,7 +12,7 @@ simulate_data(
   distn,
   zinb_size = NULL,
   zinb_zero_prop = NULL,
-  mean_count_before_ZI,
+  mean_z,
   X = NULL,
   B = NULL,
   cluster = NULL
@@ -33,7 +33,7 @@ simulate_data(
 
 \item{zinb_zero_prop}{Proportion of zeros for ZINB data}
 
-\item{mean_count_before_ZI}{Parameter for construction of z_i in mean model. Setting this to \code{50} works well in practice.}
+\item{mean_z}{Parameter controlling the mean of the sample-specific effects.}
 
 \item{X}{Optional design matrix, this must have two columns and n rows.}
 

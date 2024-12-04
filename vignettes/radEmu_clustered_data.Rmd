@@ -87,8 +87,16 @@ b <- rbind(b0, b1)
 
 # simulate data according to a zero-inflated negative binomial distribution
 # the mean model used to simulate this data takes into account the cluster membership
-Y <- simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "ZINB", zinb_size = 10,
-                   zinb_zero_prop = 0.3, mean_count_before_ZI = 100, X = X, cluster = cluster)
+Y <- radEmu:::simulate_data(n = n,
+                            J = J,
+                            b0 = b0,
+                            b1 = b1,
+                            distn = "ZINB",
+                            zinb_size = 10,
+                            zinb_zero_prop = 0.3,
+                            mean_z = 5,
+                            X = X,
+                            cluster = cluster)
 ```
 
 Let's just pause to look at the elements of `cluster`:

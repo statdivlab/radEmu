@@ -48,7 +48,10 @@
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 #' the minimizer of the pseudo-Huber loss approaches the median.)
-#' @param verbose provide updates as model is being fitted? Defaults to FALSE.
+#' @param verbose provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
+#' then key messages about algorithm progress will be displayed. If user sets verbose = "development",
+#' then key messages and technical messages about convergence will be displayed. Most users who want status
+#' updates should set verbose = TRUE.
 #' @param tolerance tolerance for stopping criterion in full model fitting; once
 #' no element of B is updated by more than this value in a single step, we exit
 #' optimization. Defaults to 1e-3.
@@ -167,6 +170,11 @@ emuFit <- function(Y,
   
   # Record call
   call <- match.call(expand.dots = FALSE)
+  
+  # confirm that input to verbose is valid
+  if (!(verbose %in% c(FALSE, TRUE, "development"))) {
+    stop('The argument "verbose" must be set to one of TRUE, FALSE, or "development".')
+  }
   
   # check if Y is a phyloseq object
   if ("phyloseq" %in% class(Y)) {
@@ -340,10 +348,9 @@ ignoring argument 'cluster'.")
   
   X_cup <- X_cup_from_X(X,J)
   
-  
   if (is.logical(all.equal(constraint_fn, pseudohuber_center))) {
     if (all.equal(constraint_fn, pseudohuber_center)) {
-      if (verbose) message("Centering rows of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
+      if (verbose %in% c(TRUE, "development")) message("Centering rows of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
       
       stopifnot(!is.na(constraint_param))
       
@@ -383,7 +390,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                maxit = maxit,
                                max_step = max_step,
                                tolerance = tolerance,
-                               verbose = verbose,
+                               verbose = (verbose == "development"),
                                j_ref = j_ref)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
@@ -402,7 +409,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                      max_stepsize = max_step,
                      tolerance = tolerance,
                      j_ref = j_ref,
-                     verbose = verbose)
+                     verbose = (verbose == "development"))
       fitted_B <- fitted_model
       Y_test <- Y
     }
@@ -460,7 +467,7 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   if (compute_cis) {
-    if (verbose) {
+    if (verbose %in% c(TRUE, "development")) {
       message("Performing Wald tests and constructing CIs.")
     }
     
@@ -472,7 +479,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                     constraint_fn = constraint_fn,
                                     constraint_grad_fn = constraint_grad_fn,
                                     nominal_coverage = 1 - alpha,
-                                    verbose = verbose,
+                                    verbose = (verbose == "development"),
                                     j_ref = j_ref,
                                     cluster = cluster)
     
@@ -550,7 +557,7 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
     for(test_ind in 1:nrow(test_kj)) {
       
-      if (verbose) {
+      if (verbose %in% c(TRUE, "development")) {
         print(paste("Running score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
                     test_kj$j[test_ind],").",sep = ""))
       }
@@ -585,7 +592,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 maxit = maxit,
                                 inner_maxit = inner_maxit,
                                 ntries = ntries,
-                                verbose = verbose,
+                                verbose = (verbose == "development"),
                                 trackB = trackB,
                                 I_inv = I_inv,
                                 Dy = Dy,

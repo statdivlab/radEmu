@@ -121,7 +121,10 @@ parameter controlling relative weighting of elements closer and further from cen
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
 
-\item{verbose}{provide updates as model is being fitted? Defaults to FALSE.}
+\item{verbose}{provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
+then key messages about algorithm progress will be displayed. If user sets verbose = "development",
+then key messages and technical messages about convergence will be displayed. Most users who want status
+updates should set verbose = TRUE.}
 
 \item{tolerance}{tolerance for stopping criterion in full model fitting; once
 no element of B is updated by more than this value in a single step, we exit

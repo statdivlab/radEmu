@@ -7,14 +7,14 @@ test_that("simulating data works", {
   # coefficients for X1 for each category 
   b1 <- seq(1, 5, length.out = J)
   
-  dat1 <- simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "Poisson", 
-                        mean_count_before_ZI = 100)
-  dat2 <- simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "Poisson", 
-                        mean_count_before_ZI = 100, cluster = cluster)
-  dat3 <- simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "ZINB", 
-                        mean_count_before_ZI = 100, zinb_size = 10, zinb_zero_prop = 0.5)
-  dat4 <- simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "ZINB", cluster = cluster,
-                        mean_count_before_ZI = 100, zinb_size = 10, zinb_zero_prop = 0.5)
+  dat1 <- radEmu:::simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "Poisson", 
+                                 mean_z = 8)
+  dat2 <- radEmu:::simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "Poisson", 
+                                 mean_z = 8, cluster = cluster)
+  dat3 <- radEmu:::simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "ZINB", 
+                                 mean_z = 8, zinb_size = 10, zinb_zero_prop = 0.5)
+  dat4 <- radEmu:::simulate_data(n = n, J = J, b0 = b0, b1 = b1, distn = "ZINB", cluster = cluster,
+                                 mean_z = 8, zinb_size = 10, zinb_zero_prop = 0.5)
   
   # make sure data are the correct dimensions
   expect_true(nrow(dat1) == n & nrow(dat2) == n & nrow(dat3) == n & nrow(dat4) == n &
