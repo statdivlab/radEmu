@@ -127,15 +127,18 @@ maintained only for testing purposes.")
 
       if(B_diff < tolerance){
         converged <- TRUE
+        actually_converged <- TRUE
       }
 
       if(counter>maxit){
         converged <- TRUE
+        actually_converged <- FALSE
       }
       counter <- counter + 1
     }
 
     return(list("Y_augmented" = Y_augmented,
-                "B" = fitted_model))
+                "B" = fitted_model,
+                "convergence" = actually_converged))
 
   }

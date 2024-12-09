@@ -105,5 +105,5 @@ get_score_stat <- function(Y,
   inside <- Matrix::crossprod(I_inv_H, Dy) %*% I_inv_H
   score_stat <- as.numeric(as.matrix(outside^2/inside))*score_adj
   
-  return(as.numeric(score_stat))
+  return(list(score_stat = as.numeric(score_stat), outside = outside, inside = inside, score = score))
 }

@@ -1,60 +1,26 @@
 set.seed(11)
 J <- 6
-p <- 2
 n <- 12
 X <- cbind(1,rnorm(n))
-z <- rnorm(n) +5
 b0 <- rnorm(J)
-b1 <- seq(1,5,length.out = J)
-b1 <- b1 - mean(b1)
-b <- rbind(b0,b1)
-Y <- matrix(NA,ncol = J, nrow = n)
+b1 <- seq(1,5,length.out = J) -
+  mean(seq(1,5,length.out = J))
+b <- rbind(b0, b1)
+Y <- radEmu:::simulate_data(n = n,
+                            J = J,
+                            X = X,
+                            b0 = b0,
+                            b1 = b1,
+                            distn = "ZINB",
+                            zinb_size = 2,
+                            zinb_zero_prop = 0.2,
+                            mean_z = 5)
 
-for(i in 1:n){
-  for(j in 1:J){
-    temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-    Y[i,j] <- rnbinom(1, mu= temp_mean,size = 2)*rbinom(1,1,0.8)
-  }
-}
+#To ensure the messages about lack of row names do not show in the tests
+rownames(X) <- paste0("Sample_",1:12)
+rownames(Y) <- paste0("Sample_",1:12)
 
-# Y <- structure(c(534337, 0, 0, 0, 376, 41, 19, 103, 0, 0, 85, 0, 42794, 
-#                  0, 0, 0, 95, 0, 0, 15, 0, 0, 0, 26, 0, 149, 0, 0, 0, 0, 0, 211, 
-#                  0, 0, 0, 0, 0, 103, 0, 0, 0, 1372, 83, 337, 0, 0, 0, 0, 0, 53, 
-#                  0, 0, 0, 0, 259, 0, 0, 0, 14, 0, 0, 0, 0, 193, 0, 0, 0, 0, 0, 
-#                  0, 402, 0), dim = c(12L, 6L))
-# X <- structure(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -2.49421928123597, 
-#                  -0.579053917775617, -0.974555155010523, 0.237710056670222, 0.41240637454179, 
-#                  1.12994912631468, 0.706485861932659, 0.588878125500377, 0.0834756145662259, 
-#                  1.99483775157368, 0.227951737778031, -1.03963299361785), dim = c(12L, 
-#                                                                                   2L))
-
-# 
-# Y <- structure(c(1748, 8286, 4096, 4289, 1122, 30007, 5087, 3841, 
-#                  3059, 3105, 80, 32, 0, 20, 13, 0, 0, 30, 41, 54, 0, 124134, 43569, 
-#                  122134, 15785, 99540, 0, 41104, 0, 0, 0, 0, 0, 572, 0, 1497, 
-#                  0, 0, 314, 0, 0, 0, 0, 416, 920, 0, 0, 1931, 1279, 0, 0, 0, 2, 
-#                  21, 49, 41, 0, 89, 0, 85, 1287, 1716, 0, 0, 1354, 8783, 3040, 
-#                  6271, 2274, 0, 26431, 5186, 4147, 0, 0, 6450, 0, 0, 1483, 0, 
-#                  0, 0, 0, 5936, 0, 0, 0, 33557, 11459, 0, 0, 4065, 0, 5391, 6721, 
-#                  8997, 9225, 13951, 4061, 3871, 0, 0, 0, 0, 0, 0, 3954, 1338, 
-#                  886, 426, 0, 0, 0, 496, 0, 709, 508, 840, 680, 0, 0, 4529, 2885, 
-#                  0, 0, 13382, 11802, 0, 2144, 2622, 92214, 18326, 6183, 11737, 
-#                  0, 0, 12808, 7604, 4684, 9348, 0, 3564, 2250, 0, 0, 20486, 0, 
-#                  3442, 5133, 5103, 299927, 34273, 17407, 0, 17896, 149402, 42592, 
-#                  0, 0, 25395, 1875, 21975, 1685, 0, 1654, 28670, 9331, 0, 4765, 
-#                  0, 0, 0, 76158, 0, 85495, 247396, 51659, 93587, 0, 84277, 0, 
-#                  0, 217, 0, 0, 0, 0, 0, 0, 0, 0, 76950, 0, 19911, 33042, 43690, 
-#                  68014, 43885, 6086, 0), dim = c(20L, 10L))
-# X <- structure(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-#                  1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 
-#                  1, 1), dim = c(20L, 2L))
 covariates <- data.frame(group = X[,2])
-# b <- structure(c(0.0231122313161752, -4.5, 2.34881909126062, -3.5, 
-#                  -0.949623561962149, -2.5, -0.23942645176718, 0.556978794649417, 
-#                  0.681191947270542, 0.499524350059682, -1.14509952873781, 0.5, 
-#                  0.258373890958553, 1.5, 0.163812326430595, 2.5, 0.491510413255902, 
-#                  3.5, -1.63267035802524, 4.5), dim = c(2L, 10L), dimnames = list(
-#                    c("b0", "b1"), NULL))
 
 test_that("emuFit takes formulas and actually fits a model", {
   
@@ -219,12 +185,6 @@ test_that("emuFit takes cluster argument without breaking ",{
           
 })
 
-b0 <- rnorm(J)
-b1 <- seq(1,5,length.out = J)
-b1 <- b1 - mean(b1)
-b1[3:4] <- 0
-b <- rbind(b0,b1)
-
 test_that("GEE with cluster covariance gives plausible type 1 error ",{
   skip("Skipping -- test requires fitting models to 100 simulated datasets.")
   set.seed(44022)
@@ -238,24 +198,24 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
   results_noGEE <- results
   for(sim in 1:nsim){
     print(sim)
-    X <- cbind(1,rnorm(n))
+    
+    X <- cbind(1,rnorm(12))
     covariates <- data.frame(group = X[,2])
-    Y <- matrix(NA,ncol = J, nrow = n)
-  
-  cluster_effs <- lapply(1:4,
-                         function(i)
-                           log(matrix(rexp(2*J),nrow= 2)))
-  
-  for(i in 1:n){
-    Y[i,] <- 0
-    while(sum(Y[i,])==0){
-    for(j in 1:J){
-      temp_mean <- exp(X[i,,drop = FALSE]%*%(b[,j,drop = FALSE] + 
-                                               cluster_effs[[ cluster[i] ]][,j]) + z[i])
-      Y[i,j] <- rnbinom(1, mu= temp_mean,size = 5)*rbinom(1,1,0.8)
-    }}
-  }
-  
+    
+    b1 <- seq(1,5,length.out = 6)
+    b1 <- b1 - mean(b1)
+    b1[3:4] <- 0
+    
+    Y <- radEmu:::simulate_data(n = 12, J = 6,
+                                X = X,
+                                b0 = rnorm(6),
+                                b1 = b1,
+                                distn = "ZINB",
+                                zinb_size = 2,
+                                zinb_zero_prop = 0.2,
+                                mean_z = 5,
+                                cluster = cluster)
+    
   # expect_silent({
     fitted_model_cluster <- emuFit(Y = Y,
                                    X = X,
@@ -327,7 +287,7 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
 # b1 <- b1 - mean(b1)
 # b1[5] <- pseudohuber_center(b1[-5],0.1)
 # 
-# Y <- simulate_data(n=10, J=10, b0=rnorm(10), distn="Poisson", b1=b1, mean_count_before_ZI=500)
+# Y <- radEmu:::simulate_data(n=10, J=10, b0=rnorm(10), distn="Poisson", b1=b1, mean_z=500)
 
 #   set.seed(894334)
 #   n <- 100
@@ -386,3 +346,257 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
 #   expect_true(cor(fitted_model$B[2,],b1)>0.95)
 #   
 # })
+
+test_that("emuFit runs without penalty", {
+  
+  expect_silent({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           penalize = FALSE,
+                           formula = ~group,
+                           data = covariates,
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
+})
+
+test_that("emuFit runs with just intercept model", {
+  
+  expect_message({
+    fitted_model <- emuFit(Y = Y,
+                           formula = ~1,
+                           data = covariates,
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
+  
+  expect_message({
+    fitted_model1 <- emuFit(Y = Y,
+                           X = X[, 1, drop = FALSE],
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = TRUE,
+                           run_score_tests = TRUE, 
+                           use_fullmodel_info = FALSE,
+                           use_fullmodel_cov = FALSE,
+                           return_both_score_pvals = FALSE)
+  })
+  
+  expect_equal(fitted_model$coef[, 2:9], fitted_model1$coef[, 2:9])
+  
+})
+
+test_that("emuFit has 'score_test_hyperparams' object and throws warnings when convergence isn't hit", {
+  # check that warning is returned when estimation under the alternative doesn't converge
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = cbind(X, rnorm(nrow(X))),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = FALSE, 
+                           maxit = 1)
+  })
+  expect_false(fitted_model$estimation_converged)
+  
+  # check that warning is returned when estimation under the null doesn't converge
+  suppressWarnings({
+    fitted_model <- emuFit(Y = Y,
+                           X = cbind(X, rnorm(nrow(X))),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2),
+                           maxit = 1,
+                           inner_maxit = 1)
+  })
+  
+  # check that fitted model contains score_test_hyperparams object
+  expect_true("score_test_hyperparams" %in% names(fitted_model))
+  
+  # check that fitted model contains data frame of unconverged test_kj
+  expect_type(fitted_model$null_estimation_unconverged, "list")
+})
+
+test_that("test that B_null_list object can be used and throws appropriate warnings when used incorrectly", {
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(b),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+  expect_silent({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(NULL, b),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+  expect_warning({
+    fitted_model <- emuFit(Y = Y,
+                           X = X,
+                           B_null_list = list(NULL, b[, -3]),
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = TRUE, 
+                           test_kj = data.frame(k = 1, j = 1:2))
+  })
+  
+})
+
+test_that("emuFit reorders X and X and Y rownames don't match", {
+  dat1 <- data.frame(group = c(covariates$group[12], covariates$group[1:11]))
+  rownames(dat1) <- paste0("sample", c(12, 1:11)) 
+  dat2 <- covariates
+  rownames(dat2) <- paste0("sample", 1:12)
+  rownames(Y) <- paste0("sample", 1:12)
+  
+  expect_message({
+    fitted_model1 <- emuFit(formula = ~ group,
+                            data = dat1,
+                            Y = Y,
+                            compute_cis = FALSE,
+                            run_score_tests = FALSE)
+  })
+  
+  expect_silent({
+    fitted_model2 <- emuFit(formula = ~ group,
+                            data = dat2,
+                            Y = Y,
+                            compute_cis = FALSE,
+                            run_score_tests = FALSE)
+  })
+  
+  expect_true(all.equal(fitted_model1$coef, fitted_model2$coef))
+})
+
+test_that("emuFit throws error when there is a category with all zero counts", {
+  
+  Y_zero <- Y
+  Y_zero[, 1] <- 0
+  
+  expect_error({
+    fitted_model <- emuFit(Y = Y_zero,
+                           X = X,
+                           formula = ~group,
+                           data = covariates,
+                           verbose = FALSE,
+                           B_null_tol = 1e-2,
+                           tolerance = 0.01,
+                           tau = 2,
+                           return_wald_p = FALSE,
+                           compute_cis = FALSE,
+                           run_score_tests = FALSE)
+  }) 
+})
+
+test_that("Confirm zi is different when penalty is applied or not", {
+  
+  fit_penT <- emuFit(Y = Y,
+                     X = X,
+                     formula = ~group,
+                     data = covariates,
+                     verbose = FALSE,
+                     penalize = TRUE,
+                     B_null_tol = 1e-2,
+                     tolerance = 0.01,
+                     tau = 2,
+                     return_wald_p = FALSE,
+                     compute_cis = FALSE,
+                     run_score_tests = FALSE)
+  
+  fit_penF <- emuFit(Y = Y,
+                     X = X,
+                     formula = ~group,
+                     data = covariates,
+                     verbose = FALSE,
+                     penalize = FALSE,
+                     B_null_tol = 1e-2,
+                     tolerance = 0.01,
+                     tau = 2,
+                     return_wald_p = FALSE,
+                     compute_cis = FALSE,
+                     run_score_tests = FALSE)
+  
+  expect_false(isTRUE(all.equal(fit_penT$z_hat,
+                                fit_penF$z_hat)))
+})
+
+test_that("Single category constraint works", {
+  
+  emuRes <- emuFit(Y = Y,
+                   X = X,
+                   constraint_fn = 3,
+                   run_score_tests = FALSE)
+  expect_true(emuRes$B[2, 3] == 0)
+  
+})
+
+test_that("emuFit works with fitted objects passed in", {
+  emuRes <- emuFit(Y = Y,
+                   X = X,
+                   run_score_tests = FALSE)
+  # can run emuFit with fitted model
+  expect_silent({
+    emuRes2 <- emuFit(Y = Y, X = X, fitted_model = emuRes, refit = FALSE,
+                      compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1))
+  })
+  # get error if have penalize arguments that don't match 
+  expect_error({
+    emuRes2 <- emuFit(Y = Y, X = X, fitted_model = emuRes, refit = FALSE,
+                      compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
+                      penalize = FALSE)
+  })
+  # can run emuFit with only B 
+  # can run emuFit with fitted model
+  expect_silent({
+    emuRes2 <- emuFit(Y = Y, X = X, B = emuRes$B, refit = FALSE,
+                      compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1))
+  })
+  
+})

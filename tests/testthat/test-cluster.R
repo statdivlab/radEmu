@@ -1,28 +1,66 @@
-set.seed(11)
-J <- 6
-p <- 2
-n <- 12
-X <- cbind(1,rnorm(n))
-z <- rnorm(n) +5
-b0 <- rnorm(J)
-b1 <- seq(1,5,length.out = J)
-b1 <- b1 - mean(b1)
-b <- rbind(b0,b1)
-Y <- matrix(NA,ncol = J, nrow = n)
+test_that("clusters work as I want", {
+  
+  set.seed(100)
+  n <- 64
+  J <- 50
+  
+  cage_num <- rep(c(1:16), 4) 
+  treatment <- (cage_num <= 8)
+  XX <- data.frame(treatment)
+  
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = cbind(1, treatment),
+                              b0 = runif(J, min = 0, max = 4),
+                              b1 = runif(J, min = 0, max = 4),
+                              distn = "ZINB",
+                              zinb_size = 10,
+                              zinb_zero_prop = 0.3,
+                              mean_z = 5)
+  
+  # check that cluster argument works as a numeric vector 
+  ef_num <- emuFit(formula = ~ treatment, 
+                   data = XX, 
+                   Y = Y, 
+                   cluster=cage_num, 
+                   run_score_tests=FALSE) #### very fast
+  expect_equal(ef_num$coef %>% class, "data.frame")
+  
+  # check that cluster argument works as character vector and gives 
+  # equivalent results to numeric vector 
+  cage_char <- rep(c(LETTERS[1:16]), 4)
+  ef_char <- emuFit(formula = ~ treatment, 
+                    data = XX, 
+                    Y = Y, 
+                    cluster=cage_char, 
+                    run_score_tests=FALSE) 
+  expect_equal(ef_num$coef, ef_char$coef)
+  
+  # check that cluster argument works as factor and gives equivalent results
+  # to numeric vector 
+  cage_fact <- cage_char %>% as.factor
+  ef_fact <- emuFit(formula = ~ treatment, 
+                    data = XX, 
+                    Y = Y, 
+                    cluster=cage_fact, 
+                    run_score_tests=FALSE) 
+  expect_equal(ef_num$coef, ef_fact$coef)
+})
 
-for(i in 1:n){
-  for(j in 1:J){
-    temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-    Y[i,j] <- rnbinom(1, mu= temp_mean,size = 2)*rbinom(1,1,0.8)
-  }
-}
+
+set.seed(11)
+X <- cbind(1,rnorm(12))
+Y <- radEmu:::simulate_data(n = 12,
+                            J = 6,
+                            X = X,
+                            b0 = rnorm(6),
+                            b1 = seq(1,5,length.out = 6) - mean(seq(1,5,length.out = 6)),
+                            distn = "ZINB",
+                            zinb_size = 2,
+                            zinb_zero_prop = 0.8,
+                            mean_z = 5)
 covariates <- data.frame(group = X[,2])
 
-b0 <- rnorm(J)
-b1 <- seq(1,5,length.out = J)
-b1 <- b1 - mean(b1)
-b1[3:4] <- 0
-b <- rbind(b0,b1)
 
 test_that("GEE with cluster covariance gives plausible type 1 error ",{
   
@@ -39,24 +77,21 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
                         pval = numeric(2*nsim))[-(1:(2*nsim)),]
   results_noGEE <- results
   for(sim in 1:nsim){
-    print(sim)
-    X <- cbind(1,rnorm(n))
+    # print(sim)
+    
+    X <- cbind(1, rnorm(12))
+    Y <- radEmu:::simulate_data(n = 12,
+                                J = 6,
+                                X = X,
+                                b0 = rnorm(6),
+                                b1 = seq(1,5,length.out = 6) -
+                                  mean(seq(1,5,length.out = 6)),
+                                distn = "ZINB",
+                                zinb_size = 5,
+                                zinb_zero_prop = 0.8,
+                                mean_z = 5,
+                                cluster = cluster)
     covariates <- data.frame(group = X[,2])
-    Y <- matrix(NA,ncol = J, nrow = n)
-    
-    cluster_effs <- lapply(1:4,
-                           function(i)
-                             log(matrix(rexp(2*J),nrow= 2)))
-    
-    for(i in 1:n){
-      Y[i,] <- 0
-      while(sum(Y[i,])==0){
-        for(j in 1:J){
-          temp_mean <- exp(X[i,,drop = FALSE]%*%(b[,j,drop = FALSE] + 
-                                                   cluster_effs[[ cluster[i] ]][,j]) + z[i])
-          Y[i,j] <- rnbinom(1, mu= temp_mean,size = 5)*rbinom(1,1,0.8)
-        }}
-    }
     
     # expect_silent({
     fitted_model_cluster <- emuFit(Y = Y,

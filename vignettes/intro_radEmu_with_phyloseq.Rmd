@@ -106,8 +106,7 @@ head(phyloseq::tax_table(wirbel_phylo))
 `radEmu` is a package that can be used to estimate fold-differences in the abundance of microbial taxa between levels of a covariate. In this analysis, the covariate that we are primarily interested in is whether a sample is from a case of colorectal cancer or a control. We will make control ("CTR") the reference category: 
 
 ```{r, eval = phy}
-phyloseq::sample_data(wirbel_phylo)$Group <- factor(phyloseq::sample_data(wirbel_phylo)$Group, 
-                                                    levels = c("CTR","CRC"))
+phyloseq::sample_data(wirbel_phylo)$Group <- factor(phyloseq::sample_data(wirbel_phylo)$Group, levels = c("CTR","CRC"))
 ```
 
 While in general we would fit a model to all mOTUs, we are going to subset to some specific genera for the purposes of this tutorial. Let's look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and *Fusobacterium* for now.
@@ -123,6 +122,16 @@ Again, while we would generally fit a model using all of our samples, for this t
 wirbel_china <- phyloseq::subset_samples(wirbel_restrict, Country == "CHI")
 ```
 
+Next, we want to confirm that all samples have at least one non-zero count across the categories we've chosen and that all categories have at least one non-zero count across the samples we've chosen.
+
+```{r}
+sum(rowSums(phyloseq::otu_table(wirbel_china)) == 0) # no samples have a count sum of 0 
+sum(colSums(phyloseq::otu_table(wirbel_china)) == 0) # one category has a count sum of 0 
+category_to_rm <- names(which(colSums(phyloseq::otu_table(wirbel_china)) == 0))
+wirbel_china <- phyloseq::subset_taxa(wirbel_china, species != category_to_rm)
+sum(colSums(phyloseq::otu_table(wirbel_china)) == 0) # now no categories have a count sum of 0 
+```
+
 The function that we use to fit our model is called `emuFit`. It can accept your data in various forms, and here we will show how to use it with a `phyloseq` object as input. 
 
 
@@ -132,26 +141,12 @@ ch_fit <- emuFit(formula = ~ Group,
                  run_score_tests = FALSE) 
 ```
 
-The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. Let's plot our results:
+The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. 
 
-```{r, fig.width= 7, fig.height = 4, eval = phy}
-ch_df <- ch_fit$coef %>%
-  mutate(Genus = as.vector(phyloseq::tax_table(wirbel_china)[, 6])) %>%
-  # add genus name to output from emuFit
-  mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
-                            stringr::str_split(category, 'mOTU_v2_', simplify = TRUE)[, 2]), 
-                            "\\]")) %>%
-  mutate(cat_small = factor(cat_small, levels = cat_small[order(Genus)]))
-  # reorder mOTU categories by genus
+Now, we can easily visualize our results using the `plot.emuFit` function!
 
-ggplot(ch_df) + 
-  geom_point(aes(x = cat_small, y = estimate, color = Genus), size = .5) +
-  geom_errorbar(aes(x = cat_small, ymin = lower, ymax = upper, color = Genus), width = .25) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Category",
-       y = "Estimate") + 
-  coord_cartesian(ylim = c(-5,10))
+```{r, fig.height = 6, fig.width = 6}
+plot(ch_fit)$plots
 ```
 
 If you'd like to see more explanations of the `radEmu` software and additional analyses of this data, check out the vignette "intro_radEmu.Rmd". 
