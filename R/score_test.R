@@ -1,6 +1,7 @@
 #' Run robust score test
 
-#' @param B value of coefficient matrix (p x J) returned by full model fit
+#' @param B value of coefficient matrix (p x J) returned by full model fit or value of coefficient 
+#' matrix to start null estimation at given as input to emuFit
 #' @param Y an n x J matrix or dataframe of *augmented* nonnegative observations (i.e.,
 #' observations Y plus augmentations from last iteration of maximum penalized likelihood estimation
 #' for full model)
@@ -70,13 +71,16 @@
 #' Y are treated as independent.
 #'
 #' @return A list containing elements 'score_stat', 'pval', 'log_pval','niter',
-#' 'convergence', 'gap', 'u', 'rho', 'null_B', and 'Bs'. 'score_stat' gives the 
+#' 'convergence', 'gap', 'u', 'rho', 'tau', 'inner_maxit', 'null_B', and 'Bs'. 'score_stat' gives the 
 #' value of the robust score statistic for H_0: B_{k_constr,j_constr} = g(B_{k_constr}).
 #' 'pval' and 'log_pval' are the p-value (on natural and log scales) corresponding to
 #' the score statistic (log_pval may be useful when the p-value is very close to zero). 
 #' 'gap' is the final value of g(B_{k_constr}) - B_{k_constr, j_constr} obtained in 
 #' optimization under the null. 'u' and 'rho' are final values of augmented 
-#' Lagrangian parameters returned by null fitting algorithm. 'null_B' is the value of 
+#' Lagrangian parameters returned by null fitting algorithm. 'tau' is the final value of 'tau' that 
+#' is used to update the 'rho' values and 'inner_maxit' is the final maximum number of iterations for 
+#' the inner optimization loop in optimization under the null, in which B and z parameter values are
+#' maximized for specific 'u' and 'rho' parameters. 'null_B' is the value of 
 #' B returned but the null fitting algorithm. 'Bs' is by default NULL; if trackB = TRUE,
 #' 'Bs is a data frame containing values of B by outcome category, covariate, and 
 #' iteration.
@@ -123,54 +127,54 @@ score_test <- function(B, #B (MPLE)
   good_enough_fit <- FALSE
   while(!accept_try){
     #fit under null
-  constrained_fit <- try(fit_null(B = B, #B (MPLE)
-                                      Y = Y, #Y (with augmentations)
-                                      X = X, #design matrix
-                                      X_cup = X_cup,
-                                      k_constr = k_constr, #row index of B to constrain
-                                      j_constr = j_constr, #col index of B to constrain
-                                      constraint_fn = constraint_fn, #constraint function
-                                      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-                                      # constraint_hess_fn = constraint_hess_fn,
-                                      rho_init = rho_init,
-                                      tau = tau,
-                                      kappa = kappa,
-                                      B_tol = B_tol,
-                                      inner_tol = inner_tol,
-                                      constraint_tol = constraint_tol,
-                                      j_ref = j_ref,
-                                      c1 = c1,
-                                      maxit = maxit,
-                                      inner_maxit = inner_maxit,
-                                      verbose = verbose,
-                                      trackB = trackB
-                                      # I = I,
-                                      # Dy = Dy
-  ))
-  if(inherits(constrained_fit,"try-error")){
-    accept_try <- FALSE
-  } else{
-    if((abs(constrained_fit$gap) <= constraint_tol) &
-       (constrained_fit$niter < maxit)){
-      accept_try <- TRUE
-      good_enough_fit <- TRUE
+    constrained_fit <- try(fit_null(B = B, #B (MPLE)
+                                    Y = Y, #Y (with augmentations)
+                                    X = X, #design matrix
+                                    X_cup = X_cup,
+                                    k_constr = k_constr, #row index of B to constrain
+                                    j_constr = j_constr, #col index of B to constrain
+                                    constraint_fn = constraint_fn, #constraint function
+                                    constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+                                    # constraint_hess_fn = constraint_hess_fn,
+                                    rho_init = rho_init,
+                                    tau = tau,
+                                    kappa = kappa,
+                                    B_tol = B_tol,
+                                    inner_tol = inner_tol,
+                                    constraint_tol = constraint_tol,
+                                    j_ref = j_ref,
+                                    c1 = c1,
+                                    maxit = maxit,
+                                    inner_maxit = inner_maxit,
+                                    verbose = verbose,
+                                    trackB = trackB
+                                    # I = I,
+                                    # Dy = Dy
+    ))
+    if(inherits(constrained_fit,"try-error")){
+      accept_try <- FALSE
     } else{
-      tau <- tau^(3/4)
-      inner_maxit <- 2*inner_maxit
-      message("Constrained optimization failed to converge within iteration limit;
+      if((abs(constrained_fit$gap) <= constraint_tol) &
+         (constrained_fit$niter < maxit)){
+        accept_try <- TRUE
+        good_enough_fit <- TRUE
+      } else{
+        tau <- tau^(3/4)
+        inner_maxit <- 2*inner_maxit
+        message("Constrained optimization failed to converge within iteration limit;
 retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
+      }
     }
-  }
-  tries_so_far <- tries_so_far + 1
-  if(tries_so_far == ntries){
-    accept_try <- TRUE
-  }
+    tries_so_far <- tries_so_far + 1
+    if(tries_so_far == ntries){
+      accept_try <- TRUE
+    }
   }
 
 
   if(!good_enough_fit){
     warning("Optimization for null fit with k = ",k_constr," and j = ",j_constr," failed to converge across ", ntries, ifelse(ntries>1," attempts."," attempt."))
-}
+  }
   B <- constrained_fit$B
   z <- update_z(Y,X,B)
   p <- ncol(X)
@@ -182,7 +186,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
     #indexes in long format corresponding to the j_constr-th col of B
   #get score stat
   indexes_to_remove <- (j_ref - 1)*p + 1:p
-  score_stat <-
+  score_res <- try(
     get_score_stat(Y = Y,
                  X_cup = X_cup,
                  X = X,
@@ -197,12 +201,21 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                  p = p,
                  I_inv = I_inv,
                  Dy = Dy,
-                 cluster = cluster)
+                 cluster = cluster))
+  if (inherits(score_res, "try-error")) {
+    score_stat <- score_res
+  } else {
+    score_stat <- score_res$score_stat
+  }
  
   if(!return_both_score_pvals){ #typically we want only one score p-value
                                 #(using only one version of information matrix)
-
+    if (inherits(score_stat, "try-error")) {
+      warning("score statistic for test of k = ", k_constr, " and j = ", j_constr, " cannot be computed, likely because the information matrix is computationally singular.")
+      score_stat <- NA
+    }
   return(list("score_stat" = score_stat,
+              "score_pieces" = score_res, 
               "pval" = pchisq(score_stat,1,lower.tail = FALSE),
               "log_pval" = pchisq(score_stat,1,lower.tail = FALSE, log.p = TRUE),
               "niter" = constrained_fit$niter,
@@ -211,13 +224,15 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
               "gap" = constrained_fit$gap,
               "u" = constrained_fit$u,
               "rho" = constrained_fit$rho,
+              "tau" = tau,
+              "inner_maxit" = inner_maxit, 
               "null_B" = constrained_fit$B,
               # "score_stats" = constrained_fit$score_stats,
               "Bs" = constrained_fit$Bs))
   } else{ 
     #for simulations -- if we want to return both the score p-value using
     #information from full model fit and from null model
-      score_stat_with_null_info <-
+      score_res_with_null_info <-
         get_score_stat(Y = Y,
                        X_cup = X_cup,
                        X = X,
@@ -232,13 +247,23 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                        p = p,
                        I_inv = NULL,
                        Dy = Dy)
-
+      if (inherits(score_res_with_null_info, "try-error")) {
+        score_stat_with_null_info <- score_res_with_null_info
+      } else {
+        score_stat_with_null_info <- score_res_with_null_info$score_stat
+      }
       score_stat_with_null_info <- score_stat_with_null_info
+      if (inherits(score_stat_with_null_info, "try-error")) {
+        warning("one of the score statistics for test of k = ", k_constr, " and j = ", j_constr, " cannot be computed, likely because the information matrix is computationally singular.")
+        score_stat_with_null_info <- NA
+      }
 
       return(list("score_stat" = score_stat,
+                  "score_pieces" = score_res,
                   "pval" = pchisq(score_stat,1,lower.tail = FALSE),
                   "log_pval" = pchisq(score_stat,1,lower.tail = FALSE, log.p = TRUE),
                   "score_stat_null_info" = score_stat_with_null_info,
+                  "score_pieces_null_info" = score_res_with_null_info,
                   "pval_null_info" = pchisq(score_stat_with_null_info,1,lower.tail = FALSE),
                   "log_pval_null_info" = pchisq(score_stat_with_null_info,1,lower.tail = FALSE,log.p = TRUE),
                   "niter" = constrained_fit$niter,
@@ -247,6 +272,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                   "gap" = constrained_fit$gap,
                   "u" = constrained_fit$u,
                   "rho" = constrained_fit$rho,
+                  "tau" = tau,
+                  "inner_maxit" = inner_maxit, 
                   "null_B" = constrained_fit$B,
                   # "score_stats" = constrained_fit$score_stats,
                   "Bs" = constrained_fit$Bs))

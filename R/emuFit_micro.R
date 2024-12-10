@@ -67,6 +67,14 @@ emuFit_micro <-
           Y_start[i,] <- Y_start[i,] - mean(Y_start[i,])
         }
         B <- matrix(nrow = p,ncol = J)
+        
+        ##Checking if design matrix is rank-deficient and soln_mat can be found
+        if (qr(t(X)%*%X)$rank < ncol(X)){
+          stop("Design matrix X inputted for the model is rank-deficient, preventing proper model fitting.
+  This might be due to multicollinearity, overparameterization, or redundant factor levels included in covariates.
+  Consider removing highly correlated covariates or adjusting factor levels to ensure a full-rank design. \n")
+        }
+        
         soln_mat <- qr.solve(t(X)%*%X,t(X))
         for(j in 1:J){
           B[,j] <- as.numeric(as.matrix(soln_mat%*%Y_start[,j,drop = FALSE]))
@@ -125,6 +133,28 @@ emuFit_micro <-
     B_diff <- Inf
     while(!converged){
       old_B <- B
+      if(!is.null(j_ref)){
+        shifty <- optim(rep(0,p),function(x) lil_ll(x,
+                                                    B = B,
+                                                    p = p,
+                                                    X = X,
+                                                    Y = Y,
+                                                    J = J,
+                                                    j_ref = j_ref),
+                        method = "BFGS")
+        
+        shift <- shifty$par
+        
+        # print(signif(shifty$par,2))
+        
+        for(k in 1:p){
+          B[k,-j_ref] <-  B[k,-j_ref] + shifty$par[k]
+        }
+        #   
+        # }
+        
+        z <- update_z(X = X, Y = Y, B = B)
+      }
       for(j in loop_js){
         # print(j)
         # llj <- function(x){

@@ -4,12 +4,17 @@
 #' @param X an n x p matrix or dataframe of covariates (optional)
 #' @param formula a one-sided formula specifying the form of the mean model to be fit
 #' @param data an n x p data frame containing variables given in \code{formula}
-#' @param cluster a numeric vector giving cluster membership for each row of Y to 
-#' be used in computing GEE test statistics. Default is NULL, in which case rows of 
-#' Y are treated as independent.
+#' @param assay_name a string containing the desired assay name within a `TreeSummarizedExperiment` object.
+#' This is only required if Y is a `TreeSummarizedExperiment` object, otherwise this argument does nothing
+#' and can be ignored.
+#' @param cluster a vector giving cluster membership for each row of Y to be used in computing 
+#' GEE test statistics. Default is NULL, in which case rows of Y are treated as independent.
 #' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
 #' @param B starting value of coefficient matrix (p x J). If not provided,
 #' B will be initiated as a zero matrix.
+#' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation. This should either 
+#' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+#' include the other elements of the list as \code{NULL}.
 #' @param fitted_model a fitted model produced by a separate call to emuFit; to
 #' be provided if score tests are to be run without refitting the full unrestricted model.
 #' Default is NULL.
@@ -31,16 +36,22 @@
 #' @param use_both_cov logical: should score tests be run using information and
 #' empirical score covariance evaluated both under the null and full models?
 #' Used in simulations
+#' @param match_row_names logical: Make sure rows on covariate data and response data correspond to 
+#' the same sample by comparing row names and subsetting/reordering if necessary. 
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-#' pseudohuber loss).
+#' pseudohuber loss). If a number is provided a single category constraint will be used
+#' with the provided category as a reference category. 
 #' @param constraint_grad_fn derivative of constraint_fn with respect to its
 #' arguments (i.e., elements of a row of B)
 #' @param constraint_param If pseudohuber centering is used (this is the default),
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 #' the minimizer of the pseudo-Huber loss approaches the median.)
-#' @param verbose provide updates as model is being fitted? Defaults to TRUE.
+#' @param verbose provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
+#' then key messages about algorithm progress will be displayed. If user sets verbose = "development",
+#' then key messages and technical messages about convergence will be displayed. Most users who want status
+#' updates should set verbose = TRUE.
 #' @param tolerance tolerance for stopping criterion in full model fitting; once
 #' no element of B is updated by more than this value in a single step, we exit
 #' optimization. Defaults to 1e-3.
@@ -71,20 +82,42 @@
 #' @param c1 numeric: parameter for Armijo line search. Default is 1e-4.
 #' @param trackB logical: should values of B be recorded across optimization
 #' iterations and be returned? Primarily used for debugging. Default is FALSE.
+#' @param return_nullB logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE. 
+#' @param return_score_components logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.
 #' @param return_both_score_pvals logical: should score p-values be returned using both
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
 #' p-value to be used should be chosen before conducting tests.
+#' @param remove_zero_comparison_pvals Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur 
+#' for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
+#' a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly 
+#' small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further. 
+#' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
+#' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
+#' Default is \code{0.01}. 
+#' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-#' 'I', and 'Dy'.  Parameter estimates by 
-#' covariate and outcome category (e.g., taxon for microbiome data), as well as 
-#' optionally confidence intervals and p-values, are contained in 'coef'. 'B' 
-#' contains parameter estimates in matrix format (rows indexing covariates and 
-#' columns indexing outcome category / taxon). 'penalized' is equal to TRUE 
-#' if Firth penalty is used in estimation (default) and FALSE otherwise. 'I' and 
-#' 'Dy' contain an information matrix and empirical score covariance matrix 
-#' computed under the full model.
+#' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
+#' Parameter estimates by covariate and outcome category (e.g., taxon for microbiome data),
+#' as well as optionally confidence intervals and p-values, are contained in 'coef'.
+#' Any robust score statistics and score test p-values are also included in 'coef'. 
+#' If there are any zero-comparison parameters in the model, a column 'zero_comparison'
+#' is also included, which is TRUE for any parameters that compare the level of a categorical
+#' covariate to a reference level for a category with only zero counts for both the comparison
+#' level and the reference level. This check is currently implemented for an arbitrary design matrix
+#' generated using the \code{formula} and \code{data} arguments, and for a design matrix with no more
+#' than one categorical covariate if the design matrix \code{X} is input directly.
+#' 'B' contains parameter estimates in matrix format (rows indexing covariates and
+#' columns indexing outcome category / taxon). 
+#' 'penalized' is equal to TRUE f Firth penalty is used in estimation (default) and FALSE otherwise. 
+#' 'z_hat' returns the nuisance parameters calculated in Equation 7 of the radEmu manuscript,
+#' corresponding to either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE
+#' or FALSE, respectively. 
+#' I' and 'Dy' contain an information matrix and empirical score covariance matrix computed under the 
+#' full model. 
+#' 'score_test_hyperparams' contains parameters and hyperparameters related to estimation under the null,
+#' including whether or not the algorithm converged, which can be helpful for debugging. 
 #'
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
@@ -96,9 +129,11 @@ emuFit <- function(Y,
                    X = NULL,
                    formula = NULL,
                    data = NULL,
+                   assay_name = NULL,
                    cluster = NULL,
                    penalize = TRUE,
                    B = NULL,
+                   B_null_list = NULL,
                    fitted_model = NULL,
                    refit = TRUE,
                    test_kj = NULL,
@@ -109,6 +144,7 @@ emuFit <- function(Y,
                    use_fullmodel_info = FALSE,
                    use_fullmodel_cov = FALSE,
                    use_both_cov = FALSE,
+                   match_row_names = TRUE,
                    constraint_fn = pseudohuber_center,
                    constraint_grad_fn = dpseudohuber_center_dx,
                    constraint_param = 0.1,
@@ -126,13 +162,19 @@ emuFit <- function(Y,
                    inner_maxit = 25,
                    max_step = 1,
                    trackB = FALSE,
-                   return_both_score_pvals = FALSE
-                   
-                   
-) {
+                   return_nullB = FALSE,
+                   return_score_components = FALSE,
+                   return_both_score_pvals = FALSE,
+                   remove_zero_comparison_pvals = 0.01,
+                   unobserved_taxon_error = TRUE) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
+  
+  # confirm that input to verbose is valid
+  if (!(verbose %in% c(FALSE, TRUE, "development"))) {
+    stop('The argument "verbose" must be set to one of TRUE, FALSE, or "development".')
+  }
   
   # check if Y is a phyloseq object
   if ("phyloseq" %in% class(Y)) {
@@ -142,12 +184,32 @@ emuFit <- function(Y,
       } else {
         data <- data.frame(phyloseq::sample_data(Y))
         X <- model.matrix(formula, data)
+        taxa_are_rows <- Y@otu_table@taxa_are_rows
         Y <- as.matrix(phyloseq::otu_table(Y))
+        if (taxa_are_rows) {
+          Y <- t(Y)
+        }
       }
     } else {
       stop("You are trying to use a `phyloseq` data object or `phyloseq` helper function without having the `phyloseq` package installed. Please either install the package or use a standard data frame.")
     }
-  } else if ("data.frame" %in% class(Y)) {
+    
+  # check if Y is a TreeSummarizedExperiment object
+  } else if ("TreeSummarizedExperiment" %in% class(Y)) {
+      if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+        if (is.null(assay_name) | is.null(formula)) {
+          stop("If Y is a `TreeSummarizedExperiment` object, make sure to include the assay_name and formula arguments.")
+        }
+        data <- as.data.frame(SummarizedExperiment::colData(Y))
+        X <- model.matrix(formula, data)
+        Y <- as.data.frame(t(SummarizedExperiment::assay(Y, assay_name)))
+      } else {
+        stop("You are trying to use a `TreeSummarizedExperiment` data object or `TreeSummarizedExperiment` helper function without having the `SummarizedExperiment` package installed. Please either install the package or use a standard data frame.")
+      }
+  }
+  
+  # convert Y from a data.frame object to a matrix, even if it was extracted directly from `phyloseq` or `TreeSummarizedExperiment`
+  if ("data.frame" %in% class(Y)) {
     Y <- as.matrix(Y)
     if (!is.numeric(Y)) {
       stop("Y is a data frame that cannot be coerced to a numeric matrix. Please fix and try again.")
@@ -168,20 +230,70 @@ covariates in formula must be provided.")
     }
   }
   
+  # check that if X and Y match in the row names
+  if (is.null(rownames(X)) || is.null(rownames(Y))){
+    if (nrow(X) == nrow(Y)){
+      if(match_row_names){
+        if(is.null(rownames(X))){
+          message("Row names are missing from the covariate matrix X. We will assume the rows are in the same order as in the response matrix Y. You are responsible for ensuring the order of your observations is the same in both matrices.")
+        } else {
+          message("Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.")
+        }
+      }
+    } else {
+      if(is.null(rownames(X))){
+        stop("Row names are missing from the covariate matrix X, and the number of rows does not match the number of rows in the response matrix Y. Please resolve this issue before refitting the model.")
+      } else {
+        stop("Row names are missing from the response matrix Y, and the number of rows does not match the number of rows in the covariate matrix X. Please resolve this issue before refitting the model.")
+      }
+    }
+  } else{
+    if(match_row_names){
+      names_X <- rownames(X)
+      names_Y <- rownames(Y)
+      
+      #Checking if any row names are duplicated
+      if (any(duplicated(names_X))) stop("Covariate matrix X has duplicated row names. Please ensure all row names are unique before refitting the model.")
+      if (any(duplicated(names_Y))) stop("Response matrix Y has duplicated row names. Please ensure all row names are unique before refitting the model.")
+      
+      # Find common row names
+      common_names <- intersect(names_X, names_Y)
+      
+      if (length(common_names) < length(names_X) || length(common_names) < length(names_Y)) {
+        warning(sprintf("According to the rownames, there are observations that are missing either in the covariate matrix (X) and/or the response matrix (Y). We will subset to common rows only, resulting in %d samples.", length(common_names))) 
+        
+        X <- X[common_names, , drop = FALSE]
+        Y <- Y[common_names, , drop = FALSE]
+        
+      } else if(all.equal(rownames(Y), rownames(X)) != TRUE){
+        message("There is a different row ordering between the covariate matrix (X) and the response matrix (Y). Covariate data will be reordered to match response data.")
+        X <- X[rownames(Y), , drop = FALSE]
+      }
+    } else {
+      if(nrow(X) != nrow(Y)){
+        stop("The number of rows does not match between the covariate matrix (X) and the response matrix (Y), and subsetting/matching by row name has been disabled. Please resolve this issue before refitting the model.")
+      }
+    }
+  }
+  
   if (min(rowSums(Y))==0) {
     stop("Some rows of Y consist entirely of zeroes, meaning that some samples
 have no observations. These samples must be excluded before fitting model.")
   }
   
+  if (unobserved_taxon_error) {
+    if (min(colSums(Y)) == 0) {
+      stop("Some columns of Y consist entirely of zeroes, meaning that some categories have zero counts for all samples. These
+         categories must be excluded before fitting the model.")
+    }
+  }
+  
   #check that cluster is correctly type if provided
   if(!is.null(cluster)){
-    if(!is.numeric(cluster)){
-      stop("If provided, argument 'cluster' must be a numeric vector.")
-    }
     if(length(cluster)!=nrow(Y)){
-      stop("If provided, argument 'cluster' must be a numeric vector with 
+        stop("If provided as a vector, argument 'cluster' must have 
 length equal to n (the number of rows in Y).")
-    }
+      }
     if(length(unique(cluster)) == nrow(Y)){
       warning("Number of unique values in 'cluster' equal to number of rows of Y; 
 ignoring argument 'cluster'.")
@@ -189,16 +301,56 @@ ignoring argument 'cluster'.")
     }
   }
   
+  # check that B_null_list is the correct length if provided 
+  if (!is.null(B_null_list)) {
+    if (length(B_null_list) != nrow(test_kj)) {
+      warning("Length of 'B_null_list' is different than the number of tests specified in 'test_kj'. Ignoring object 'B_null_list'.")
+      B_null_list <- NULL
+    }
+  }
+  
+  # check for valid argument remove_zero_comparison_pvals 
+  if (remove_zero_comparison_pvals != TRUE & remove_zero_comparison_pvals != FALSE) {
+    if (!(is.numeric(remove_zero_comparison_pvals) & remove_zero_comparison_pvals <= 1 &
+          remove_zero_comparison_pvals >= 0)) {
+      stop("Please set `remove_zero_comparison_pvals` to either TRUE, FALSE, or a numeric value between 0 and 1.")
+    }
+  }
+  
+  if (length(constraint_fn) == 1 & is.numeric(constraint_fn)) {
+    constraint_cat <- constraint_fn
+    constraint_fn <- function(x) {x[constraint_cat]}
+    constraint_grad_fn <- function(x) {
+      grad <- rep(0, length(x))
+      grad[constraint_cat] <- 1
+      return(grad)
+    }
+    constraint_param <- NA
+  }
+  
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
   
-  X_cup <- X_cup_from_X(X,J)
+  if (is.null(colnames(X))) {
+    if (p > 1) {
+      colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
+    } else {
+      colnames(X) <- "Intercept"
+    }
+  }
+  if (is.null(colnames(Y))) {
+    colnames(Y) <- paste0("category_", 1:ncol(Y))
+  }
   
+  # check for zero-comparison parameters
+  zero_comparison_res <- zero_comparison_check(X = X, Y = Y)
+  
+  X_cup <- X_cup_from_X(X,J)
   
   if (is.logical(all.equal(constraint_fn, pseudohuber_center))) {
     if (all.equal(constraint_fn, pseudohuber_center)) {
-      if (verbose) message("Centering rows of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
+      if (verbose %in% c(TRUE, "development")) message("Centering rows of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
       
       stopifnot(!is.na(constraint_param))
       
@@ -238,10 +390,14 @@ and the corresponding gradient function to constraint_grad_fn.")
                                maxit = maxit,
                                max_step = max_step,
                                tolerance = tolerance,
-                               verbose = verbose,
+                               verbose = (verbose == "development"),
                                j_ref = j_ref)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
+      converged_estimates <- fitted_model$convergence
+      if (!converged_estimates) {
+        warning("Optimization to estimate parameters did not converge. Try running again with a larger value of 'maxit'.")
+      }
     } else {
       
       fitted_model <-
@@ -252,7 +408,8 @@ and the corresponding gradient function to constraint_grad_fn.")
                      maxit = maxit,
                      max_stepsize = max_step,
                      tolerance = tolerance,
-                     j_ref = j_ref)
+                     j_ref = j_ref,
+                     verbose = (verbose == "development"))
       fitted_B <- fitted_model
       Y_test <- Y
     }
@@ -263,29 +420,54 @@ and the corresponding gradient function to constraint_grad_fn.")
     }
     if (!is.null(fitted_model)) {
       fitted_B <- fitted_model$B
-      Y_test <- Y_augmented <- fitted_model$Y_augmented
-      penalize <- fitted_model$penalized
+      if (penalize != fitted_model$penalized) {
+        stop("Your argument to `penalize` does not match the `penalize` argument within your `fitted_model` object. Please use the `penalize` argument that matches the `penalized` return object within your `fitted_model`.")
+      }
+      if (penalize) {
+        Y_test <- Y_augmented <- fitted_model$Y_augmented
+      } else {
+        Y_augmented <- NULL
+        Y_test <- Y
+      }
       if (!is.null(B)) {
         warning("B and fitted_model provided to emuFit; B ignored in favor of fitted_model.")
       }
     } else {
       fitted_B <- B
+      if (penalize) {
+        X_cup <- X_cup_from_X(X, J)
+        G <- get_G_for_augmentations(X, J, n, X_cup)
+        Y_test <- Y_augmented <- Y + 
+          get_augmentations(X = X, G = G, Y = Y, B = fitted_B)
+      } else {
+        Y_augmented <- NULL
+        Y_test <- Y
+      }
     }
   }
   
-  
-  coefficients <- expand.grid(1:J, 2:p)
-  coefficients <- data.frame(j = coefficients[ , 1],
-                             k = coefficients[ ,2])
-  coefficients$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
-  coefficients$lower <- NA
-  coefficients$upper <- NA
-  coefficients$pval <- coefficients$score_stat <- NA
-
-  
+  if (p == 1) {
+    message("You are running an intercept-only model. In this model the intercept beta_0^j is an unidentifiable combination of intercept for category j and the detection efficiency of category j. Therefore this parameter is not interpretable.")
+    
+    coefficients <- expand.grid(1:J, 1)
+    coefficients <- data.frame(j = coefficients[ , 1],
+                               k = coefficients[ ,2])
+    coefficients$estimate <- fitted_B[1, ]
+    coefficients$lower <- NA
+    coefficients$upper <- NA
+    coefficients$pval <- coefficients$score_stat <- NA
+  } else {
+    coefficients <- expand.grid(1:J, 2:p)
+    coefficients <- data.frame(j = coefficients[ , 1],
+                               k = coefficients[ ,2])
+    coefficients$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
+    coefficients$lower <- NA
+    coefficients$upper <- NA
+    coefficients$pval <- coefficients$score_stat <- NA
+  }
   
   if (compute_cis) {
-    if (verbose) {
+    if (verbose %in% c(TRUE, "development")) {
       message("Performing Wald tests and constructing CIs.")
     }
     
@@ -297,7 +479,7 @@ and the corresponding gradient function to constraint_grad_fn.")
                                     constraint_fn = constraint_fn,
                                     constraint_grad_fn = constraint_grad_fn,
                                     nominal_coverage = 1 - alpha,
-                                    verbose = verbose,
+                                    verbose = (verbose == "development"),
                                     j_ref = j_ref,
                                     cluster = cluster)
     
@@ -346,29 +528,52 @@ and the corresponding gradient function to constraint_grad_fn.")
   
   if (run_score_tests) {
     
+    score_test_hyperparams <- data.frame(u = rep(NA, nrow(test_kj)),
+                                         rho = NA,
+                                         tau = NA,
+                                         inner_maxit = NA,
+                                         gap = NA,
+                                         converged = NA)
+    
+    if (return_score_components) {
+      score_components <- vector(mode = "list", length = nrow(test_kj))
+    }
+    
     if (return_both_score_pvals) {
       colnames(coefficients)[colnames(coefficients) == "pval"] <-
         "score_pval_full_info"
       colnames(coefficients)[colnames(coefficients) == "score_stat"] <-
         "score_stat_full_info"
-      coefficients$score_pval_null_info <- numeric(nrow(coefficients))
-      coefficients$score_stat_null_info <- numeric(nrow(coefficients))
+      coefficients$score_pval_null_info <- NA
+      coefficients$score_stat_null_info <- NA
       
       if (!use_fullmodel_info) {
         stop("If return_both_score_pvals = TRUE, use_fullmodel_info must be TRUE as well.")
       }
     }
     
-    
+    if (return_nullB) {
+      nullB_list <- vector(mode = "list", length = nrow(test_kj))
+    }
     for(test_ind in 1:nrow(test_kj)) {
       
-      if (verbose) {
+      if (verbose %in% c(TRUE, "development")) {
         print(paste("Running score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
                     test_kj$j[test_ind],").",sep = ""))
       }
       
+      B_to_use <- fitted_B
+      if (!is.null(B_null_list)) {
+        if (!is.null(B_null_list[[test_ind]])) {
+          B_to_use <- B_null_list[[test_ind]]
+          if (!(nrow(B_to_use) == nrow(fitted_B) & ncol(B_to_use) == ncol(fitted_B))) {
+            warning("'B_null_list' contains objects that are not the correct dimension for 'B'. The 'B_null_list' argument will be ignored.")
+            B_to_use <- fitted_B
+          }
+        }
+      }
       
-      test_result <- score_test(B = fitted_B, #B (MPLE)
+      test_result <- score_test(B = B_to_use, #B (MPLE or starting value if provided)
                                 Y = Y_test, #Y (with augmentations)
                                 X = X, #design matrix
                                 X_cup = X_cup,
@@ -387,61 +592,76 @@ and the corresponding gradient function to constraint_grad_fn.")
                                 maxit = maxit,
                                 inner_maxit = inner_maxit,
                                 ntries = ntries,
-                                verbose = verbose,
+                                verbose = (verbose == "development"),
                                 trackB = trackB,
                                 I_inv = I_inv,
                                 Dy = Dy,
                                 return_both_score_pvals = return_both_score_pvals,
                                 cluster = cluster)
       
-      which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
-                           (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
-      
-      if (!return_both_score_pvals) {
-        coefficients[which_row ,c("pval","score_stat")] <-
-          c(test_result$pval,test_result$score_stat)
-      } else {
-        coefficients[which_row ,c("score_pval_full_info","score_stat_full_info",
-                                  "score_pval_null_info","score_stat_null_info")] <-
-          c(test_result$pval,test_result$score_stat,
-            test_result$pval_null_info,test_result$score_stat_null_info)
+      if (return_score_components & !(is.null(test_result))) {
+        score_components[[test_ind]] <- test_result$score_pieces
       }
       
-      if (use_both_cov) {
+      if (is.null(test_result)) {
+        if (return_nullB) {
+          nullB_list[[test_ind]] <- NA
+        }
+      } else {
         
-        #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
-        alt_score_stat <- get_score_stat(Y = Y_test,
-                                         X_cup = X_cup,
-                                         X = X,
-                                         B = test_result$null_B,
-                                         k_constr = test_kj$k[test_ind],
-                                         j_constr = test_kj$j[test_ind],
-                                         constraint_grad_fn = constraint_grad_fn,
-                                         indexes_to_remove = (j_ref - 1)*p + 1:p,
-                                         j_ref = j_ref,
-                                         J = J,
-                                         n = n,
-                                         p = p, 
-                                         I_inv=I_inv,
-                                         Dy = just_wald_things$Dy,
-                                         cluster = cluster)
+        score_test_hyperparams[test_ind, ] <- 
+          c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
+            test_result$gap, test_result$convergence)
         
+        if (return_nullB) {
+          null_B <- test_result$null_B
+          for (k in 1:p) {
+            null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+          }
+          nullB_list[[test_ind]] <- null_B
+        }
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
                              (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
-        coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
-                                                                lower.tail = FALSE)
+        
+        if (!return_both_score_pvals) {
+          coefficients[which_row ,c("pval","score_stat")] <-
+            c(test_result$pval,test_result$score_stat)
+        } else {
+          coefficients[which_row ,c("score_pval_full_info","score_stat_full_info",
+                                    "score_pval_null_info","score_stat_null_info")] <-
+            c(test_result$pval,test_result$score_stat,
+              test_result$pval_null_info,test_result$score_stat_null_info)
+        }
+        
+        if (use_both_cov) {
+          
+          #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
+          alt_score_stat <- get_score_stat(Y = Y_test,
+                                           X_cup = X_cup,
+                                           X = X,
+                                           B = test_result$null_B,
+                                           k_constr = test_kj$k[test_ind],
+                                           j_constr = test_kj$j[test_ind],
+                                           constraint_grad_fn = constraint_grad_fn,
+                                           indexes_to_remove = (j_ref - 1)*p + 1:p,
+                                           j_ref = j_ref,
+                                           J = J,
+                                           n = n,
+                                           p = p, 
+                                           I_inv=I_inv,
+                                           Dy = just_wald_things$Dy,
+                                           cluster = cluster)$score_stat
+          
+          
+          which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
+                               (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
+          coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
+                                                                  lower.tail = FALSE)
+        }
+      
       }
-      
-      
     }
-  }
-  
-  if (is.null(colnames(X))) {
-    colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
-  }
-  if (is.null(colnames(Y))) {
-    colnames(Y) <- paste0("category_", 1:ncol(Y))
   }
   
   if (!is.null(colnames(X))) {
@@ -472,62 +692,56 @@ and the corresponding gradient function to constraint_grad_fn.")
   }
   
   if (!compute_cis) {
-    coefficients <-
-      cbind(data.frame(covariate = coefficients$covariate,
-                       category = coefficients$category,
-                       category_num = coefficients$j),
-            coefficients[ , c("estimate","lower","upper","score_stat","pval")])
-  } else {
-    if (!return_wald_p) {
-      coefficients <-
-        cbind(data.frame(covariate = coefficients$covariate,
-                         category = coefficients$category,
-                         category_num = coefficients$j),
-              coefficients[ , c("estimate","se","lower","upper","score_stat","pval")])
-    } else {
-      if (use_both_cov) {
-        coefficients <-
+    coef_df <-
           cbind(data.frame(covariate = coefficients$covariate,
                            category = coefficients$category,
                            category_num = coefficients$j),
-                coefficients[ , c("estimate","se","lower","upper","score_stat","pval",
-                                  "wald_p","score_fullcov_p")])
-      } else {
-        if (return_both_score_pvals) {
-          coefficients <-
-            cbind(data.frame(covariate = coefficients$covariate,
-                             category = coefficients$category,
-                             category_num = coefficients$j),
-                  coefficients[ , c("estimate","se","lower","upper",
-                                    "score_stat_full_info",
-                                    "score_pval_full_info",
-                                    "score_stat_null_info",
-                                    "score_pval_null_info",
-                                    "wald_p")])
-          
-        } else {
-          coefficients <-
-            cbind(data.frame(covariate = coefficients$covariate,
-                             category = coefficients$category,
-                             category_num = coefficients$j),
-                  coefficients[ , c("estimate","se","lower","upper","score_stat","pval","wald_p")])
-        }
-      }
+                coefficients[ , c("estimate","lower","upper")])
+  } else {
+    coef_df <-
+      cbind(data.frame(covariate = coefficients$covariate,
+                       category = coefficients$category,
+                       category_num = coefficients$j),
+            coefficients[ , c("estimate","se", "lower","upper")])
+  }
+  if (use_both_cov) {
+    coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval","score_fullcov_p")])
+  } else {
+    if (return_both_score_pvals) {
+      coef_df <- cbind(coef_df, coefficients[ , c("score_stat_full_info",
+                                                  "score_pval_full_info",
+                                                  "score_stat_null_info",
+                                                  "score_pval_null_info")])
+    } else {
+      coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval")])
+    }
+  }
+  if (return_wald_p) {
+    coef_df$wald_p <- coefficients[, "wald_p"]
+  }
+  coefficients <- coef_df
+  
+  if (penalize) {
+    if (!is.null(fitted_model)) {
+      Y_augmented <- fitted_model$Y_augmented
+    }
+  } else {
+    # set Y_augmented to NUll because without penalty there is no Y augmentation
+    Y_augmented <- NULL
+  }
+  
+  if (!is.null(fitted_model)) {
+    if (penalize) {
+      B <- fitted_model$B
+    } else {
+      B <- fitted_model
     }
   }
   
   if (penalize) {
-    Y_augmented <- fitted_model$Y_augmented
+    z_hat <- log(rowSums(Y_augmented)) - log(rowSums(exp(X %*% B)))
   } else {
-    if (!is.null(fitted_model)) {
-      Y_augmented <- fitted_model$Y_augmented
-    } else {
-      Y_augmented <- NULL
-    }
-  }
-  
-  if (!is.null(fitted_model)) {
-    B <- fitted_model$B
+    z_hat <- log(rowSums(Y)) - log(rowSums(exp(X %*% B)))
   }
   
   if (is.null(just_wald_things)) {
@@ -546,14 +760,54 @@ and the corresponding gradient function to constraint_grad_fn.")
     rownames(B) <- colnames(X)
   }
   
-  return(structure(list("call" = call,
-                        "coef" = coefficients,
-                        "B" = B,
-                        "penalized" = penalize,
-                        "Y_augmented" = Y_augmented,
-                        "I" = I,
-                        "Dy" = Dy,
-                        "cluster" = cluster), class = "emuFit"))
+  if (!is.null(zero_comparison_res)) {
+    coefficients <- dplyr::full_join(coefficients, zero_comparison_res, 
+                                     by = c("covariate", "category")) 
+    coefficients$zero_comparison[is.na(coefficients$zero_comparison)] <- FALSE
+    
+    if (remove_zero_comparison_pvals == TRUE | is.numeric(remove_zero_comparison_pvals)) {
+      pval_cols <- which(grepl("pval", names(coefficients)))
+      for (col in pval_cols) {
+        if (remove_zero_comparison_pvals == TRUE) {
+          coefficients[coefficients$zero_comparison, col] <- NA
+        } else {
+          ind <- ifelse(is.na(coefficients[, col]), FALSE, 
+                        coefficients[, col] <= remove_zero_comparison_pvals & coefficients$zero_comparison)
+          coefficients[ind, col] <- NA
+        }
+      }
+    }
+  }
+  
+  results <- list("call" = call,
+                  "coef" = coefficients,
+                  "B" = B,
+                  "penalized" = penalize,
+                  "Y_augmented" = Y_augmented,
+                  "z_hat" = z_hat,
+                  "I" = I,
+                  "Dy" = Dy,
+                  "cluster" = cluster)
+  
+  if (refit & penalize) {
+    results$estimation_converged <- converged_estimates
+  }
+  if (run_score_tests & return_nullB) {
+    results$null_B <- nullB_list
+  }
+  if (run_score_tests) {
+    results$score_test_hyperparams <- score_test_hyperparams
+    if (sum(score_test_hyperparams$converged != "converged") > 0) {
+      unconverged_test_kj <- test_kj[which(score_test_hyperparams$converged != "converged"), ]
+      results$null_estimation_unconverged <- unconverged_test_kj
+      warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
+    }
+  }
+  if (run_score_tests & return_score_components) {
+    results$score_components <- score_components
+  }
+  
+  return(structure(results, class = "emuFit"))
 }
 
 
