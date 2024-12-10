@@ -98,33 +98,34 @@ fit_null_repar <- function(B,
     prev_B <- B
     
     if(do_shift){
-      lil_ll_rep <- function(shifts){
-        temp_B <- B
+      lil_ll_rep <- function(shifts,B,X,Y){
         for(k in 1:p){
-          temp_B[k,-j_ref] <-  temp_B[k,-j_ref] + shifts[k]
+          B[k,-j_ref] <-  B[k,-j_ref] + shifts[k]
         }
-        temp_B[k_constr,j_constr] <- constraint_fn( temp_B[k_constr,-j_constr])
-        temp_z <- update_z(X = X, Y = Y, B = temp_B)
-        log_means <- X%*%temp_B + matrix(temp_z, ncol = 1)%*%matrix(1,ncol = J,nrow = 1)
+        B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
+        z <- update_z(X = X, Y = Y, B = B)
+        log_means <- X%*%B + matrix(z, ncol = 1)%*%matrix(1,ncol = J,nrow = 1)
         
         return(-sum(Y*log_means - exp(log_means)))
       }
       
-      shifty <- optim(rep(0,p),lil_ll_rep,
+      shifty <- optim(rep(0,p),function(x) lil_ll_rep(x,B = B, X = X, Y = Y),
                       method = "BFGS")
      
       shift <- shifty$par
       
-      if(max(abs(shift))<shift_tolerance ){
-        do_shift <- FALSE
-      }
+      # if(max(abs(shift))<shift_tolerance ){
+      #   do_shift <- FALSE
+      # }
     }
     
     if(do_shift){
-      # print(signif(shift,2))
+      if(verbose){
+      print(signif(shift,2))
+        }
       
       for(k in 1:p){
-        B[k,-j_ref] <-  B[k,-j_ref] + shift[k]
+        B[k,-j_ref] <-  B[k,-j_ref] + starting_stepsize*shift[k]
       }
       B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
       
@@ -224,6 +225,7 @@ fit_null_repar <- function(B,
               "niter" = iter - 1,
               "converged" = converged,
               "dll_dB" = deriv_mat,
+              "lls" = lls,
               "Bs" = Bs))
 }
 

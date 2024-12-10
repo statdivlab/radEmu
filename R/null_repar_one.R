@@ -34,7 +34,7 @@ null_repar_one <- function(B,j,z,Y,X,j_constr,k_constr, constraint_fn,constraint
                          t(X)%*%diag(exp(log_means[,j]))%*%X
                        })
     lil_info <- Matrix::bdiag(lil_info)
-    cg <- constraint_grad_fn(c(B[k_constr,-c(j_constr,j)],B[k_constr,j]))
+    cg <- constraint_grad_fn(c(B[k_constr,-c(j_constr)],B[k_constr,j]))
     
     pop_index <- p + k_constr
     info_out <- lil_info[pop_index,pop_index]

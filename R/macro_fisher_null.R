@@ -141,7 +141,8 @@ macro_fisher_null <- function(X,
     message("Small stepsize: ",signif(stepsize,2))
   }
   if (debug) {
-    return(list(update =  update_dir*stepsize,gap = prop_gap,
+    return(list(update =  update_dir*stepsize,
+                gap = prop_gap,
                 lag_deriv = lag_deriv,
                 info_inverse = info_inverse,
                 stepsize = stepsize))

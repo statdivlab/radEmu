@@ -133,6 +133,28 @@ emuFit_micro <-
     B_diff <- Inf
     while(!converged){
       old_B <- B
+      if(!is.null(j_ref)){
+        shifty <- optim(rep(0,p),function(x) lil_ll(x,
+                                                    B = B,
+                                                    p = p,
+                                                    X = X,
+                                                    Y = Y,
+                                                    J = J,
+                                                    j_ref = j_ref),
+                        method = "BFGS")
+        
+        shift <- shifty$par
+        
+        # print(signif(shifty$par,2))
+        
+        for(k in 1:p){
+          B[k,-j_ref] <-  B[k,-j_ref] + shifty$par[k]
+        }
+        #   
+        # }
+        
+        z <- update_z(X = X, Y = Y, B = B)
+      }
       for(j in loop_js){
         # print(j)
         # llj <- function(x){
