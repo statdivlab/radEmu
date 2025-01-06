@@ -131,12 +131,12 @@ wirbel_china <- wirbel_restrict[, sample_cols]
 
 Next, we want to confirm that all samples have at least one non-zero count across the categories we've chosen and that all categories have at least one non-zero count across the samples we've chosen.
 
-```{r}
-sum(colSums(SummarizedExperiment::assay(wirbel_china, "Count")) == 0) # no samples have a count sum of 0 
-sum(rowSums(SummarizedExperiment::assay(wirbel_china, "Count")) == 0) # one category has a count sum of 0 
-category_to_rm <- rowSums(SummarizedExperiment::assay(wirbel_china, "Count")) == 0
+```{r, eval = tse}
+sum(colSums(assay(wirbel_china, "Count")) == 0) # no samples have a count sum of 0 
+sum(rowSums(assay(wirbel_china, "Count")) == 0) # one category has a count sum of 0 
+category_to_rm <- rowSums(assay(wirbel_china, "Count")) == 0
 wirbel_china <- wirbel_china[!category_to_rm, ]
-sum(rowSums(SummarizedExperiment::assay(wirbel_china, "Count")) == 0) # now no categories have a count sum of 0 
+sum(rowSums(assay(wirbel_china, "Count")) == 0) # now no categories have a count sum of 0 
 ```
 
 The function that we use to fit our model is called `emuFit`. It can accept your data in various forms, and here we will show how to use it with a `TreeSummarizedExperiment` object as input. 
