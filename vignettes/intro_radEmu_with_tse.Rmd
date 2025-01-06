@@ -153,7 +153,7 @@ The way to access estimated coefficients and confidence intervals from the model
 
 Now, we can easily visualize our results using the `plot.emuFit` function!
 
-```{r, fig.height = 6, fig.width = 6}
+```{r, fig.height = 6, fig.width = 6, eval = tse}
 plot(ch_fit)$plots
 ```
 
