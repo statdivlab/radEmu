@@ -64,6 +64,7 @@ Now that we have loaded the `TreeSummarizedExperiment` package, we will create o
 
 ```{r, message = FALSE, eval = tse}
 library(TreeSummarizedExperiment)
+library(SummarizedExperiment)
 ```
 
 ```{r, eval = tse} 
