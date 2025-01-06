@@ -1,0 +1,159 @@
+---
+title: "Introduction to radEmu with TreeSummarizedExperiment"
+author: "David Clausen, Sarah Teichman and Amy Willis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to radEmu with TreeSummarizedExperiment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+First, we will install `radEmu`, if we haven't already.
+
+```{r, eval = FALSE}
+# if (!require("remotes", quietly = TRUE))
+#     install.packages("remotes")
+#
+# remotes::install_github("statdivlab/radEmu")
+```
+
+Next, we can load `radEmu` as well as the `tidyverse` package suite. 
+
+```{r setup, message = FALSE}
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(radEmu)
+```
+
+## Introduction 
+
+This vignette provides an introduction to using `radEmu` for differential abundance analysis using a `TreeSummarizedExperiment` data object. For more in-depth explanations of how this software works and details on this analysis, see the vignette "intro_radEmu.Rmd". 
+
+In this lab we'll explore a [dataset published by Wirbel et al. (2019)](https://www.nature.com/articles/s41591-019-0406-6). This is a meta-analysis of case-control studies, meaning that Wirbel et al. collected raw sequencing data from studies other researchers conducted and re-analyzed it (in this case, they also collected some new data of their own).
+
+Wirbel et al. published two pieces of data we'll focus on today:
+
+* metadata giving demographics and other information about participants
+* a mOTU (metagenomic OTU) table
+
+In the manuscript, we looked at differential abundance across otherwise similar colorectal cancer and non-cancer control study participants for the 849 mOTUs that Wirbel et al. published. For the purpose of having a streamlined tutorial, we will only look at a subset of those 849 mOTUs in this vignette. 
+
+## Loading and exploring data 
+
+Note that in order to follow along with this tutorial (but not to use `radEmu`!) you will need to have `TreeSummarizedExperiment` installed. We will check if you have `TreeSummarizedExperiment` installed, and if you do not then you can read the following code but it will not be run.
+
+```{r, results = 'hide'}
+tse <- requireNamespace("TreeSummarizedExperiment", quietly = TRUE) == TRUE
+```
+
+```{r, echo = FALSE}
+print(paste0("TreeSummarizedExperiment is installed: ", tse))
+```
+
+Now that we have loaded the `TreeSummarizedExperiment` package, we will create our `TreeSummarizedExperiment` data object. 
+
+```{r, message = FALSE, eval = tse}
+library(TreeSummarizedExperiment)
+```
+
+```{r, eval = tse} 
+data(wirbel_sample)
+data(wirbel_otu)
+data(wirbel_taxonomy)
+wirbel_tse <- TreeSummarizedExperiment(assays = list(Count = t(wirbel_otu)),
+                                       rowData = wirbel_taxonomy,
+                                       colData = wirbel_sample)
+wirbel_tse
+```
+
+We'll start by looking at the metadata. 
+
+```{r, eval = tse}
+dim(colData(wirbel_tse))
+head(colData(wirbel_tse))
+```
+
+We can see that this dataset includes $566$ observations and $14$ variables. 
+
+Now let's look at the mOTU table. 
+
+```{r, eval = tse}
+dim(assay(wirbel_tse, "Count"))
+# let's check out a subset
+assay(wirbel_tse, "Count")[1:5, 1:3]
+```
+
+We can see that this table has $566$ samples (just like the metadata) and $845$ mOTUs. Let's save these mOTU names in a vector. 
+
+```{r, eval = tse}
+mOTU_names <- rownames(assay(wirbel_tse, "Count"))
+```
+
+Finally, we can check out the taxonomy table. 
+
+```{r, eval = tse}
+head(rowData(wirbel_tse))
+```
+
+## Fitting a model 
+
+`radEmu` is a package that can be used to estimate fold-differences in the abundance of microbial taxa between levels of a covariate. In this analysis, the covariate that we are primarily interested in is whether a sample is from a case of colorectal cancer or a control. We will make control ("CTR") the reference category: 
+
+```{r, eval = tse}
+colData(wirbel_tse)$Group <- factor(colData(wirbel_tse)$Group, levels = c("CTR","CRC"))
+```
+
+While in general we would fit a model to all mOTUs, we are going to subset to some specific genera for the purposes of this tutorial. Let's look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and *Fusobacterium* for now.
+
+```{r, eval = tse}
+chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
+genera_rows <- rowData(wirbel_tse)$genus %in% chosen_genera
+wirbel_restrict <- wirbel_tse[genera_rows]
+```
+
+Again, while we would generally fit a model using all of our samples, for this tutorial we are only going to consider data from a case-control study from China. 
+
+```{r, eval = tse}
+sample_cols <- colData(wirbel_restrict)$Country == "CHI"
+wirbel_china <- wirbel_restrict[, sample_cols]
+```
+
+Next, we want to confirm that all samples have at least one non-zero count across the categories we've chosen and that all categories have at least one non-zero count across the samples we've chosen.
+
+```{r}
+sum(colSums(assay(wirbel_china, "Count")) == 0) # no samples have a count sum of 0 
+sum(rowSums(assay(wirbel_china, "Count")) == 0) # one category has a count sum of 0 
+category_to_rm <- rowSums(assay(wirbel_china, "Count")) == 0
+wirbel_china <- wirbel_china[!category_to_rm, ]
+sum(rowSums(assay(wirbel_china, "Count")) == 0) # now no categories have a count sum of 0 
+```
+
+The function that we use to fit our model is called `emuFit`. It can accept your data in various forms, and here we will show how to use it with a `TreeSummarizedExperiment` object as input. 
+
+
+```{r, eval = tse}
+ch_fit <- emuFit(formula = ~ Group, 
+                 Y = wirbel_china, 
+                 assay_name = "Count",
+                 run_score_tests = FALSE) 
+```
+
+The way to access estimated coefficients and confidence intervals from the model is with `ch_fit$coef`. 
+
+Now, we can easily visualize our results using the `plot.emuFit` function!
+
+```{r, fig.height = 6, fig.width = 6}
+plot(ch_fit)$plots
+```
+
+If you'd like to see more explanations of the `radEmu` software and additional analyses of this data, check out the vignette "intro_radEmu.Rmd". 
