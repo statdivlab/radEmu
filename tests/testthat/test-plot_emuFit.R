@@ -14,8 +14,6 @@ Y <- radEmu:::simulate_data(n = n,
 
 fitted_model <- emuFit(Y = Y,
                        X = X,
-                       formula = ~group,
-                       data = covariates,
                        verbose = FALSE,
                        B_null_tol = 1e-2,
                        tolerance = 0.01,
