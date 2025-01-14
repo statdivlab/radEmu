@@ -214,3 +214,25 @@ including whether or not the algorithm converged, which can be helpful for debug
 \description{
 Fit radEmu model
 }
+\examples{
+# data frame example
+data(wirbel_sample_small)
+data(wirbel_otu_small)
+emuRes <- emuFit(formula = ~ Group, data = wirbel_sample_small, Y = wirbel_otu_small,
+                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01, 
+                 constraint_tol = 0.01, B_null_tol = 0.01) 
+ # here we set large tolerances for the example to run quickly, 
+ # but we recommend smaller tolerances in practice
+
+# TreeSummarizedExperiment example (only run this if you have TreeSummarizedExperiment installed)
+\dontrun{
+library("TreeSummarizedExperiment")
+example("TreeSummarizedExperiment")
+assayNames(tse) <- "counts"
+emuRes <- emuFit(Y = tse, formula = ~ condition, assay_name = "counts", 
+                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01, constraint_tol = 0.01)
+ # here we set large tolerances for the example to run quickly, 
+ # but we recommend smaller tolerances in practice
+}
+
+}

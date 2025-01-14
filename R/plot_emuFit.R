@@ -15,32 +15,14 @@
 #' @return Object of class \code{ggplot}. Plot of \code{radEmu} model fit with 95% confidence intervals.
 #'
 #' @examples
-#' data(wirbel_sample)
-#' data(wirbel_otu)
-#' 
-#' subset_studies <- which(wirbel_sample$Study %in% c("FR-CRC", "US-CRC", "AT-CRC"))
-#' 
-#' chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
-#' 
-#' mOTU_names <- colnames(wirbel_otu)
-#' mOTU_name_df <- data.frame(name = mOTU_names) %>% 
-#'   dplyr::mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") %>%
-#'   stringr::str_remove("uncultured ")) %>%
-#'   dplyr::mutate(genus_name = stringr::word(base_name, 1))
-#' 
-#' restricted_mOTU_names <- mOTU_name_df %>%
-#'   dplyr::filter(genus_name %in% chosen_genera) %>%
-#'   dplyr::pull(name)
-#' 
-#' small_Y <- wirbel_otu[subset_studies, restricted_mOTU_names]
-#' category_to_rm <- which(colSums(small_Y) == 0)
-#' 
-#' small_sample <- wirbel_sample[subset_studies, ]
+#' data(wirbel_sample_small)
+#' data(wirbel_otu_small)
 #' 
 #' ch_fit <- emuFit(formula = ~ Group + Study, 
-#'                  data = small_sample,
-#'                  Y = small_Y,
-#'                  run_score_tests = FALSE)
+#'                  data = wirbel_sample_small,
+#'                  Y = wirbel_otu_small,
+#'                  run_score_tests = FALSE,
+#'                  tol = 0.01)
 #' 
 #' plot_key <- list(p1 = c("Control" = "GroupCTR"),
 #'                  p2 = c("FR-Control" = "StudyFR-CRC",
