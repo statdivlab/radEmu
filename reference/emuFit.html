@@ -19,6 +19,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/intro_radEmu_with_phyloseq.html">Introduction to radEmu with phyloseq</a></li>
+    <li><a class="dropdown-item" href="../articles/intro_radEmu_with_tse.html">Introduction to radEmu with TreeSummarizedExperiment</a></li>
     <li><a class="dropdown-item" href="../articles/intro_radEmu.html">Introduction to radEmu</a></li>
     <li><a class="dropdown-item" href="../articles/parallel_radEmu.html">Parallelizing computation for score tests with radEmu</a></li>
     <li><a class="dropdown-item" href="../articles/radEmu_clustered_data.html">Using radEmu on clustered data</a></li>
@@ -341,6 +342,30 @@ full model.
 including whether or not the algorithm converged, which can be helpful for debugging.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># data frame example</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wirbel_sample_small</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wirbel_otu_small</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">emuRes</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, data <span class="op">=</span> <span class="va">wirbel_sample_small</span>, Y <span class="op">=</span> <span class="va">wirbel_otu_small</span>,</span></span>
+<span class="r-in"><span>                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, tolerance <span class="op">=</span> <span class="fl">0.01</span>, </span></span>
+<span class="r-in"><span>                 constraint_tol <span class="op">=</span> <span class="fl">0.01</span>, B_null_tol <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> </span></span>
+<span class="r-in"><span> <span class="co"># here we set large tolerances for the example to run quickly, </span></span></span>
+<span class="r-in"><span> <span class="co"># but we recommend smaller tolerances in practice</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># TreeSummarizedExperiment example (only run this if you have TreeSummarizedExperiment installed)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st">"TreeSummarizedExperiment"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/example.html" class="external-link">example</a></span><span class="op">(</span><span class="st">"TreeSummarizedExperiment"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">assayNames</span><span class="op">(</span><span class="va">tse</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"counts"</span></span></span>
+<span class="r-in"><span><span class="va">emuRes</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>Y <span class="op">=</span> <span class="va">tse</span>, formula <span class="op">=</span> <span class="op">~</span> <span class="va">condition</span>, assay_name <span class="op">=</span> <span class="st">"counts"</span>, </span></span>
+<span class="r-in"><span>                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, tolerance <span class="op">=</span> <span class="fl">0.01</span>, constraint_tol <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="co"># here we set large tolerances for the example to run quickly, </span></span></span>
+<span class="r-in"><span> <span class="co"># but we recommend smaller tolerances in practice</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

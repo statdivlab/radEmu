@@ -5,6 +5,7 @@
 <url><loc>https://statdivlab.github.io/radEmu/articles/index.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/articles/intro_radEmu.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html</loc></url>
+<url><loc>https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_tse.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/authors.html</loc></url>
@@ -20,7 +21,9 @@
 <url><loc>https://statdivlab.github.io/radEmu/reference/score_test.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/reference/simulate_data.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/reference/wirbel_otu.html</loc></url>
+<url><loc>https://statdivlab.github.io/radEmu/reference/wirbel_otu_small.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/reference/wirbel_sample.html</loc></url>
+<url><loc>https://statdivlab.github.io/radEmu/reference/wirbel_sample_small.html</loc></url>
 <url><loc>https://statdivlab.github.io/radEmu/reference/wirbel_taxonomy.html</loc></url>
 </urlset>
 

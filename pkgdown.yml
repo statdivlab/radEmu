@@ -3,10 +3,11 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   intro_radEmu_with_phyloseq: intro_radEmu_with_phyloseq.html
+  intro_radEmu_with_tse: intro_radEmu_with_tse.html
   intro_radEmu: intro_radEmu.html
   parallel_radEmu: parallel_radEmu.html
   radEmu_clustered_data: radEmu_clustered_data.html
-last_built: 2024-12-04T00:47Z
+last_built: 2025-01-14T19:45Z
 urls:
   reference: https://statdivlab.github.io/radEmu/reference
   article: https://statdivlab.github.io/radEmu/articles
