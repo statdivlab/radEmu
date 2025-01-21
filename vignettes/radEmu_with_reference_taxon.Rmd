@@ -187,3 +187,5 @@ head(ch_test_ref$coef)
 ```
 
 Here, the p-value is $0.292$. Therefore, we fail to reject the null hypothesis that the expected log fold-difference in the abundance of *F. nucleatum s. vincentii* in cases compared to controls is equal to the expected log fold-difference in the abundance of *F. nucleatum s. animalis* in cases compared to controls. We do not have sufficient evidence to support the conclusion that *F. nucleatum s. vincentii* and *F. nucleatum s. animalis* have significantly different fold-differences in abundances of cases compared to controls. 
+
+While this example uses a model with a single categorical covariate, you can follow the same approach with multiple covariates as well as cluster-correlated (e.g. longitudinal) data. If you have any follow up questions, feel free to post an issue and let us know! 
