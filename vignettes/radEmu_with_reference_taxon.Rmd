@@ -28,7 +28,10 @@ First, we will install `radEmu`, if we haven't already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite. 
 
 ```{r setup, message = FALSE}
-library(tidyverse)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
 library(radEmu)
 ```
 
