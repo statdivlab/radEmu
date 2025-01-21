@@ -1,0 +1,186 @@
+---
+title: "Using radEmu with a reference taxon"
+author: "David Clausen, Sarah Teichman and Amy Willis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to radEmu}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+First, we will install `radEmu`, if we haven't already. 
+
+```{r, eval = FALSE}
+# if (!require("remotes", quietly = TRUE))
+#     install.packages("remotes")
+# 
+# remotes::install_github("statdivlab/radEmu")
+```
+
+Next, we can load `radEmu` as well as the `tidyverse` package suite. 
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(radEmu)
+```
+
+## Introduction 
+
+In this vignette, we will use `radEmu` with a reference taxon as the identifiability constraint, instead of `radEmu`'s default of using the "typical" log fold-difference across taxa as the identifiability constraint. 
+This is useful if you have a specific taxon that you want to compare all other taxa to, or if your experimental design includes a spiked-in synthetic taxon or internal standard. 
+In this vignette we will provide an example of setting a reference taxon, and discuss how this changes the interpretation of `radEmu` parameter estimates and test results. 
+This vignette assumes familiarity with the basic usage of `radEmu`, and we suggest reviewing the "intro_radEmu.Rmd" vignette before working through this vignette. 
+
+## Loading and preparing data
+
+We'll use a [dataset published by Wirbel et al. (2019)](https://www.nature.com/articles/s41591-019-0406-6), see "intro_radEmu.Rmd" for more information about this data. 
+
+```{r}
+data("wirbel_sample")
+data("wirbel_otu")
+mOTU_names <- colnames(wirbel_otu)
+```
+
+We will now prepare this data to obtain our abundance table and covariate data to use with `emuFit`. Again, see "intro_radEmu.Rmd" for an explanation of each of the steps in the code below. 
+
+```{r}
+wirbel_sample$Group <- factor(wirbel_sample$Group, levels = c("CTR","CRC"))
+
+chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
+mOTU_name_df <- data.frame(name = mOTU_names) %>% 
+  mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") %>%
+                      stringr::str_remove("uncultured ")) %>%
+  mutate(genus_name = stringr::word(base_name, 1))
+restricted_mOTU_names <- mOTU_name_df %>%
+  filter(genus_name %in% chosen_genera) %>%
+  pull(name)
+
+ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
+
+small_Y <- wirbel_otu[ch_study_obs, restricted_mOTU_names]
+sum(rowSums(small_Y) == 0) # no samples have a count sum of 0 
+sum(colSums(small_Y) == 0) # one category has a count sum of 0
+
+category_to_rm <- which(colSums(small_Y) == 0)
+small_Y <- small_Y[, -category_to_rm]
+sum(colSums(small_Y) == 0)
+```
+
+## Fitting a model 
+
+Now we will use the function `emuFit()` to fit our model. We will start by fitting `radEmu`'s default model, which uses the "typical" log fold-difference across taxa as the identifiability constraint. 
+
+```{r}
+ch_fit_default <- emuFit(formula = ~ Group, 
+                         data = wirbel_sample[ch_study_obs, ],
+                         Y = small_Y,
+                         run_score_tests = FALSE) 
+```
+
+Let's look at the first few estimates. 
+
+```{r}
+head(ch_fit_default$coef)
+```
+
+The first taxon reported in *F. nucleatum s. vincentii*, and it has an estimate of $1.49$. The interpretation of this estimate is that the expected log fold-difference in the abundance of *F. nucleatum s. vincentii* in cases of colorectal cancer, compared to controls, is $1.49$, relative to the typical log fold-difference associated with cases across all taxa in the analysis. 
+
+Let's look at the distribution of log fold-difference estimates. 
+
+```{r}
+ch_fit_default$coef %>% ggplot(aes(x = estimate)) + geom_boxplot() + theme_bw() 
+```
+
+We can see that the log fold-difference estimates in this analysis range from $\approx -2.5$ to $\approx 6.5$, and the median log fold-difference is $\approx 0$. This is because our identifiability constraint approximately lets us compare each parameter estimate to the median estimate across all taxa. 
+
+Now, we will instead set a reference taxon for the identifiability constraint. Let's consider an alternate scientific question; perhaps in a different study researchers found *F. nucleatum s. animalis* to be moderately enriched in observations from cases of colorectal cancer, compared to controls. Now in this study, they want to compare the fold-differences of all taxa to that of *F. nucleatum s. animalis*, in order to identify taxa that are significantly enriched or significantly depleted compared to *F. nucleatum s. animalis*. 
+
+```{r}
+ref_taxon <- which(stringr::str_detect(colnames(small_Y), "Fusobacterium nucleatum s. animalis"))
+ref_taxon # the index of F. nucleatum s. animalis in our Y matrix
+```
+
+```{r}
+ch_fit_ref <- emuFit(formula = ~ Group, 
+                     data = wirbel_sample[ch_study_obs, ],
+                     Y = small_Y,
+                     run_score_tests = FALSE,
+                     # to choose a reference taxon, input the index of that taxon in the Y matrix to the argument "constraint_fn" 
+                     constraint_fn = ref_taxon) 
+```
+
+
+Again, let's look at the first few estimates. 
+
+```{r}
+head(ch_fit_ref$coef)
+```
+
+First, note that the estimate for *F. nucleatum s. animalis* is now $0$, because we have set it as the reference taxon. The estimate for *F. nucleatum s. vincentii* is $-0.83$. The interpretation of this estimate, considering our reference taxon constraint, is that the expected log fold-difference in the abundance of *F. nucleatum s. vincentii* in cases of colorectal cancer, compared to controls, is $-0.83$, relative to the expected log fold-difference in abundance of *F. nucleatum s. animalis* in cases compared to controls. Therefore, the ratio of expected abundances of cases to controls for *F. nucleatum s. vincentii* is smaller than the ratio of expected abundances of cases to controls for *F. nucleatum s. animalis*.
+
+Let's look at the distribution of log fold-difference estimates. 
+
+```{r}
+ch_fit_ref$coef %>% ggplot(aes(x = estimate)) + geom_boxplot() + theme_bw() 
+```
+
+Here, we can see a distribution that has the same shape as the distribution of estimates when using the default constraint. This is because the result of changing the identifiability constraint is to shift all estimates up or down by the same value, where this value is determined by the constraint. 
+
+In this plot, the log fold-difference estimates range from $\approx -4.5$ to $\approx 4$, and the median log fold-difference is $\approx -2.5$. This shows that while the majority of taxa have ratios of expected abundances of cases to controls that are smaller than that of *F. nucleatum s. animalis*, there are some taxa that have larger ratios and are even more enriched in cases compared to controls than our chosen reference taxon. 
+
+## Hypothesis testing 
+
+Finally, let's test hypotheses about the taxon *F. nucleatum s. vincentii* using both identifiability constraints. First consider the default constraint. We will run a robust score test. 
+
+```{r}
+ch_test_default <- emuFit(formula = ~ Group, 
+                         data = wirbel_sample[ch_study_obs, ],
+                         Y = small_Y,
+                         fitted_model = ch_fit_default, # provide our previous fit
+                         refit = FALSE, # avoid refitting model
+                         # test the first taxon, F. nucleatum s. vincentii
+                         test_kj = data.frame(j = 1, 
+                         # test the second column in the design matrix
+                         # associated with the case/control covariate
+                                              k = 2)) 
+```
+
+Now let's look at the results. 
+
+```{r}
+head(ch_test_default$coef)
+```
+
+We have a p-value of $0.039$. This means that with an alpha level of $0.05$, we can reject the null hypothesis that the expected log fold-difference in abundance of *F. nucleatum s. vincentii* in cases compared to controls is equal to the typical log fold-difference in abundance of cases to controls across all taxa in the analysis. Instead, based on the estimate, we have evidence to support the conclusion that *F. nucleatum s. vincentii* is enriched in cases compared to controls, relative to the typical taxon in the analysis. 
+
+Now, instead consider a test using our reference taxon constraint. 
+
+```{r}
+ch_test_ref <- emuFit(formula = ~ Group, 
+                      data = wirbel_sample[ch_study_obs, ],
+                      Y = small_Y,
+                      constraint_fn = ref_taxon, 
+                      fitted_model = ch_fit_ref, # provide our previous fit
+                      refit = FALSE, # avoid refitting model
+                      # test the first taxon, F. nucleatum s. vincentii
+                      test_kj = data.frame(j = 1, 
+                      # test the second column in the design matrix
+                      # associated with the case/control covariate
+                                           k = 2)) 
+```
+
+Now let's look at the results. 
+
+```{r}
+head(ch_test_ref$coef)
+```
+
+Here, the p-value is $0.292$. Therefore, we fail to reject the null hypothesis that the expected log fold-difference in the abundance of *F. nucleatum s. vincentii* in cases compared to controls is equal to the expected log fold-difference in the abundance of *F. nucleatum s. animalis* in cases compared to controls. We do not have sufficient evidence to support the conclusion that *F. nucleatum s. vincentii* and *F. nucleatum s. animalis* have significantly different fold-differences in abundances of cases compared to controls. 
