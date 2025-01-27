@@ -690,10 +690,10 @@ and the corresponding gradient function to constraint_grad_fn.")
         if (sec <= 300) {
           time <- paste0(sec, " seconds")
         } else if (sec <= 18000) {
-          min <- sec / 60
+          min <- round(sec / 60)
           time <- paste0(min, " minutes")
         } else {
-          hour <- sec / (60^2)
+          hour <- round(sec / (60^2))
           time <- paste0(hour, " hours")
         }
         message(paste("Score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
