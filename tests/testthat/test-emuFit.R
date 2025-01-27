@@ -600,3 +600,20 @@ test_that("emuFit works with fitted objects passed in", {
   })
   
 })
+
+test_that("emuFit produces appropriate output when verbose = TRUE", {
+  
+  # check that when running score tests it tells you what is running and how long it has taken
+  messages <- capture_messages(fitted_model <- emuFit(Y = Y,
+                                                      X = X,
+                                                      formula = ~group,
+                                                      data = covariates,
+                                                      verbose = TRUE,
+                                                      B_null_tol = 1e-2,
+                                                      tolerance = 0.01,
+                                                      tau = 2,
+                                                      test_kj = data.frame(j = 1, k = 2)))
+  expect_true(TRUE %in% grepl("Running score test", messages) & 
+                TRUE %in% grepl("has completed in approximately", messages))
+  
+})
