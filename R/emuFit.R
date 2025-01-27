@@ -579,8 +579,9 @@ and the corresponding gradient function to constraint_grad_fn.")
     for(test_ind in 1:nrow(test_kj)) {
       
       if (verbose %in% c(TRUE, "development")) {
-        print(paste("Running score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
+        message(paste("Running score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
                     test_kj$j[test_ind],").",sep = ""))
+        start <- proc.time()
       }
       
       B_to_use <- fitted_B
@@ -681,6 +682,24 @@ and the corresponding gradient function to constraint_grad_fn.")
                                                                   lower.tail = FALSE)
         }
       
+      }
+      
+      if (verbose %in% c(TRUE, "development")) {
+        end <- proc.time() - start
+        sec <- round(end[3]) 
+        if (sec <= 300) {
+          time <- paste0(sec, " seconds")
+        } else if (sec <= 18000) {
+          min <- round(sec / 60)
+          time <- paste0(min, " minutes")
+        } else {
+          hour <- round(sec / (60^2))
+          time <- paste0(hour, " hours")
+        }
+        message(paste("Score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
+                    test_kj$j[test_ind],") has completed in approximately ", time, ".",sep = ""))
+        start <- proc.time()
+        
       }
     }
   }
