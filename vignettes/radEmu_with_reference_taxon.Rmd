@@ -94,7 +94,7 @@ Let's look at the first few estimates.
 head(ch_fit_default$coef)
 ```
 
-The first taxon reported in *F. nucleatum s. vincentii*, and it has an "estimate" of $1.49$. This means that the abundance of *F. nucleatum s. vincentii* is, on average, $e^{1.49}=4.4$ times greater in colorectal cancer cases compared to controls compared to the typical fold-difference of taxa in cases compared to controls. 
+The first taxon reported is *F. nucleatum s. vincentii*, and it has an "estimate" of $1.49$. This means that the abundance of *F. nucleatum s. vincentii* is, on average, $e^{1.49}=4.4$ times greater in colorectal cancer cases compared to controls compared to the typical fold-difference of taxa in cases compared to controls. 
 
 Let's look at the distribution of log fold-difference estimates. 
 
@@ -142,13 +142,15 @@ The estimate for *F. nucleatum s. vincentii* is $-0.83$. The interpretation of t
 
 How did this work? Because we assumed/knew information about one taxon, we could "pin down" the location of all estimates. Cool! 
 
+If we were instead in Setting 3, our interpretation would be slightly different. In this setting, the fold-difference in average abundance of *F. nucleatum s. vincentii* in cancer cases compared to non-cancer controls is $exp(-0.83) = 0.44$ times the fold-difference in average abundance of *F. nucleatum s. animalis* in cases compared to controls. 
+
 Let's look at the distribution of log fold-difference estimates. 
 
 ```{r}
 ch_fit_ref$coef %>% ggplot(aes(x = estimate)) + geom_boxplot() + theme_bw() 
 ```
 
-Here, we can see a distribution that has the same shape as the distribution of estimates when using the default constraint. This is because the result of changing the identifiability constraint is to shift all estimates up or down by the same value, where this value is determined by the constraint. In this plot, the log fold-difference estimates range from $\approx -4.5$ to $\approx 4$, and the median log fold-difference is $\approx -2.5$. This shows that while the majority of taxa have ratios of expected abundances of cases to controls that are smaller than that of *F. nucleatum s. animalis*, there are some taxa that have larger ratios and are even more enriched in cases compared to controls than our chosen reference taxon. 
+Here, we can see a distribution that has the same shape as the distribution of estimates when using the default constraint. This is because the result of changing the identifiability constraint is to shift all estimates up or down by the same value, where this value is determined by the constraint. In this plot, the log fold-difference estimates range from $\approx -4.5$ to $\approx 4$, and the median log fold-difference is $\approx -2.5$. This shows that while the majority of taxa have ratios of average abundances of cases to controls that are smaller than that of *F. nucleatum s. animalis*, there are some taxa that have larger ratios and are even more enriched in cases compared to controls than our chosen reference taxon. 
 
 ## Hypothesis testing 
 
