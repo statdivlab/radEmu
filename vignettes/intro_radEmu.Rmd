@@ -200,7 +200,7 @@ ch_fit$B %>% rownames
 covariate_to_test <- 2 #which("GroupCRC" == ch_fit$B %>% rownames) # TODO(AW)
 two_robust_score_tests <- emuFit(formula = ~ Group,
                                  data = wirbel_sample[ch_study_obs, ],
-                                 B = ch_fit,
+                                 B = ch_fit$B,
                                  test_kj = data.frame(k = covariate_to_test, 
                                                       j = taxa_to_test), 
                                  Y = small_Y)
