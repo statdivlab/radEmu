@@ -242,6 +242,43 @@ test_that("ML fit to simple example give reasonable output with J >> n", {
   
   expect_true(max(abs(ml_fit[2,] - b1))<.5)
 })
+
+test_that("unpenalized fit uses B if given, and therefore fit is quicker", {
+  set.seed(4323)
+  X <- cbind(1,rnorm(10))
+  J <- 10
+  n <- 10
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J),
+                              distn = "ZINB",
+                              zinb_size = 2,
+                              zinb_zero_prop = 0.7,
+                              mean_z = 10)
+  
+  start <- proc.time()
+  pl_fit_one <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance = 0.01,
+                             verbose= FALSE)
+  end <- proc.time() - start 
+  start_refit <- proc.time() 
+  pl_fit_two <- emuFit_micro(X,
+                             Y,
+                             B = pl_fit_one,
+                             constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance = 0.01,
+                             verbose= FALSE)
+  end_refit <- proc.time() - start_refit 
+  expect_true(end_refit[3] < end[3])
+  
+})
 #
 #
 #
