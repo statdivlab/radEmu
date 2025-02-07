@@ -69,7 +69,7 @@
                         <h4 data-toc-skip class="author">David Clausen,
 Sarah Teichman and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2025-02-06</h4>
+            <h4 data-toc-skip class="date">2025-02-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/intro_radEmu.Rmd" class="external-link"><code>vignettes/intro_radEmu.Rmd</code></a></small>
       <div class="d-none name"><code>intro_radEmu.Rmd</code></div>
@@ -420,7 +420,7 @@ show how to identify these, but <code>j = 3</code> is F. nucleatum and
 <span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="co">#which("GroupCRC" == ch_fit$B %&gt;% rownames) # TODO(AW)</span></span>
 <span><span class="va">two_robust_score_tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>,</span>
 <span>                                 data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
-<span>                                 B <span class="op">=</span> <span class="va">ch_fit</span>,</span>
+<span>                                 B <span class="op">=</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">B</span>,</span>
 <span>                                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>, </span>
 <span>                                                      j <span class="op">=</span> <span class="va">taxa_to_test</span><span class="op">)</span>, </span>
 <span>                                 Y <span class="op">=</span> <span class="va">small_Y</span><span class="op">)</span></span></code></pre></div>
@@ -431,7 +431,7 @@ show how to identify these, but <code>j = 3</code> is F. nucleatum and
 <span><span class="co">#&gt; 3   GroupCRC Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777] 3.086405</span></span>
 <span><span class="co">#&gt; 36  GroupCRC                 unknown Eubacterium [meta_mOTU_v2_7116] 1.692993</span></span>
 <span><span class="co">#&gt;          pval</span></span>
-<span><span class="co">#&gt; 3  0.07423418</span></span>
+<span><span class="co">#&gt; 3  0.07423424</span></span>
 <span><span class="co">#&gt; 36 0.30168301</span></span></code></pre></div>
 <p>The <em>Fusobacterium nucleatum</em> mOTU has a robust score test
 p-value of 0.07, while the unknown Eubacterium mOTU has a robust score
