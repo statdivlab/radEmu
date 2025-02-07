@@ -617,3 +617,44 @@ test_that("emuFit produces appropriate output when verbose = TRUE", {
                 TRUE %in% grepl("has completed in approximately", messages))
   
 })
+
+test_that("emuFit refits starting at provided value if `B` or `fitted_model` are given", {
+  
+  message1 <- capture_messages(fitted_model <- emuFit(Y = Y,
+                                                      X = X,
+                                                      formula = ~group,
+                                                      data = covariates,
+                                                      B_null_tol = 1e-2,
+                                                      tolerance = 0.01,
+                                                      tau = 2,
+                                                      run_score_tests = FALSE,
+                                                      compute_cis = FALSE, 
+                                                      verbose = "development"))
+  message2 <- capture_messages(fitted_model_with_B <- emuFit(Y = Y,
+                                                             X = X,
+                                                             B = fitted_model$B, 
+                                                             refit = TRUE, 
+                                                             formula = ~group,
+                                                             data = covariates,
+                                                             B_null_tol = 1e-2,
+                                                             tolerance = 0.01,
+                                                             tau = 2,
+                                                             run_score_tests = FALSE,
+                                                             compute_cis = FALSE,
+                                                             verbose = "development"))
+  message3 <- capture_messages(fitted_model_with_fit <- emuFit(Y = Y,
+                                                               X = X,
+                                                               fitted_model = fitted_model, 
+                                                               refit = TRUE,
+                                                               formula = ~group,
+                                                               data = covariates,
+                                                               B_null_tol = 1e-2,
+                                                               tolerance = 0.01,
+                                                               tau = 2,
+                                                               run_score_tests = FALSE,
+                                                               compute_cis = FALSE,
+                                                               verbose = "development"))
+  expect_true(length(message1) > length(message2))
+  expect_true(length(message1) > length(message3))
+  
+})

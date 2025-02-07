@@ -53,7 +53,11 @@ emuFit_micro_penalized <-
       X_tilde <- X_cup_from_X(X,J)
     }
     Y_augmented <- Y
-    fitted_model <- NULL
+    if (is.null(B)) {
+      fitted_model <- NULL
+    } else {
+      fitted_model <- B
+    }
     converged <- FALSE
     counter <- 0
     #get design matrix we'll use for computing augmentations
@@ -70,7 +74,7 @@ may take a moment.")
     while(!converged){
       # print(counter)
 
-      if(counter ==0){
+      if(counter ==0 & is.null(B)){
         Y_augmented <- Y + 1e-3*mean(Y) #ensures we don't diverge to 
                                         #infinity in first iteration 
                                         #after which point we use 

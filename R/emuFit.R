@@ -270,7 +270,10 @@ and the corresponding gradient function to constraint_grad_fn.")
   ########################################
   
   if (refit) {
-
+    
+    if (!is.null(fitted_model)) {
+      B <- fitted_model$B
+    }
     
     if (penalize) {
       

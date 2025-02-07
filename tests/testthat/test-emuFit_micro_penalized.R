@@ -175,6 +175,43 @@ less efficient implementation (and that both substantially differ from MLE", {
   expect_equal(pl_fit_new,pl_fit_old)
 })
 
+test_that("penalized fit uses B if given, and therefore fit is quicker", {
+  set.seed(4323)
+  X <- cbind(1,rnorm(10))
+  J <- 10
+  n <- 10
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J),
+                              distn = "ZINB",
+                              zinb_size = 2,
+                              zinb_zero_prop = 0.7,
+                              mean_z = 10)
+  
+  start <- proc.time()
+  pl_fit_one <- emuFit_micro_penalized(X,
+                                       Y,
+                                       B = NULL,
+                                       constraint_fn = function(x) mean(x),
+                                       maxit = 10000,
+                                       tolerance = 0.01,
+                                       verbose= FALSE)
+  end <- proc.time() - start 
+  start_refit <- proc.time() 
+  pl_fit_two <- emuFit_micro_penalized(X,
+                                       Y,
+                                       B = pl_fit_one$B,
+                                       constraint_fn = function(x) mean(x),
+                                       maxit = 10000,
+                                       tolerance = 0.01,
+                                       verbose= FALSE)
+  end_refit <- proc.time() - start_refit 
+  expect_true(end_refit[3] < end[3])
+  
+})
+
 
 
 
