@@ -32,6 +32,8 @@
 #' 
 #' @return returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful
 #' errors, warnings, or messages.
+#' 
+#' @importFrom stats model.matrix
 #'
 emuFit_check <- function(Y,
                          X = NULL,
