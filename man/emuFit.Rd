@@ -84,7 +84,10 @@ fitted model. Default is TRUE.}
 
 \item{test_kj}{a data frame whose rows give coordinates (in category j and
 covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
-is not provided, all elements of B save the intercept row will be tested.}
+is not provided, all elements of B save the intercept row will be tested. If you don't know
+which indices k correspond to the covariate(s) that you would like to test, run the function
+\code{radEmu::make_design_matrix()} in order to view the design matrix, and identify which
+column of the design matrix corresponds to each covariate in your model.}
 
 \item{alpha}{nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
 (corresponding to 95\% confidence intervals)}
