@@ -212,6 +212,7 @@ emuFit <- function(Y,
   X <- check_results$X
   cluster <- check_results$cluster
   B_null_list <- check_results$B_null_list
+  test_kj <- check_results$test_kj
   
   if (length(constraint_fn) == 1 & is.numeric(constraint_fn)) {
     constraint_cat <- constraint_fn
