@@ -186,6 +186,24 @@ ignoring argument 'cluster'.")
     }
   }
   
+  # check that test kj values are numbers, if they are strings that convert if possible to numbers
+  if (!is.null(test_kj)) {
+    if (!(is.numeric(test_kj$k))) {
+      if (sum(!(test_kj$k %in% colnames(X))) == 0) {
+        test_kj$k <- as.vector(sapply(test_kj$k, function(x) {which(colnames(X) == x)}))
+      } else {
+        stop("Make sure that the values of `k` in `test_kj` are numeric or correspond to column names of the `X` matrix.")
+      }
+    }
+    if (!(is.numeric(test_kj$j))) {
+      if (sum(!(test_kj$j %in% colnames(Y))) == 0) {
+        test_kj$j <- as.vector(sapply(test_kj$j, function(x) {which(colnames(Y) == x)}))
+      } else {
+        stop("Make sure that the values of `j` in `test_kj` are numeric or correspond to column names of the `Y` matrix.")
+      }
+    }
+  }
+  
   # check for valid argument remove_zero_comparison_pvals 
   if (remove_zero_comparison_pvals != TRUE & remove_zero_comparison_pvals != FALSE) {
     if (!(is.numeric(remove_zero_comparison_pvals) & remove_zero_comparison_pvals <= 1 &
@@ -194,6 +212,6 @@ ignoring argument 'cluster'.")
     }
   }
   
-  return(list(Y = Y, X = X, cluster = cluster, B_null_list = B_null_list))
+  return(list(Y = Y, X = X, cluster = cluster, B_null_list = B_null_list, test_kj = test_kj))
   
 }
