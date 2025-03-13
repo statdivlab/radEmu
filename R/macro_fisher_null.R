@@ -71,7 +71,7 @@ macro_fisher_null <- function(X,
   
   #strictly speaking, this isn't the inverse info -- its the inverse of 
   # (an approximation to) the hessian of the augmented lagrangian
-  info_inverse <- info_inverse - Matrix::tcrossprod(sm_half_num)/sm_denom
+  info_inverse <- info_inverse #- Matrix::tcrossprod(sm_half_num)/sm_denom
   # the tcrossprod in the last line is the final step for the sherman-morrison update
   
   #compute derivative of augmented lagrangian
@@ -86,8 +86,8 @@ macro_fisher_null <- function(X,
   
   
   #direction for (approximate) Newton step
-  update_dir <- -info_inverse%*%lag_deriv
-
+  update_dir <- -info_inverse %*%lag_deriv + 
+    sm_half_num%*% Matrix::crossprod(sm_half_num,lag_deriv)/sm_denom
   #shorten step if any of its elements are larger than allowed by max_step
   if(max(abs(update_dir))>max_step){
     update_dir <- update_dir/max(abs(update_dir))
