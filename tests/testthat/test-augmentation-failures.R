@@ -22,8 +22,10 @@ test_that("confirm Matrix Csparse_transpose issue is not happening", {
                          B_null_tol = 1e-2,
                          tolerance = 0.01,
                          tau = 2,
-                         run_score_test = TRUE,
-                         return_wald_p = TRUE)
+                         run_score_tests = TRUE,
+                         return_wald_p = TRUE,
+                         test_kj = data.frame(k = 2, j = 1),
+                         match_row_names = FALSE)
   
   expect_true("emuFit" %in% class(fitted_model))
   
@@ -37,8 +39,10 @@ test_that("confirm Matrix Csparse_transpose issue is not happening", {
                             B_null_tol = 1e-2,
                             tolerance = 0.01,
                             tau = 2,
-                            run_score_test = TRUE,
-                            return_wald_p = TRUE)
+                            run_score_tests = TRUE,
+                            return_wald_p = TRUE,
+                            test_kj = data.frame(k = 2, j = 1),
+                            match_row_names = FALSE)
   
   expect_true("emuFit" %in% class(fitted_model_df))
   
