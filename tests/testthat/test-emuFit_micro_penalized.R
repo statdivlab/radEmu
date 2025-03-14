@@ -4,13 +4,13 @@ test_that("Penalized estimation reduces to Haldane correction in saturated case"
   penalized_fit <- emuFit_micro_penalized(X,
                                           Y,
                                           B = NULL,
-                                          constraint_fn = function(x) x[2],
+                                          constraint_fn = rep(list(function(x) x[2]), 2), 
                                           maxit = 500,
                                           tolerance = 1e-5,
                                           verbose = FALSE)
   
   ml_fit <- emuFit_micro(X,Y + 0.5,
-                         constraint_fn = function(x) x[2],
+                         constraint_fn = rep(list(function(x) x[2]), 2),
                          tolerance = 1e-5,
                          verbose = FALSE)
   
@@ -29,13 +29,13 @@ test_that("Penalized estimation reduces to Haldane correction in saturated case 
   penalized_fit <- emuFit_micro_penalized(X,
                                           Y,
                                           B = NULL,
-                                          constraint_fn = function(x) x[2],
+                                          constraint_fn = rep(list(function(x) x[2]), 2),
                                           maxit = 500,
                                           tolerance = 1e-5,
                                           verbose = FALSE)
   
   ml_fit <- emuFit_micro(X,Y + 0.5,
-                         constraint_fn = function(x) x[2],
+                         constraint_fn = rep(list(function(x) x[2]), 2),
                          tolerance = 1e-5,
                          verbose = FALSE)
   
@@ -63,7 +63,7 @@ test_that("PL fit to simple example returns reasonable values", {
   pl_fit <- emuFit_micro_penalized(X,
                                    Y,
                                    B = matrix(rnorm(20),nrow = 2),
-                                   constraint_fn = function(x) mean(x),
+                                   constraint_fn = rep(list(function(x) mean(x)), 2), 
                                    maxit = 200,
                                    tolerance = 1e-10,
                                    verbose= FALSE)
@@ -95,7 +95,7 @@ less efficient implementation (and that both substantially differ from MLE", {
   ml_fit <-  emuFit_micro(X = as.matrix(X),
                           Y = as.matrix(Y),
                           B = NULL,
-                          constraint_fn = function(x) mean(x),
+                          constraint_fn = rep(list(function(x) mean(x)), 2),
                           maxit = 1000,
                           tolerance = 1e-3,
                           verbose= FALSE)
@@ -103,7 +103,7 @@ less efficient implementation (and that both substantially differ from MLE", {
   pl_fit_new <- emuFit_micro_penalized(X,
                                        Y,
                                        B = NULL,
-                                       constraint_fn = function(x) mean(x),
+                                       constraint_fn = rep(list(function(x) mean(x)), 2),
                                        maxit = 1000,
                                        tolerance = 1e-3,
                                        verbose= FALSE)
@@ -113,7 +113,7 @@ less efficient implementation (and that both substantially differ from MLE", {
     pl_fit_old <- emuFit_micro_penalized(X,
                                          Y,
                                          B = NULL,
-                                         constraint_fn = function(x) mean(x),
+                                         constraint_fn = rep(list(function(x) mean(x)), 2),
                                          maxit = 10000,
                                          tolerance = 1e-3,
                                          verbose= TRUE,
@@ -146,7 +146,7 @@ less efficient implementation (and that both substantially differ from MLE", {
   ml_fit <-  emuFit_micro(X,
                           Y,
                           B = NULL,
-                          constraint_fn = function(x) mean(x),
+                          constraint_fn = rep(list(function(x) mean(x)), 2),
                           maxit = 10000,
                           tolerance = 0.01,
                           verbose= FALSE)
@@ -154,7 +154,7 @@ less efficient implementation (and that both substantially differ from MLE", {
   pl_fit_new <- emuFit_micro_penalized(X,
                                        Y,
                                        B = NULL,
-                                       constraint_fn = function(x) mean(x),
+                                       constraint_fn = rep(list(function(x) mean(x)), 2),
                                        maxit = 10000,
                                        tolerance = 0.01,
                                        verbose= FALSE)
@@ -164,7 +164,7 @@ less efficient implementation (and that both substantially differ from MLE", {
     pl_fit_old <- emuFit_micro_penalized(X,
                                          Y,
                                          B = NULL,
-                                         constraint_fn = function(x) mean(x),
+                                         constraint_fn = rep(list(function(x) mean(x)), 2),
                                          maxit = 10000,
                                          tolerance = 0.01,
                                          verbose= TRUE,
@@ -194,7 +194,7 @@ test_that("penalized fit uses B if given, and therefore fit is quicker", {
   pl_fit_one <- emuFit_micro_penalized(X,
                                        Y,
                                        B = NULL,
-                                       constraint_fn = function(x) mean(x),
+                                       constraint_fn = rep(list(function(x) mean(x)), 2),
                                        maxit = 10000,
                                        tolerance = 0.01,
                                        verbose= FALSE)
@@ -203,7 +203,7 @@ test_that("penalized fit uses B if given, and therefore fit is quicker", {
   pl_fit_two <- emuFit_micro_penalized(X,
                                        Y,
                                        B = pl_fit_one$B,
-                                       constraint_fn = function(x) mean(x),
+                                       constraint_fn = rep(list(function(x) mean(x)), 2),
                                        maxit = 10000,
                                        tolerance = 0.01,
                                        verbose= FALSE)

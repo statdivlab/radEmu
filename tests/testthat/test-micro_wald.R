@@ -76,14 +76,14 @@ test_that("wald test gives semi-reasonable output with categorical covariate", {
   j_constr <- 5
   p <- 2
   
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
   
   ##### Arguments to fix:
   
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
   
   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
+  b[2,4] <- constraint_fn[[1]](b[2,-4])
   
   X_cup <- X_cup_from_X(X,J)
   
@@ -163,14 +163,14 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   j_constr <- 5
   p <- 2
   
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
   
   ##### Arguments to fix:
   
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
   
   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
-  b[2,4] <- constraint_fn(b[2,-4])
+  b[2,4] <- constraint_fn[[1]](b[2,-4])
   
   X_cup <- X_cup_from_X(X,J)
   

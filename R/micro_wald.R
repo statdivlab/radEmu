@@ -87,7 +87,7 @@ micro_wald <- function(Y,
   
   #return to original parametrization
   for(k in 1:p){
-    B[k,] <- B[k,] - constraint_fn(B[k,])
+    B[k,] <- B[k,] - constraint_fn[[k]](B[k,])
   }
   
   if(verbose){
@@ -106,7 +106,7 @@ micro_wald <- function(Y,
     }
     
     H <- matrix(0,nrow = p, ncol = J - 1 )
-    H[null_k,] <- constraint_grad_fn(B[null_k,])[-j_ref]
+    H[null_k,] <- constraint_grad_fn[[k]](B[null_k,])[-j_ref]
     
     
     if(null_j != j_ref){

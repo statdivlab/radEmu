@@ -668,3 +668,11 @@ test_that("giving test_kj as valid strings works", {
   expect_error(emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = "group", j = "taxa3"),
                       penalize = FALSE, tolerance = 0.1))
 })
+
+test_that("multiple constraint functions can be submitted", {
+  res <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
+                penalize = TRUE, tolerance = 0.1, 
+                constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.1), 2), 
+                constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.1), 2))
+  
+})

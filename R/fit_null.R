@@ -94,7 +94,7 @@ fit_null <- function(B,
   iter <- 0
   
   #compute gap (i.e. g(B_k) - B_kj)
-  gap <- constraint_fn(B[k_constr,]) - B[k_constr,j_constr]
+  gap <- constraint_fn[[k_constr]](B[k_constr,]) - B[k_constr,j_constr]
   init_gap <- abs(gap)
   
   #set rho equal to initial value

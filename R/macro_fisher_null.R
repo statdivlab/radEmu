@@ -54,7 +54,7 @@ macro_fisher_null <- function(X,
   info_inverse <- Matrix::bdiag(inv_info_by_j)
   
   #compute gradient of constraint function
-  cg <- constraint_grad_fn(B[k_constr,])
+  cg <- constraint_grad_fn[[k_constr]](B[k_constr,])
   cg[j_constr] <- cg[j_constr] - 1
   cg <- cg[-j_ref]
   
@@ -81,7 +81,7 @@ macro_fisher_null <- function(X,
                         -t(X)%*%(Y[,j,drop = FALSE] - exp(log_means_by_j[[j]]))
                       })
   lag_deriv <- do.call(rbind,lag_deriv[-j_ref])
-  gap <- constraint_fn(B[k_constr,]) - B[k_constr,j_constr]
+  gap <- constraint_fn[[k_constr]](B[k_constr,]) - B[k_constr,j_constr]
   lag_deriv <- lag_deriv + (u + rho*gap)*cg_expanded
   
   
@@ -115,7 +115,7 @@ macro_fisher_null <- function(X,
   
   while(!accept){
     prop_B <- B + stepsize*update_dir
-    prop_gap <- constraint_fn(prop_B[k_constr,]) - prop_B[k_constr,j_constr]
+    prop_gap <- constraint_fn[[k_constr]](prop_B[k_constr,]) - prop_B[k_constr,j_constr]
     
     prop_log_means_by_j <-
       lapply(1:J,function(j)

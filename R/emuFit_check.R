@@ -29,6 +29,18 @@
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
 #' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
+#' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
+#' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
+#' pseudohuber loss). If a number is provided a single category constraint will be used
+#' with the provided category as a reference category. This argument can either be a single constraint 
+#' function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.
+#' @param constraint_grad_fn derivative of constraint_fn with respect to its
+#' arguments (i.e., elements of a row of B). If \code{constraint_fn} is a list of constraint functions, then
+#' this argument must also be a list.
+#' @param constraint_param If pseudohuber centering is used (this is the default),
+#' parameter controlling relative weighting of elements closer and further from center.
+#' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
+#' the minimizer of the pseudo-Huber loss approaches the median.)
 #' 
 #' @return returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful
 #' errors, warnings, or messages.
@@ -46,7 +58,10 @@ emuFit_check <- function(Y,
                          match_row_names = TRUE,
                          verbose = FALSE,
                          remove_zero_comparison_pvals = 0.01,
-                         unobserved_taxon_error = TRUE) {
+                         unobserved_taxon_error = TRUE,
+                         constraint_fn,
+                         constraint_grad_fn,
+                         constraint_param) {
   
   # confirm that input to verbose is valid
   if (!(verbose %in% c(FALSE, TRUE, "development"))) {
@@ -153,6 +168,19 @@ covariates in formula must be provided.")
     }
   }
   
+  p <- ncol(X)
+  J <- ncol(Y)
+  if (is.null(colnames(X))) {
+    if (p > 1) {
+      colnames(X) <- c("Intercept", paste0("covariate_", 1:(p - 1)))
+    } else {
+      colnames(X) <- "Intercept"
+    }
+  }
+  if (is.null(colnames(Y))) {
+    colnames(Y) <- paste0("category_", 1:J)
+  }
+  
   if (min(rowSums(Y))==0) {
     stop("Some rows of Y consist entirely of zeroes, meaning that some samples
 have no observations. These samples must be excluded before fitting model.")
@@ -212,6 +240,55 @@ ignoring argument 'cluster'.")
     }
   }
   
-  return(list(Y = Y, X = X, cluster = cluster, B_null_list = B_null_list, test_kj = test_kj))
+  # check for valid constraints
+  if (length(constraint_fn) != length(constraint_grad_fn)) {
+    stop("The arguments `constraint_fn` and `constraint_grad_fn` have different lengths. These arguments should either both be single functions, or both be lists of p functions, for p rows of the B matrix.")
+  }
+  if (length(constraint_fn) == 1) {
+    constraint_fn <- rep(list(constraint_fn), p)
+    constraint_grad_fn <- rep(list(constraint_fn), p)
+  }
+  constraint_param <- rep(constraint_param, p)
+  if (length(constraint_fn) != p) {
+    stop("The arguments `constraint_fn` and `constraing_grad_fn` have the wrong lengths. These arguments should either both be single functions, or both be lists of p functions, for p rows of the B matrix.")
+  }
+  
+  for (k in 1:p) {
+    if (length(constraint_fn[[k]]) == 1 & is.numeric(constraint_fn[[k]])) {
+      constraint_cat <- constraint_fn[[k]]
+      constraint_fn[[k]] <- function(x) {x[constraint_cat]}
+      constraint_grad_fn[[k]] <- function(x) {
+        grad <- rep(0, length(x))
+        grad[constraint_cat] <- 1
+        return(grad)
+      }
+      constraint_param[k] <- NA
+    }
+    
+    if (is.logical(all.equal(constraint_fn[[k]], pseudohuber_center))) {
+      if (all.equal(constraint_fn[[k]], pseudohuber_center)) {
+        if (verbose %in% c(TRUE, "development")) message("Centering row ", k, " of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param[k], ".")
+        
+        stopifnot(!is.na(constraint_param[k]))
+        
+        constraint_fn[[k]] <- (function(x) pseudohuber_center(x, d = constraint_param[k]))
+        constraint_grad_fn[[k]] <- (function(x) dpseudohuber_center_dx(x, d = constraint_param[k]))
+        
+      } 
+    } else {
+      
+      if (!is.na(constraint_param[k])) {
+        
+        warning("Argument constraint_param is currently only supported for centering with
+pseudohuber_center() function; constraint_param input is otherwise ignored. Please directly
+feed your choice of constraint function, including any necessary parameters, to constraint_fn argument
+and the corresponding gradient function to constraint_grad_fn.")
+      }
+    } 
+  }
+ 
+  return(list(Y = Y, X = X, cluster = cluster, B_null_list = B_null_list, test_kj = test_kj,
+              constraint_fn = constraint_fn, constraint_grad_fn = constraint_grad_fn, 
+              constraint_param = constraint_param))
   
 }

@@ -44,9 +44,11 @@
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
 #' pseudohuber loss). If a number is provided a single category constraint will be used
-#' with the provided category as a reference category. 
+#' with the provided category as a reference category. This argument can either be a single constraint 
+#' function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.
 #' @param constraint_grad_fn derivative of constraint_fn with respect to its
-#' arguments (i.e., elements of a row of B)
+#' arguments (i.e., elements of a row of B). If \code{constraint_fn} is a list of constraint functions, then
+#' this argument must also be a list.
 #' @param constraint_param If pseudohuber centering is used (this is the default),
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
@@ -207,64 +209,29 @@ emuFit <- function(Y,
                                 match_row_names = match_row_names,
                                 verbose = verbose,
                                 remove_zero_comparison_pvals = remove_zero_comparison_pvals,
-                                unobserved_taxon_error = unobserved_taxon_error)
+                                unobserved_taxon_error = unobserved_taxon_error,
+                                constraint_fn = constraint_fn,
+                                constraint_grad_fn = constraint_grad_fn,
+                                constraint_param = constraint_param)
   Y <- check_results$Y
   X <- check_results$X
   cluster <- check_results$cluster
   B_null_list <- check_results$B_null_list
   test_kj <- check_results$test_kj
-  
-  if (length(constraint_fn) == 1 & is.numeric(constraint_fn)) {
-    constraint_cat <- constraint_fn
-    constraint_fn <- function(x) {x[constraint_cat]}
-    constraint_grad_fn <- function(x) {
-      grad <- rep(0, length(x))
-      grad[constraint_cat] <- 1
-      return(grad)
-    }
-    constraint_param <- NA
-  }
+  constraint_fn <- check_results$constraint_fn
+  constraint_grad_fn <- check_results$constraint_grad_fn
+  constraint_param <- check_results$constraint_param
   
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
-  
-  if (is.null(colnames(X))) {
-    if (p > 1) {
-      colnames(X) <- c("Intercept", paste0("covariate_", 1:(ncol(X) - 1)))
-    } else {
-      colnames(X) <- "Intercept"
-    }
-  }
-  if (is.null(colnames(Y))) {
-    colnames(Y) <- paste0("category_", 1:ncol(Y))
-  }
   
   # check for zero-comparison parameters
   zero_comparison_res <- zero_comparison_check(X = X, Y = Y)
   
   X_cup <- X_cup_from_X(X,J)
   
-  if (is.logical(all.equal(constraint_fn, pseudohuber_center))) {
-    if (all.equal(constraint_fn, pseudohuber_center)) {
-      if (verbose %in% c(TRUE, "development")) message("Centering rows of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
-      
-      stopifnot(!is.na(constraint_param))
-      
-      constraint_fn <- (function(x) pseudohuber_center(x, d = constraint_param))
-      constraint_grad_fn <- (function(x) dpseudohuber_center_dx(x, d = constraint_param))
-      
-    } 
-  } else {
-    
-    if (!is.na(constraint_param)) {
-      
-      warning("Argument constraint_param is currently only supported for centering with
-pseudohuber_center() function; constraint_param input is otherwise ignored. Please directly
-feed your choice of constraint function, including any necessary parameters, to constraint_fn argument
-and the corresponding gradient function to constraint_grad_fn.")
-    }
-  } 
+  
   
   #choose ref taxon for fitting constrained models / performing wald and score tests
   j_ref <- get_j_ref(Y)

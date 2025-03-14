@@ -16,12 +16,12 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
   j_constr <- 1
   p <- 2
 
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
   # constraint_fn <- function(x){mean(x)}
 
   ##### Arguments to fix:
 
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
   # constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
   rho_init = 1
   tau = 1.2
@@ -51,7 +51,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
     emuFit_micro_penalized(X = X,
                            Y = Y,
                            B = NULL,
-                           constraint_fn = mean,
+                           constraint_fn = rep(list(mean), 2), 
                            tolerance = 1e-5,
                            verbose = FALSE)#)
 
@@ -61,7 +61,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
 
   Y_aug <- full_fit$Y_augmented
 
-  B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
+  B[k_constr,j_constr] <- constraint_fn[[k_constr]](B[k_constr,-j_constr])
 
   u <- 0
   rho <- 0
@@ -90,7 +90,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
   lag_fn <- function(b){
     tempB <- B_from_B_cup(b,J,p)
     tempB[,j_ref] <- 0
-    gap <- constraint_fn(tempB[k_constr,]) - tempB[k_constr,j_constr]
+    gap <- constraint_fn[[k_constr]](tempB[k_constr,]) - tempB[k_constr,j_constr]
     log_means <- do.call(cbind,
                          lapply(1:J,
                                 function(j) z + X%*%tempB[,j]))
@@ -130,12 +130,12 @@ test_that("We take same step as we'd take using numerical derivatives when gap i
   j_constr <- 1
   p <- 2
 
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
   # constraint_fn <- function(x){mean(x)}
 
   ##### Arguments to fix:
 
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
   # constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
   rho_init = 1
   tau = 1.2
@@ -165,7 +165,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap i
     emuFit_micro_penalized(X = X,
                            Y = Y,
                            B = NULL,
-                           constraint_fn = mean,
+                           constraint_fn = rep(list(mean), 2), 
                            tolerance = 1e-5,
                            verbose = FALSE)#)
 
@@ -175,7 +175,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap i
 
   Y_aug <- full_fit$Y_augmented
 
-  B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
+  B[k_constr,j_constr] <- constraint_fn[[k_constr]](B[k_constr,-j_constr])
 
   u <- 0
   rho <- 100
@@ -204,7 +204,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap i
   lag_fn <- function(b){
     tempB <- B_from_B_cup(b,J,p)
     tempB[,j_ref] <- 0
-    gap <- constraint_fn(tempB[k_constr,]) - tempB[k_constr,j_constr]
+    gap <- constraint_fn[[k_constr]](tempB[k_constr,]) - tempB[k_constr,j_constr]
     log_means <- do.call(cbind,
                          lapply(1:J,
                                 function(j) z + X%*%tempB[,j]))
@@ -250,12 +250,12 @@ test_that("We take similar step as we'd take using numerical derivatives in a mo
   p <- 2
 
   # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  constraint_fn <- function(x){mean(x)}
+  constraint_fn <- rep(list(function(x){mean(x)}), 2)
 
   ##### Arguments to fix:
 
   # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
-  constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
+  constraint_grad_fn <- rep(list(function(x){ rep(1/length(x), length(x))}), 2)
   rho_init = 1
   tau = 1.2
   kappa = 0.8
@@ -284,7 +284,7 @@ test_that("We take similar step as we'd take using numerical derivatives in a mo
     emuFit_micro_penalized(X = X,
                            Y = Y,
                            B = NULL,
-                           constraint_fn = mean,
+                           constraint_fn = rep(list(mean), 2), 
                            tolerance = 1e-5,
                            verbose = FALSE)#)
 
@@ -322,7 +322,7 @@ test_that("We take similar step as we'd take using numerical derivatives in a mo
   lag_fn <- function(b){
     tempB <- B_from_B_cup(b,J,p)
     tempB[,j_ref] <- 0
-    gap <- constraint_fn(tempB[k_constr,]) - tempB[k_constr,j_constr]
+    gap <- constraint_fn[[k_constr]](tempB[k_constr,]) - tempB[k_constr,j_constr]
     log_means <- do.call(cbind,
                          lapply(1:J,
                                 function(j) z + X%*%tempB[,j]))
