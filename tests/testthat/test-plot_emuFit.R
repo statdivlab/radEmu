@@ -23,7 +23,8 @@ fitted_model <- emuFit(Y = Y,
                        run_score_tests = FALSE, 
                        use_fullmodel_info = FALSE,
                        use_fullmodel_cov = FALSE,
-                       return_both_score_pvals = FALSE)
+                       return_both_score_pvals = FALSE,
+                       match_row_names = FALSE)
 
 test_that("plot() returns data frame and plot", {
   plot_out <- plot(x = fitted_model)

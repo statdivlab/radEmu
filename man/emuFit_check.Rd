@@ -19,7 +19,8 @@ emuFit_check(
   unobserved_taxon_error = TRUE,
   constraint_fn,
   constraint_grad_fn,
-  constraint_param
+  constraint_param,
+  run_score_tests = TRUE
 )
 }
 \arguments{
@@ -78,6 +79,8 @@ this argument must also be a list.}
 parameter controlling relative weighting of elements closer and further from center.
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.)}
+
+\item{run_score_tests}{logical: perform robust score testing?}
 }
 \value{
 returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful

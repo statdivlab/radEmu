@@ -36,7 +36,8 @@ we do *not* get same results if we use incorrect info", {
                        B = NULL,
                        tolerance = 0.01,
                        verbose = FALSE,
-                       run_score_tests = FALSE)
+                       run_score_tests = FALSE,
+                       match_row_names = FALSE)
 
 
     B <- full_fit$B

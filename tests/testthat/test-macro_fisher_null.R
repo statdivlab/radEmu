@@ -352,3 +352,101 @@ test_that("We take similar step as we'd take using numerical derivatives in a mo
   expect_equal(update$update,n_update,tolerance = 1e-1)
 
 })
+
+test_that("We take same step as we'd take using numerical derivatives when gap, rho, u are zero", {
+  set.seed(59542234)
+  n <- 10
+  p <- 2
+  X <- cbind(1,rep(c(0,1),each = n/2))
+  J <- 10000
+  z <- rnorm(n) +8
+  b0 <- rnorm(J)
+  b1 <- seq(1,10,length.out = J)
+  b1 <- b1 - mean(b1)
+  b0 <- b0 - mean(b0)
+  b <- rbind(b0,b1)
+  Y <- matrix(NA,ncol = J, nrow = n)
+  
+  k_constr <- 2
+  j_constr <- 1
+  p <- 2
+  
+  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  # constraint_fn <- function(x){mean(x)}
+  
+  ##### Arguments to fix:
+  
+  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+  # constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
+  rho_init = 1
+  tau = 1.2
+  kappa = 0.8
+  obj_tol = 100
+  score_tol <- 1e-3
+  constraint_tol = 1e-5
+  init_tol = 1e6
+  c1 = 1e-4
+  maxit = 1000
+  inner_maxit = 25
+  
+  Y[] <- 0
+  for(i in 1:n){
+    while(sum(Y[i,])==0){
+      for(j in 1:J){
+        temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
+        Y[i,j] <- rpois(1, lambda = temp_mean)
+        # Y[i,j] <- rnbinom(1,mu = temp_mean, size = 3)*rbinom(1,1,0.6)
+      }
+    }
+  }
+  
+  j_ref <- 5
+  
+  full_fit <- #suppressMessages(
+    emuFit_micro_penalized(X = X,
+                           Y = Y,
+                           B = NULL,
+                           constraint_fn = mean,
+                           tolerance = 10,
+                           verbose = FALSE)#)
+  
+  B <- full_fit$B
+  B[1,] <- B[1,] - B[1,j_ref]
+  B[2,] <- B[2,] - B[2,j_ref]
+  
+  Y_aug <- full_fit$Y_augmented
+  
+  B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
+  
+  u <- 0
+  rho <- 0
+  
+  z <- update_z(Y,X,B)
+  
+  macro_time <- try(system.time(macro_fisher_null(X = X,
+                              Y = Y_aug,
+                              B = B,
+                              z = z,
+                              J = J,
+                              p = p,
+                              k_constr = k_constr,
+                              j_constr = j_constr,
+                              j_ref = j_ref,
+                              rho = rho,
+                              u = u,
+                              constraint_fn = constraint_fn,
+                              constraint_grad_fn = constraint_grad_fn,
+                              stepsize = 0.5,
+                              c1 = 1e-4,
+                              regularization = 0,
+                              debug= FALSE)))
+
+  if(inherits(macro_time, "try-error")){
+    expect_true(FALSE)
+  }
+  expect_true(macro_time[3]<10)
+  #failing this test indicates that macro_fisher_null is probably directly 
+  #computing the full inverse of the (approximate) hessian matrix of the log likelihood
+  #this includes an outer product that does not need to be computed
+})
+

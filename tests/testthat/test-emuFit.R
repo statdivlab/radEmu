@@ -39,7 +39,8 @@ test_that("emuFit takes formulas and actually fits a model", {
                            run_score_tests = TRUE, 
                            use_fullmodel_info = FALSE,
                            use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE)
+                           return_both_score_pvals = FALSE,
+                           test_kj = data.frame(k = 2, j = 1:6))
   })
   
   
@@ -58,7 +59,7 @@ test_that("emuFit takes formulas and actually fits a model", {
                          formula = ~group,
                          data = covariates,
                          refit = FALSE,
-                         run_score_test = FALSE,
+                         run_score_tests= FALSE,
                          fitted_model = fitted_model)
   
   expect_identical(fitted_model$coef$estimate, second_model$coef$estimate)
@@ -72,10 +73,11 @@ test_that("emuFit takes formulas and actually fits a model", {
                                             B_null_tol = 0.01,
                                             tolerance = 0.01,
                                             data = covariates,
-                                            run_score_test = TRUE,
+                                            run_score_tests= TRUE,
                                             return_wald_p = TRUE, ### diff
                                             use_fullmodel_info = TRUE, ### diff
-                                            verbose = FALSE)
+                                            verbose = FALSE,
+                                            test_kj = data.frame(k = 2, j = 1:6))
   
   
   expect_true(all(fitted_model_use_fullmodel_info$coef$wald_p>0 & fitted_model_use_fullmodel_info$coef$wald_p<1))
@@ -92,11 +94,12 @@ test_that("emuFit takes formulas and actually fits a model", {
                                formula = ~group,
                                tau = 1.2,
                                data = covariates,
-                               run_score_test = TRUE,
+                               run_score_tests= TRUE,
                                return_wald_p = TRUE,
                                use_fullmodel_info = TRUE,
                                verbose = FALSE,
-                               return_both_score_pvals = TRUE)
+                               return_both_score_pvals = TRUE,
+                               test_kj = data.frame(k = 2, j = 1:6))
   
   ps_full <- fitted_model_both$coef$score_pval_full_info
   ps_null <- fitted_model_both$coef$score_pval_null_info
@@ -115,7 +118,7 @@ test_that("emuFit takes formulas and actually fits a model", {
   #                       formula = ~group,
   #                       tau = 1.2,
   #                       data = covariates,
-  #                       run_score_test = TRUE,
+  #                       run_score_tests= TRUE,
   #                       return_wald_p = TRUE,
   #                       use_fullmodel_info = TRUE,
   #                       verbose = FALSE,
@@ -146,7 +149,8 @@ test_that("emuFit takes cluster argument without breaking ",{
                                    use_fullmodel_info = FALSE,
                                    use_fullmodel_cov = FALSE,
                                    return_both_score_pvals = FALSE,
-                                   cluster = rep(1:3,each = 4))
+                                   cluster = rep(1:3,each = 4),
+                                   test_kj = data.frame(k = 2, j = 1:6))
           })
   
   expect_silent({
@@ -163,7 +167,8 @@ test_that("emuFit takes cluster argument without breaking ",{
                                    run_score_tests = TRUE, 
                                    use_fullmodel_info = FALSE,
                                    use_fullmodel_cov = FALSE,
-                                   return_both_score_pvals = FALSE)
+                                   return_both_score_pvals = FALSE,
+                                   test_kj = data.frame(k = 2, j = 1:6))
   })
   
   expect_true(all(fitted_model_nocluster$coef$estimate == fitted_model_cluster$coef$estimate))
@@ -336,7 +341,7 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
 #            formula = ~group,
 #            data = covariates,
 #            tolerance = 0.01,
-#            run_score_test = FALSE,
+#            run_score_tests= FALSE,
 #            return_wald_p = TRUE)
 #   
 #   
@@ -364,7 +369,8 @@ test_that("emuFit runs without penalty", {
                            run_score_tests = TRUE, 
                            use_fullmodel_info = FALSE,
                            use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE)
+                           return_both_score_pvals = FALSE,
+                           test_kj = data.frame(k = 2, j = 1:6))
   })
 })
 
@@ -383,7 +389,8 @@ test_that("emuFit runs with just intercept model", {
                            run_score_tests = TRUE, 
                            use_fullmodel_info = FALSE,
                            use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE)
+                           return_both_score_pvals = FALSE,
+                           test_kj = data.frame(k = 1, j = 1:6))
   })
   
   expect_message({
@@ -398,7 +405,8 @@ test_that("emuFit runs with just intercept model", {
                            run_score_tests = TRUE, 
                            use_fullmodel_info = FALSE,
                            use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE)
+                           return_both_score_pvals = FALSE,
+                           test_kj = data.frame(k = 1, j = 1:6))
   })
   
   expect_equal(fitted_model$coef[, 2:9], fitted_model1$coef[, 2:9])
