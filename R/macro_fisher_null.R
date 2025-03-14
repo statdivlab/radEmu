@@ -102,6 +102,12 @@ macro_fisher_null <- function(X,
                                    update_dir[,(1:(J - 1))>=j_ref,drop = FALSE]))
   
   
+  #in debug mode, compute full inverse info for backward compatibility
+  if(debug){
+    info_inverse <- info_inverse - Matrix::tcrossprod(sm_half_num)/sm_denom
+  }
+  
+  
   
   
   
