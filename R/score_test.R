@@ -10,7 +10,7 @@
 #' @param k_constr row index of element of B to be tested for equality to row identifiability constraint
 #' @param j_constr column index of element of B to be tested for equality to row identifiability constraint
 #' @param constraint_fn constraint function g to be imposed on each row of B; the null that
-#' is tested is B_{k_constr,j_constr} = g(B_k_constr)
+#' is tested is $B_{k_constr,j_constr} = g(B_k_constr)$
 #' @param constraint_grad_fn derivative of constraint_fn with respect to its
 #' arguments (i.e., elements of a row of B)
 #' @param j_ref column dropped from B in convenience parametrization used to compute 
@@ -70,19 +70,19 @@
 #' be used in computing GEE test statistics. Default is NULL, in which case rows of 
 #' Y are treated as independent.
 #'
-#' @return A list containing elements 'score_stat', 'pval', 'log_pval','niter',
-#' 'convergence', 'gap', 'u', 'rho', 'tau', 'inner_maxit', 'null_B', and 'Bs'. 'score_stat' gives the 
-#' value of the robust score statistic for H_0: B_{k_constr,j_constr} = g(B_{k_constr}).
-#' 'pval' and 'log_pval' are the p-value (on natural and log scales) corresponding to
+#' @return A list containing elements `score_stat`, `pval`, `log_pval`,'niter`,
+#' `convergence`, `gap`, `u`, `rho`, `tau`, `inner_maxit`, `null_B`, and `Bs`. `score_stat` gives the 
+#' value of the robust score statistic for $H_0: B_{k_constr,j_constr} = g(B_{k_constr})$.
+#' `pval` and `log_pval` are the p-value (on natural and log scales) corresponding to
 #' the score statistic (log_pval may be useful when the p-value is very close to zero). 
-#' 'gap' is the final value of g(B_{k_constr}) - B_{k_constr, j_constr} obtained in 
-#' optimization under the null. 'u' and 'rho' are final values of augmented 
-#' Lagrangian parameters returned by null fitting algorithm. 'tau' is the final value of 'tau' that 
-#' is used to update the 'rho' values and 'inner_maxit' is the final maximum number of iterations for 
+#' `gap` is the final value of $g(B_{k_constr}) - B_{k_constr, j_constr}$ obtained in 
+#' optimization under the null. `u` and `rho` are final values of augmented 
+#' Lagrangian parameters returned by null fitting algorithm. `tau` is the final value of `tau` that 
+#' is used to update the `rho` values and `inner_maxit` is the final maximum number of iterations for 
 #' the inner optimization loop in optimization under the null, in which B and z parameter values are
-#' maximized for specific 'u' and 'rho' parameters. 'null_B' is the value of 
-#' B returned but the null fitting algorithm. 'Bs' is by default NULL; if trackB = TRUE,
-#' 'Bs is a data frame containing values of B by outcome category, covariate, and 
+#' maximized for specific `u` and `rho` parameters. `null_B` is the value of 
+#' B returned but the null fitting algorithm. `Bs` is by default `NULL`; if `trackB = TRUE`,
+#' `Bs` is a data frame containing values of B by outcome category, covariate, and 
 #' iteration.
 #' 
 #' 
