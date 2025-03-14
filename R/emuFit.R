@@ -48,11 +48,14 @@
 #' function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.
 #' @param constraint_grad_fn derivative of constraint_fn with respect to its
 #' arguments (i.e., elements of a row of B). If \code{constraint_fn} is a list of constraint functions, then
-#' this argument must also be a list.
+#' this argument must also be a list. If \code{constraint_fn} is a single number, or a list that includes a 
+#' single number, then the corresponding \code{constraint_grad_fn} can be set to \code{NULL}, and will be appropriately 
+#' set within the function. 
 #' @param constraint_param If pseudohuber centering is used (this is the default),
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
-#' the minimizer of the pseudo-Huber loss approaches the median.)
+#' the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
+#' centering (implemented in \code{radEmu:::pseudohuber_center()}) then this argument will be ignored.
 #' @param verbose provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
 #' then key messages about algorithm progress will be displayed. If user sets verbose = "development",
 #' then key messages and technical messages about convergence will be displayed. Most users who want status

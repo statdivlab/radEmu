@@ -371,12 +371,12 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
   j_constr <- 1
   p <- 2
   
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
   # constraint_fn <- function(x){mean(x)}
   
   ##### Arguments to fix:
   
-  constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
   # constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
   rho_init = 1
   tau = 1.2
@@ -406,7 +406,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
     emuFit_micro_penalized(X = X,
                            Y = Y,
                            B = NULL,
-                           constraint_fn = mean,
+                           constraint_fn = rep(list(mean), 2), 
                            tolerance = 10,
                            verbose = FALSE)#)
   
@@ -416,7 +416,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
   
   Y_aug <- full_fit$Y_augmented
   
-  B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
+  B[k_constr,j_constr] <- constraint_fn[[k_constr]](B[k_constr,-j_constr])
   
   u <- 0
   rho <- 0

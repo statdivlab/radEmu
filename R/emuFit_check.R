@@ -254,12 +254,18 @@ ignoring argument 'cluster'.")
     stop("The arguments `constraint_fn` and `constraint_grad_fn` have different lengths. These arguments should either both be single functions, or both be lists of p functions, for p rows of the B matrix.")
   }
   if (length(constraint_fn) == 1) {
+    if (inherits(constraint_fn, "list")) {
+      constraint_fn <- constraint_fn[[1]]
+    }
+    if (inherits(constraint_grad_fn, "list")) {
+      constraint_grad_fn <- constraint_grad_fn[[1]]
+    }
     constraint_fn <- rep(list(constraint_fn), p)
-    constraint_grad_fn <- rep(list(constraint_fn), p)
+    constraint_grad_fn <- rep(list(constraint_grad_fn), p)
   }
-  constraint_param <- rep(constraint_param, p)
+
   if (length(constraint_fn) != p) {
-    stop("The arguments `constraint_fn` and `constraing_grad_fn` have the wrong lengths. These arguments should either both be single functions, or both be lists of p functions, for p rows of the B matrix.")
+    stop("The arguments `constraint_fn` and `constraint_grad_fn` have the wrong lengths. These arguments should either both be single functions, or both be lists of p functions, for p rows of the B matrix.")
   }
   
   for (k in 1:p) {
@@ -271,7 +277,6 @@ ignoring argument 'cluster'.")
         grad[constraint_cat] <- 1
         return(grad)
       }
-      constraint_param[k] <- NA
     }
     
     if (is.logical(all.equal(constraint_fn[[k]], pseudohuber_center))) {
@@ -280,19 +285,22 @@ ignoring argument 'cluster'.")
         
         stopifnot(!is.na(constraint_param[k]))
         
-        constraint_fn[[k]] <- (function(x) pseudohuber_center(x, d = constraint_param[k]))
-        constraint_grad_fn[[k]] <- (function(x) dpseudohuber_center_dx(x, d = constraint_param[k]))
+        constraint_fn[[k]] <- (function(x) pseudohuber_center(x, d = constraint_param))
+        constraint_grad_fn[[k]] <- (function(x) dpseudohuber_center_dx(x, d = constraint_param))
         
       } 
     } else {
       
-      if (!is.na(constraint_param[k])) {
-        
-        warning("Argument constraint_param is currently only supported for centering with
-pseudohuber_center() function; constraint_param input is otherwise ignored. Please directly
-feed your choice of constraint function, including any necessary parameters, to constraint_fn argument
-and the corresponding gradient function to constraint_grad_fn.")
-      }
+      # commenting out this warning. Adding to the documentation to reflect that this parameter
+      # will only be used when centering with pseudohuber center function
+      
+#       if (!is.na(constraint_param)) {
+#         
+#         warning("Argument constraint_param is currently only supported for centering with
+# pseudohuber_center() function; constraint_param input is otherwise ignored. Please directly
+# feed your choice of constraint function, including any necessary parameters, to constraint_fn argument
+# and the corresponding gradient function to constraint_grad_fn.")
+#       }
     } 
   }
  

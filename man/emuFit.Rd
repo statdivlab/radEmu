@@ -124,7 +124,8 @@ this argument must also be a list.}
 \item{constraint_param}{If pseudohuber centering is used (this is the default),
 parameter controlling relative weighting of elements closer and further from center.
 (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
-the minimizer of the pseudo-Huber loss approaches the median.)}
+the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
+centering (implemented in \code{radEmu:::pseudohuber_center()}) then this argument will be ignored.}
 
 \item{verbose}{provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
 then key messages about algorithm progress will be displayed. If user sets verbose = "development",
