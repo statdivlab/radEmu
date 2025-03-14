@@ -29,6 +29,7 @@
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
 #' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
+#' @param run_score_tests logical: perform robust score testing? 
 #' 
 #' @return returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful
 #' errors, warnings, or messages.
@@ -46,7 +47,8 @@ emuFit_check <- function(Y,
                          match_row_names = TRUE,
                          verbose = FALSE,
                          remove_zero_comparison_pvals = 0.01,
-                         unobserved_taxon_error = TRUE) {
+                         unobserved_taxon_error = TRUE,
+                         run_score_tests = TRUE) {
   
   # confirm that input to verbose is valid
   if (!(verbose %in% c(FALSE, TRUE, "development"))) {
@@ -201,6 +203,13 @@ ignoring argument 'cluster'.")
       } else {
         stop("Make sure that the values of `j` in `test_kj` are numeric or correspond to column names of the `Y` matrix.")
       }
+    }
+  }
+  
+  # check that test_kj is not null if running score tests
+  if (run_score_tests) {
+    if (is.null(test_kj)) {
+      stop("When `run_score_tests = TRUE`, you must provide a matrix `test_kj` to determine which parameters you want to test. If you don't know which indices k correspond to the covariate(s) that you would like to test, run the function `radEmu::make_design_matrix()` in order to view the design matrix, and identify which column of the design matrix corresponds to each covariate in your model. If you don't know which indices j correspond to categories (taxa) that you want to test, you can look at the columns and column names of your `Y` matrix.")
     }
   }
   

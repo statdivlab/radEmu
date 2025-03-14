@@ -22,11 +22,11 @@
 #' should fitting step be skipped (FALSE), e.g., if score tests are to be run on an already
 #' fitted model. Default is TRUE.
 #' @param test_kj a data frame whose rows give coordinates (in category j and
-#' covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
-#' is not provided, all elements of B save the intercept row will be tested. If you don't know
+#' covariate k) of elements of B to construct hypothesis tests for. If you don't know
 #' which indices k correspond to the covariate(s) that you would like to test, run the function
 #' \code{radEmu::make_design_matrix()} in order to view the design matrix, and identify which
-#' column of the design matrix corresponds to each covariate in your model.
+#' column of the design matrix corresponds to each covariate in your model. This argument is required when
+#' running score tests.
 #' @param alpha nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
 #' (corresponding to 95% confidence intervals)
 #' @param return_wald_p logical: return p-values from Wald tests? Default is FALSE.
@@ -207,7 +207,8 @@ emuFit <- function(Y,
                                 match_row_names = match_row_names,
                                 verbose = verbose,
                                 remove_zero_comparison_pvals = remove_zero_comparison_pvals,
-                                unobserved_taxon_error = unobserved_taxon_error)
+                                unobserved_taxon_error = unobserved_taxon_error,
+                                run_score_tests = run_score_tests)
   Y <- check_results$Y
   X <- check_results$X
   cluster <- check_results$cluster

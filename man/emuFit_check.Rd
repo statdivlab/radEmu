@@ -16,7 +16,8 @@ emuFit_check(
   match_row_names = TRUE,
   verbose = FALSE,
   remove_zero_comparison_pvals = 0.01,
-  unobserved_taxon_error = TRUE
+  unobserved_taxon_error = TRUE,
+  run_score_tests = TRUE
 )
 }
 \arguments{
@@ -60,6 +61,8 @@ If a value between 0 and 1, all zero-comparison p-values below the value will be
 Default is \code{0.01}.}
 
 \item{unobserved_taxon_error}{logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.}
+
+\item{run_score_tests}{logical: perform robust score testing?}
 }
 \value{
 returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful

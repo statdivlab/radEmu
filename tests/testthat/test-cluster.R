@@ -23,7 +23,8 @@ test_that("clusters work as I want", {
                    data = XX, 
                    Y = Y, 
                    cluster=cage_num, 
-                   run_score_tests=FALSE) #### very fast
+                   run_score_tests=FALSE,
+                   match_row_names = FALSE) #### very fast
   expect_equal(ef_num$coef %>% class, "data.frame")
   
   # check that cluster argument works as character vector and gives 
@@ -33,7 +34,8 @@ test_that("clusters work as I want", {
                     data = XX, 
                     Y = Y, 
                     cluster=cage_char, 
-                    run_score_tests=FALSE) 
+                    run_score_tests=FALSE,
+                    match_row_names = FALSE) 
   expect_equal(ef_num$coef, ef_char$coef)
   
   # check that cluster argument works as factor and gives equivalent results
@@ -43,7 +45,8 @@ test_that("clusters work as I want", {
                     data = XX, 
                     Y = Y, 
                     cluster=cage_fact, 
-                    run_score_tests=FALSE) 
+                    run_score_tests=FALSE,
+                    match_row_names = FALSE) 
   expect_equal(ef_num$coef, ef_fact$coef)
 })
 
@@ -110,7 +113,8 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
                                    return_both_score_pvals = FALSE,
                                    test_kj = data.frame(k = c(2,2),
                                                         j = c(3,4)),
-                                   cluster = cluster)
+                                   cluster = cluster,
+                                   match_row_names = FALSE)
     
     fitted_model_nocluster <- emuFit(Y = Y,
                                      X = X,
@@ -127,7 +131,8 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
                                      use_fullmodel_cov = FALSE,
                                      return_both_score_pvals = FALSE,
                                      test_kj = data.frame(k = c(2,2),
-                                                          j = c(3,4)))
+                                                          j = c(3,4)),
+                                     match_row_names = FALSE)
     # })
     
     filtered_coef <- fitted_model_cluster$coef[!is.na(fitted_model_cluster$coef$pval),

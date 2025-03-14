@@ -191,13 +191,15 @@ To set up this test, we can again run `emuFit`, giving it the fitted values that
 
   - `formula`, `data` and `Y` are as before
   - `B` is our previous fitted object (the output of `emuFit`)
-  - `test_kj` a dataframe listing the indices of the parameters (in `ch_fit$B`) that we want to test. Below we show how to identify these, but `j = 3` is F. nucleatum and `j = 36` is the *Eubacterium* meta mOTU. 
+  - `test_kj` a dataframe listing the indices of the parameters (in `ch_fit$B`) that we want to test. Below we show how to identify these, but `j = 3` is F. nucleatum and `j = 36` is the *Eubacterium* meta mOTU. Note that while `test_kj` was an optional argument in previous software versions, in `radEmu` v2.0.0.0 and forward `test_kj` is required when `run_score_tests = TRUE`. 
 
 ```{r}
 taxa_to_test <- c(which(str_detect(restricted_mOTU_names, "0777")), 
                   which(str_detect(restricted_mOTU_names, "7116")))
+design <- make_design_matrix(formula = ~ Group, data = wirbel_sample[ch_study_obs, ])
+colnames(design)
+covariate_to_test <- 2 # we see in the previous line that the covariate we care about corresponds to the second column of the design matrix
 ch_fit$B %>% rownames
-covariate_to_test <- 2 #which("GroupCRC" == ch_fit$B %>% rownames) # TODO(AW)
 two_robust_score_tests <- emuFit(formula = ~ Group,
                                  data = wirbel_sample[ch_study_obs, ],
                                  B = ch_fit$B,
