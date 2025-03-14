@@ -304,7 +304,7 @@ and the corresponding gradient function to constraint_grad_fn.")
         emuFit_micro(X = X,
                      Y = Y,
                      B = B,
-                     constraint_fn = NULL,
+                     constraint_fn = constraint_fn,
                      maxit = maxit,
                      max_stepsize = max_step,
                      tolerance = tolerance,
