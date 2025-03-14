@@ -1,7 +1,11 @@
 # radEmu 2.0.0.0
 
-This is a major release that updates the argument `test_kj` in the function `emuFit()` in a way that is not backwards compatible.
+This is a major release that speeds up score tests, and forces the user to clarify that they wish to perform score tests. It makes the default behaviour faster, but is not backwards compatible.
 
 ## Breaking changes
 
-* When `emuFit()` is run with the default of `run_score_tests = TRUE`, the argument `test_kj` is now required instead of optional. In previous versions when`run_score_tests = TRUE` and `test_kj` was not included, score tests were run for all parameters in the model except for intercept parameters. As these score tests can be computationally expensive, we want to make sure that the user only runs tests for parameters that they want to include in the analysis. 
+* The argument `test_kj` is now required for `emuFit()` when `run_score_tests = TRUE` (the default). Previous default behavior was to run score tests for every parameter, which can be very time consuming(and can easily be parallelized). This change forces the user to explicitly state what tests they would like to run, significantly decreasing unnecessary computation. 
+
+## Additional changes
+
+* We have also streamlined estimation under the null, leading to improved convergence and reduced computation. 
