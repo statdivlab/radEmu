@@ -69,10 +69,8 @@ macro_fisher_null <- function(X,
   sm_denom <- as.numeric(as.matrix(1 + Matrix::crossprod(v,info_inverse)%*%v))
   sm_half_num <- info_inverse%*%v
   
-  #strictly speaking, this isn't the inverse info -- its the inverse of 
+  #strictly speaking, info_inverse isn't the inverse info -- its the inverse of 
   # (an approximation to) the hessian of the augmented lagrangian
-  info_inverse <- info_inverse #- Matrix::tcrossprod(sm_half_num)/sm_denom
-  # the tcrossprod in the last line is the final step for the sherman-morrison update
   
   #compute derivative of augmented lagrangian
   lag_deriv <- lapply(1:J,
