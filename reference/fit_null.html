@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -124,7 +124,7 @@
 
 
 <dt id="arg-b-tol">B_tol<a class="anchor" aria-label="anchor" href="#arg-b-tol"></a></dt>
-<dd><p>tolerance for convergence in max_k,j |B^t_kj - B^(t - 1)_kj|</p></dd>
+<dd><p>tolerance for convergence in $max_k,j |B^t_kj - B^(t - 1)_kj|$</p></dd>
 
 
 <dt id="arg-inner-tol">inner_tol<a class="anchor" aria-label="anchor" href="#arg-inner-tol"></a></dt>
@@ -132,7 +132,7 @@
 
 
 <dt id="arg-constraint-tol">constraint_tol<a class="anchor" aria-label="anchor" href="#arg-constraint-tol"></a></dt>
-<dd><p>tolerance for |B_kj - g(B_k)|</p></dd>
+<dd><p>tolerance for $|B_kj - g(B_k)|$</p></dd>
 
 
 <dt id="arg-max-step">max_step<a class="anchor" aria-label="anchor" href="#arg-max-step"></a></dt>
@@ -161,15 +161,15 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing elements 'B', 'k_constr', 'j_constr', 'niter'
-'gap', 'u', 'rho', and 'Bs'. 'B' is a matrix containing parameter estimates
+    <p>A list containing elements <code>B</code>, <code>k_constr</code>, <code>j_constr</code>, <code>niter</code>
+<code>gap</code>, <code>u</code>, <code>rho</code>, and <code>Bs</code>. <code>B</code> is a matrix containing parameter estimates
 under the null (obtained by maximum likelihood on augmented observations Y),
-'k_constr', and 'j_constr' give row and column indexes of the parameter
-fixed to be equal to the constraint function g() under the null. 'niter' is a
+<code>k_constr</code>, and <code>j_constr</code> give row and column indexes of the parameter
+fixed to be equal to the constraint function $g()$ under the null. <code>niter</code> is a
 scalar giving total number of outer iterations used to fit the null model,
-'gap' gives the final value of g(B_k_constr) - B_k_constr j_constr,
-'u' and 'rho' are final values of augmented Lagrangian parameters, and
-'Bs' is a data frame containing values of B by iteration if trackB was set
+<code>gap</code> gives the final value of $g(B_k constr) - B_k constr, j constr$,
+<code>u</code> and <code>rho</code> are final values of augmented Lagrangian parameters, and
+<code>Bs</code> is a data frame containing values of B by iteration if <code>trackB</code> was set
 equal to TRUE (otherwise it contains a NULL value).</p>
     </div>
 

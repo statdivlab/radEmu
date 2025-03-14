@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -212,19 +212,7 @@ Y are treated as independent.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing elements 'score_stat', 'pval', 'log_pval','niter',
-'convergence', 'gap', 'u', 'rho', 'tau', 'inner_maxit', 'null_B', and 'Bs'. 'score_stat' gives the
-value of the robust score statistic for H_0: B_k_constr,j_constr = g(B_k_constr).
-'pval' and 'log_pval' are the p-value (on natural and log scales) corresponding to
-the score statistic (log_pval may be useful when the p-value is very close to zero).
-'gap' is the final value of g(B_k_constr) - B_k_constr, j_constr obtained in
-optimization under the null. 'u' and 'rho' are final values of augmented
-Lagrangian parameters returned by null fitting algorithm. 'tau' is the final value of 'tau' that
-is used to update the 'rho' values and 'inner_maxit' is the final maximum number of iterations for
-the inner optimization loop in optimization under the null, in which B and z parameter values are
-maximized for specific 'u' and 'rho' parameters. 'null_B' is the value of
-B returned but the null fitting algorithm. 'Bs' is by default NULL; if trackB = TRUE,
-'Bs is a data frame containing values of B by outcome category, covariate, and
+    <p>A list containing elements <code>score_stat</code>, <code>pval</code>, <code>log_pval</code>,'niter<code>, </code>convergence<code>, </code>gap<code>, </code>u<code>, </code>rho<code>, </code>tau<code>, </code>inner_maxit<code>, </code>null_B<code>, and </code>Bs<code>. </code>score_stat<code>gives the  value of the robust score statistic for $H_0: B_{k_constr,j_constr} = g(B_{k_constr})$.</code>pval<code>and</code>log_pval<code>are the p-value (on natural and log scales) corresponding to the score statistic (log_pval may be useful when the p-value is very close to zero). </code>gap<code>is the final value of $g(B_{k_constr}) - B_{k_constr, j_constr}$ obtained in  optimization under the null.</code>u<code>and</code>rho<code>are final values of augmented  Lagrangian parameters returned by null fitting algorithm.</code>tau<code>is the final value of</code>tau<code>that  is used to update the</code>rho<code>values and</code>inner_maxit<code>is the final maximum number of iterations for  the inner optimization loop in optimization under the null, in which B and z parameter values are maximized for specific</code>u<code>and</code>rho<code>parameters.</code>null_B<code>is the value of  B returned but the null fitting algorithm.</code>Bs<code>is by default</code>NULL<code>; if </code>trackB = TRUE<code>, </code>Bs` is a data frame containing values of B by outcome category, covariate, and
 iteration.</p>
     </div>
 
