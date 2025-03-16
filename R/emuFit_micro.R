@@ -22,6 +22,9 @@
 #' @param j_ref If use_working_constraint is TRUE, column index of column of B
 #' to set to zero. Default is NULL, in which case this column is chosen to
 #' maximize the number of nonzero entries of Y_j_ref.
+#' @param optimize_rows If use_working_constraint is TRUE, update overall location of 
+#' rows of B relative to column constrained to equal zero under working constraint before
+#' iterating through updates to columns of B individually. Default is TRUE.
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
@@ -39,7 +42,8 @@ emuFit_micro <-
            max_stepsize = 0.5,
            max_abs_B = 50,
            use_working_constraint = TRUE,
-           j_ref = NULL){
+           j_ref = NULL,
+           optimize_rows = TRUE){
     #extract dimensions
     n <- nrow(Y)
     J <- ncol(Y)
@@ -126,35 +130,43 @@ emuFit_micro <-
 
     converged <- FALSE
 
+    if(optimize_rows&use_working_constraint){
+      
+      eps_outcome <- rowSums(Y[,-which_to_omit,drop = FALSE])
+      
+    }
 
 
     iter <- 1
     deriv_norm <- Inf
     B_diff <- Inf
+    iter <- 1
     while(!converged){
       old_B <- B
+      if(optimize_rows &use_working_constraint){
+        
+        epsilon_step <- rep(10,p)
+        while(max(abs(epsilon_step))>0.01){
+
+        log_mean <- X%*%B +
+          matrix(z,ncol = 1)%*%matrix(1,ncol = J, nrow = 1)
+        eps_offset =  log(rowSums(exp(log_mean[,-which_to_omit,drop= FALSE])))
+        epsilon_step <- suppressWarnings(stats::glm(eps_outcome~X-1,family = "poisson",offset =eps_offset,
+                       control = list(maxit = 3))$coef)
+
+            for(k in 1:p){
+          B[k,-which_to_omit] <-  B[k,-which_to_omit] + epsilon_step[k]
+            }
+          z <- update_z(Y,X,B)
+        }}
+        
+
       for(j in loop_js){
-        # print(j)
-        # llj <- function(x){
-        #   Bj <- matrix(x,ncol = 1)
-        #   log_mean <- X%*%Bj + z
-        #   return(sum(Y[,j]*log_mean - exp(log_mean)))
-        # }
-        # grj <- function(x){
-        #   Bj <- matrix(x,ncol = 1)
-        #   log_mean <- X%*%Bj + z
-        #   return(-1*apply(diag(as.numeric((Y[,j] - exp(log_mean))))%*%X,
-        #                2,sum))
-        # }
+      
         update <- micro_fisher(X,Yj = Y[,j,drop= FALSE],Bj = B[,j,drop = FALSE],z,
                                stepsize = max_stepsize,
                                c1 = c1)
-
-        update_norm <- max(abs(update))
-        if(update_norm>max_stepsize){
-          update <- max_stepsize*update/update_norm
-        }
-
+        
         B[,j] <- B[,j] + update
 
         if(!use_working_constraint){

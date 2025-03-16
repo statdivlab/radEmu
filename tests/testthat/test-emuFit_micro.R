@@ -279,6 +279,47 @@ test_that("unpenalized fit uses B if given, and therefore fit is quicker", {
   expect_true(end_refit[3] < end[3])
   
 })
+
+
+
+test_that("unpenalized fit converges quicker if optimize_rows is set to TRUE", {
+  set.seed(4323)
+  J <- 100
+  n <- 100
+  X <- cbind(1,rnorm(n))
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J),
+                              distn = "Poisson",
+                              # zinb_size = 2,
+                              # zinb_zero_prop = 0.7,
+                              mean_z = 10)
+  
+  start <- proc.time()
+  pl_fit_one <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             # constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance = 1e-6,
+                             verbose= FALSE,
+                             optimize_rows = FALSE)
+  end <- proc.time() - start 
+  start_refit <- proc.time() 
+  pl_fit_two <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance =1e-6,
+                             verbose= FALSE,
+                             optimize_rows = TRUE)
+  end_refit <- proc.time() - start_refit 
+  expect_true(end_refit[3] < end[3])
+  
+})
 #
 #
 #
