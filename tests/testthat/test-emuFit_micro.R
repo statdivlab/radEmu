@@ -282,6 +282,50 @@ test_that("unpenalized fit uses B if given, and therefore fit is quicker", {
 
 
 
+test_that("unpenalized fit converges quicker if optimize_rows is set to TRUE with large p", {
+  set.seed(4323)
+  J <- 100
+  n <- 100
+  X <- cbind(1,rnorm(n),rnorm(n), rep(c(0, 1, 0, 0), each = 25), 
+             rep(c(0, 0, 1, 0), each = 25), rep(c(0, 0, 0, 1), each = 25), rnorm(n),
+             rep(0:1, 50))
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              B = rbind(rnorm(J), seq(1, 5, length.out = J),
+                                        rnorm(J), rnorm(J), rnorm(J), rnorm(J),
+                                        rnorm(J), rnorm(J)),
+                              #b0 = rnorm(J),
+                              #b1 = seq(1,5,length.out = J),
+                              distn = "Poisson",
+                              # zinb_size = 2,
+                              # zinb_zero_prop = 0.7,
+                              mean_z = 10)
+  
+  start <- proc.time()
+  pl_fit_one <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             # constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance = 1e-6,
+                             verbose= FALSE,
+                             optimize_rows = FALSE)
+  end <- proc.time() - start 
+  start_refit <- proc.time() 
+  pl_fit_two <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             #constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance =1e-6,
+                             verbose= FALSE,
+                             optimize_rows = TRUE)
+  end_refit <- proc.time() - start_refit 
+  expect_true(end_refit[3] < end[3])
+  
+})
+
 test_that("unpenalized fit converges quicker if optimize_rows is set to TRUE", {
   set.seed(4323)
   J <- 100
