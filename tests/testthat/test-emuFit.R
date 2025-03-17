@@ -707,4 +707,9 @@ test_that("multiple constraint functions can be submitted", {
                       penalize = TRUE, tolerance = 0.1, 
                       constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.2), 2), 
                       constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.2))))
+  
+  res4 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
+                 penalize = TRUE, tolerance = 0.1, 
+                 constraint_fn = list(3, 5), 
+                 constraint_grad_fn = list(NULL, NULL))
 })
