@@ -695,7 +695,7 @@ test_that("multiple constraint functions can be submitted", {
                  penalize = TRUE, tolerance = 0.1, 
                  constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.2), 2), 
                  constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.2), NULL))
-  expect_false(sum(res1$B[1, ] == res3$B[1, ]) > 0)
+  expect_false(sum(res1$B[1, ] == res3$B[1, ]) > 0) # check that row 1 is different when different constraint
   expect_true(all.equal(res1$B[2, ], res3$B[2, ]))
   
   expect_error(emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
@@ -712,4 +712,6 @@ test_that("multiple constraint functions can be submitted", {
                  penalize = TRUE, tolerance = 0.1, 
                  constraint_fn = list(3, 5), 
                  constraint_grad_fn = list(NULL, NULL))
+  expect_true(all.equal(res4$B[1, 3], 0))
+  expect_true(all.equal(res4$B[2, 5], 0))
 })
