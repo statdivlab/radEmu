@@ -60,6 +60,9 @@
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  remove_zero_comparison_pvals <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  unobserved_taxon_error <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">constraint_fn</span>,</span>
+<span>  <span class="va">constraint_grad_fn</span>,</span>
+<span>  <span class="va">constraint_param</span>,</span>
 <span>  run_score_tests <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -131,6 +134,27 @@ Default is <code>0.01</code>.</p></dd>
 
 <dt id="arg-unobserved-taxon-error">unobserved_taxon_error<a class="anchor" aria-label="anchor" href="#arg-unobserved-taxon-error"></a></dt>
 <dd><p>logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.</p></dd>
+
+
+<dt id="arg-constraint-fn">constraint_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-fn"></a></dt>
+<dd><p>function g defining a constraint on rows of B; g(B_k) = 0
+for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
+pseudohuber loss). If a number is provided a single category constraint will be used
+with the provided category as a reference category. This argument can either be a single constraint
+function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.</p></dd>
+
+
+<dt id="arg-constraint-grad-fn">constraint_grad_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-grad-fn"></a></dt>
+<dd><p>derivative of constraint_fn with respect to its
+arguments (i.e., elements of a row of B). If <code>constraint_fn</code> is a list of constraint functions, then
+this argument must also be a list.</p></dd>
+
+
+<dt id="arg-constraint-param">constraint_param<a class="anchor" aria-label="anchor" href="#arg-constraint-param"></a></dt>
+<dd><p>If pseudohuber centering is used (this is the default),
+parameter controlling relative weighting of elements closer and further from center.
+(Limit as <code>constraint_param</code> approaches infinity is the mean; as this parameter approaches zero,
+the minimizer of the pseudo-Huber loss approaches the median.)</p></dd>
 
 
 <dt id="arg-run-score-tests">run_score_tests<a class="anchor" aria-label="anchor" href="#arg-run-score-tests"></a></dt>
