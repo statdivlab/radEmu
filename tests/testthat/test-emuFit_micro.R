@@ -279,6 +279,102 @@ test_that("unpenalized fit uses B if given, and therefore fit is quicker", {
   expect_true(end_refit[3] < end[3])
   
 })
+
+test_that("unpenalized fit converges quicker if optimize_rows is set to TRUE", {
+  set.seed(4323)
+  J <- 100
+  n <- 100
+  X <- cbind(1,rnorm(n))
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              b0 = rnorm(J),
+                              b1 = seq(1,5,length.out = J),
+                              distn = "Poisson",
+                              # zinb_size = 2,
+                              # zinb_zero_prop = 0.7,
+                              mean_z = 10)
+  
+  start <- proc.time()
+  pl_fit_one <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             # constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance = 1e-6,
+                             verbose= FALSE,
+                             optimize_rows = FALSE)
+  end <- proc.time() - start 
+  start_refit <- proc.time() 
+  pl_fit_two <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             # constraint_fn = function(x) mean(x),
+                             maxit = 10000,
+                             tolerance =1e-6,
+                             verbose= FALSE,
+                             optimize_rows = TRUE)
+  end_refit <- proc.time() - start_refit 
+  # confirm that new approach is faster
+  expect_true(end_refit[3] < end[3])
+  # confirm that two estimates are very similar
+  expect_true(max(pl_fit_one - pl_fit_two) < 1e-5)
+  
+})
+
+test_that("unpenalized fit converges quicker if optimize_rows is set to TRUE with large p", {
+  
+  skip(message = "Skipping because test is very slow with J = 100 and p = 8")
+  
+  set.seed(4323)
+  J <- 100
+  n <- 100
+  X <- cbind(1,rnorm(n),rnorm(n), rep(c(0, 1, 0, 0), each = 25), 
+             rep(c(0, 0, 1, 0), each = 25), rep(c(0, 0, 0, 1), each = 25), rnorm(n),
+             rep(0:1, 50))
+  B <- rbind(rnorm(J), seq(1, 5, length.out = J),
+            rnorm(J), rnorm(J), rnorm(J), rnorm(J),
+            rnorm(J), rnorm(J))
+  for (k in 1:ncol(X)) {
+    B[k, ] <- B[k, ] - radEmu:::pseudohuber_center(B[k, ], 0.1)
+  }
+  Y <- radEmu:::simulate_data(n = n,
+                              J = J,
+                              X = X,
+                              B = B,
+                              distn = "Poisson",
+                              mean_z = 10)
+  
+  start <- proc.time()
+  pl_fit_one <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             maxit = 10000,
+                             tolerance = 1e-6,
+                             verbose= FALSE,
+                             optimize_rows = FALSE)
+  end <- proc.time() - start 
+  start_refit <- proc.time() 
+  pl_fit_two <- emuFit_micro(X,
+                             Y,
+                             B = NULL,
+                             maxit = 10000,
+                             tolerance =1e-6,
+                             verbose= FALSE,
+                             optimize_rows = TRUE)
+  end_refit <- proc.time() - start_refit 
+  expect_true(end_refit[3] < end[3])
+  max_est_error1 <- max(pl_fit_one - B)
+  max_est_error2 <- max(pl_fit_two - B)
+  max_est_diff <- max(pl_fit_one - pl_fit_two)
+  expect_true(max_est_error1 > max_est_error2)
+  mean_est_error1 <- mean(sqrt((pl_fit_one - B)^2))
+  mean_est_error2 <- mean(sqrt((pl_fit_two - B)^2))
+  mean_est_diff <- mean(sqrt((pl_fit_one - pl_fit_two)^2))
+  expect_true(mean_est_error1 > mean_est_error2)
+  expect_true(mean_est_diff < 1e-3)
+    
+})
 #
 #
 #
