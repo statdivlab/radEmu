@@ -681,9 +681,11 @@ test_that("multiple constraint functions can be submitted", {
   res1 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                 penalize = TRUE, tolerance = 0.1, 
                 constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.1), 2), 
-                constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.1), NULL))
+                constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.1), NULL),
+                return_nullB = TRUE)
   expect_true(all.equal(0, radEmu:::pseudohuber_center(res1$B[1, ], 0.1), 0.0001))
   expect_true(all.equal(0, res1$B[2, 2]))
+  expect_true(all.equal(0, res1$null_B[[1]][2, 1], tolerance = 1e-4))
   
   res2 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                 penalize = TRUE, tolerance = 0.1, 
