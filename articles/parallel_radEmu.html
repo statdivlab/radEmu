@@ -70,9 +70,9 @@
                         <h4 data-toc-skip class="author">Sarah
 Teichman</h4>
             
-            <h4 data-toc-skip class="date">2025-03-14</h4>
+            <h4 data-toc-skip class="date">2025-03-25</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/improvements/vignettes/parallel_radEmu.Rmd" class="external-link"><code>vignettes/parallel_radEmu.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/parallel_radEmu.Rmd" class="external-link"><code>vignettes/parallel_radEmu.Rmd</code></a></small>
       <div class="d-none name"><code>parallel_radEmu.Rmd</code></div>
     </div>
 
@@ -195,7 +195,7 @@ we will provide <code>ch_fit</code> to the argument
 <span>                                            j <span class="op">=</span> <span class="va">mOTU_to_test</span><span class="op">)</span>, </span>
 <span>                       Y <span class="op">=</span> <span class="va">small_Y</span><span class="op">)</span></span>
 <span><span class="va">robust_score</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="va">mOTU_to_test</span><span class="op">]</span></span>
-<span><span class="co">#&gt; [1] 0.301683</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.3016831</span></span></code></pre></div>
 <p>Now, we can see that it took a little while to run our robust score
 test. If we investigate the coefficient table in our
 <code>robust_score</code> output, we can see that we have a p-value of
@@ -263,7 +263,7 @@ follows:</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="co">## robust score test p-value for the first taxon</span></span>
 <span>  <span class="va">score_res</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="co">## robust score test p-value for the second taxon</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; [1] 0.03936520 0.03647308</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.03936535 0.03647755</span></span></code></pre></div>
 <p>To help organise this information, we can make a coefficient matrix
 that combines the information from each component in our list:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -286,17 +286,17 @@ that combines the information from each component in our list:</p>
 <span><span class="co">#&gt; 4  GroupCRC         Faecalibacterium prausnitzii [ref_mOTU_v2_1379]</span></span>
 <span><span class="co">#&gt; 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]</span></span>
 <span><span class="co">#&gt;   category_num    estimate        se      lower     upper  score_stat</span></span>
-<span><span class="co">#&gt; 1            1  1.48637864 0.8966329 -0.2709896 3.2437469 4.245037543</span></span>
-<span><span class="co">#&gt; 2            2  2.31317105 0.8271200  0.6920456 3.9342966 4.374848023</span></span>
-<span><span class="co">#&gt; 3            3  3.08640472 1.0275200  1.0725026 5.1003069 3.186822346</span></span>
-<span><span class="co">#&gt; 4            4 -0.34307573 0.3520406 -1.0330626 0.3469111 0.825349169</span></span>
-<span><span class="co">#&gt; 5            5  0.03892098 0.4780368 -0.8980140 0.9758559 0.007383068</span></span>
+<span><span class="co">#&gt; 1            1  1.48637593 0.8965269 -0.2707846 3.2435364 4.245031113</span></span>
+<span><span class="co">#&gt; 2            2  2.31316834 0.8270260  0.6922272 3.9341095 4.374639205</span></span>
+<span><span class="co">#&gt; 3            3  3.08640201 1.0274037  1.0727278 5.1000763 3.186778669</span></span>
+<span><span class="co">#&gt; 4            4 -0.34307844 0.3520048 -1.0329952 0.3468384 0.825277528</span></span>
+<span><span class="co">#&gt; 5            5  0.03891827 0.4779880 -0.8979210 0.9757575 0.007383133</span></span>
 <span><span class="co">#&gt;         pval</span></span>
-<span><span class="co">#&gt; 1 0.03936520</span></span>
-<span><span class="co">#&gt; 2 0.03647308</span></span>
-<span><span class="co">#&gt; 3 0.07423418</span></span>
-<span><span class="co">#&gt; 4 0.36362082</span></span>
-<span><span class="co">#&gt; 5 0.93152621</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 0.03936535</span></span>
+<span><span class="co">#&gt; 2 0.03647755</span></span>
+<span><span class="co">#&gt; 3 0.07423617</span></span>
+<span><span class="co">#&gt; 4 0.36364165</span></span>
+<span><span class="co">#&gt; 5 0.93152591</span></span></code></pre></div>
 <p>The column containing our p-values is called <code>pval</code>.</p>
 <p>Happy testing!</p>
 </div>
