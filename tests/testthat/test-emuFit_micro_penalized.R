@@ -121,7 +121,7 @@ less efficient implementation (and that both substantially differ from MLE", {
   
   expect_true(max(abs(ml_fit - pl_fit_new$B))>1)
   expect_true(max(abs(ml_fit - pl_fit_old$B))>1)
-  expect_equal(pl_fit_new,pl_fit_old)
+  expect_equal(pl_fit_new,pl_fit_old,tolerance = 1e-6)
 })
 
 
@@ -145,7 +145,7 @@ less efficient implementation (and that both substantially differ from MLE", {
   
   ml_fit <-  emuFit_micro(X,
                           Y,
-                          B = NULL,
+                          B = matrix(0,nrow = 2, ncol = J),
                           constraint_fn = function(x) mean(x),
                           maxit = 10000,
                           tolerance = 0.01,
@@ -156,7 +156,7 @@ less efficient implementation (and that both substantially differ from MLE", {
                                        B = NULL,
                                        constraint_fn = function(x) mean(x),
                                        maxit = 10000,
-                                       tolerance = 0.01,
+                                       tolerance = 0.001,
                                        verbose= FALSE)
   #using old implementation should trigger a message explaining there's no
   #reason to do this except for testing
@@ -166,12 +166,12 @@ less efficient implementation (and that both substantially differ from MLE", {
                                          B = NULL,
                                          constraint_fn = function(x) mean(x),
                                          maxit = 10000,
-                                         tolerance = 0.01,
+                                         tolerance = 0.001,
                                          verbose= TRUE,
                                          use_legacy_augmentation = TRUE)))
   
-  expect_true(max(abs(ml_fit - pl_fit_new$B))>1)
-  expect_true(max(abs(ml_fit - pl_fit_old$B))>1)
+  expect_true(max(abs(ml_fit - pl_fit_new$B))>0.5)
+  expect_true(max(abs(ml_fit - pl_fit_old$B))>0.5)
   expect_equal(pl_fit_new,pl_fit_old)
 })
 

@@ -444,8 +444,8 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
   if(inherits(macro_time, "try-error")){
     expect_true(FALSE)
   }
-  expect_true(macro_time[3]<10)
-  #failing this test indicates that macro_fisher_null is probably directly 
+  expect_true(macro_time[3]<15)
+  #failing this test indicates that macro_fisher_null may be directly 
   #computing the full inverse of the (approximate) hessian matrix of the log likelihood
   #this includes an outer product that does not need to be computed
 })

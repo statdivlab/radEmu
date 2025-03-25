@@ -17,7 +17,8 @@ emuFit_micro(
   max_stepsize = 0.5,
   max_abs_B = 50,
   use_working_constraint = TRUE,
-  j_ref = NULL
+  j_ref = NULL,
+  optimize_rows = TRUE
 )
 }
 \arguments{
@@ -54,6 +55,10 @@ zero within optimization. Default is TRUE.}
 \item{j_ref}{If use_working_constraint is TRUE, column index of column of B
 to set to zero. Default is NULL, in which case this column is chosen to
 maximize the number of nonzero entries of Y_j_ref.}
+
+\item{optimize_rows}{If use_working_constraint is TRUE, update overall location of
+rows of B relative to column constrained to equal zero under working constraint before
+iterating through updates to columns of B individually. Default is TRUE.}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint
