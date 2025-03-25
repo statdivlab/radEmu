@@ -489,7 +489,7 @@ emuFit <- function(Y,
         if (return_nullB) {
           null_B <- test_result$null_B
           for (k in 1:p) {
-            null_B[k, ] <- null_B[k, ] - constraint_fn(null_B[k, ])
+            null_B[k, ] <- null_B[k, ] - constraint_fn[[k]](null_B[k, ])
           }
           nullB_list[[test_ind]] <- null_B
         }
