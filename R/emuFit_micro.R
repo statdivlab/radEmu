@@ -52,8 +52,8 @@ emuFit_micro <-
 
     # assign constraint if necessary
     if(is.null(constraint_fn)){
-      constraint_fn <- (function(x) pseudohuber_center(x,0.1))
-      constraint_grad_fn <- (function(x) dpseudohuber_center_dx(x,0.1))
+      constraint_fn <- rep(list(function(x) pseudohuber_center(x,0.1)), p)
+      constraint_grad_fn <- rep(list(function(x) dpseudohuber_center_dx(x,0.1)), p)
     }
 
 
@@ -109,7 +109,7 @@ emuFit_micro <-
       }
     } else{
       for(k in 1:p){
-        B[k,] <- B[k,] - constraint_fn(B[k,])
+        B[k,] <- B[k,] - constraint_fn[[k]](B[k,])
       }
     }
 
@@ -171,7 +171,7 @@ emuFit_micro <-
 
         if(!use_working_constraint){
         for(k in 1:p){
-          B[k,] <- B[k,] - constraint_fn(B[k,])
+          B[k,] <- B[k,] - constraint_fn[[k]](B[k,])
         }}
 
 
@@ -222,7 +222,7 @@ emuFit_micro <-
 
     if(use_working_constraint){
       for(k in 1:p){
-        B[k,] <- B[k,] - constraint_fn(B[k,])
+        B[k,] <- B[k,] - constraint_fn[[k]](B[k,])
       }}
 
     z <- update_z(Y = Y,X = X,B = B)

@@ -5,7 +5,7 @@ test_that("computing information matrix gives same result regardless of method",
   penalized_fit <- emuFit_micro_penalized(X,
                                           Y,
                                           B = NULL,
-                                          constraint_fn = function(x) x[2],
+                                          constraint_fn = rep(list(function(x) x[2]), 2),
                                           maxit = 500,
                                           tolerance = 1e-5,
                                           verbose = FALSE)
@@ -53,12 +53,12 @@ test_that("Computed information is equal to numerical derivative with categorica
   p <- 2
 
   # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  constraint_grad_fn <- function(x){mean(x)}
+  constraint_grad_fn <- rep(list(function(x){mean(x)}), 2)
 
   ##### Arguments to fix:
 
   # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)
-  constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
+  constraint_grad_fn <- rep(list(function(x){ rep(1/length(x), length(x))}), 2)
   rho_init = 1
   tau = 1.2
   kappa = 0.8
@@ -74,7 +74,7 @@ test_that("Computed information is equal to numerical derivative with categorica
     emuFit_micro_penalized(X = X,
                            Y = Y,
                            B = NULL,
-                           constraint_fn = mean,
+                           constraint_fn = rep(list(mean), 2), 
                            tolerance = 1e-3,
                            verbose = FALSE)#)
 

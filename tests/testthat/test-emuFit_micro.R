@@ -15,7 +15,7 @@ test_that("ML fit to simple example give reasonable output", {
   
   ml_fit <- emuFit_micro(X = X,
                          Y = Y,
-                         constraint_fn = function(x) mean(x),
+                         constraint_fn = rep(list(function(x) mean(x)), 2), 
                          maxit = 200,
                          tolerance = 1e-3,
                          verbose = FALSE)
@@ -41,14 +41,14 @@ test_that("With or without 'working_constraint' we get same results", {
   
   ml_fit <- emuFit_micro(X,
                          Y,
-                         constraint_fn = function(x) mean(x),
+                         constraint_fn = rep(list(function(x) mean(x)), 2),
                          maxit = 200,
                          tolerance = 1e-6,
                          verbose= FALSE)
   
   ml_fit_direct <- emuFit_micro(X,
                                 Y,
-                                constraint_fn = function(x) mean(x),
+                                constraint_fn = rep(list(function(x) mean(x)), 2),
                                 maxit = 200,
                                 use_working_constraint = FALSE,
                                 tolerance = 1e-6,
@@ -82,7 +82,7 @@ test_that("PL fit with categorical predictor matches analytical form of MPLE in 
             pl_fit <- emuFit_micro_penalized(X,
                                              Y,
                                              B = matrix(rnorm(20),nrow = 2),
-                                             constraint_fn = function(x) mean(x),
+                                             constraint_fn = rep(list(function(x) mean(x)), 2),
                                              maxit = 200,
                                              tolerance = 1e-8,
                                              verbose= FALSE)
@@ -90,7 +90,7 @@ test_that("PL fit with categorical predictor matches analytical form of MPLE in 
             ml_fit <- emuFit_micro(X,
                                    Y,
                                    B = matrix(rnorm(20),nrow = 2),
-                                   constraint_fn = function(x) mean(x),
+                                   constraint_fn = rep(list(function(x) mean(x)), 2),
                                    maxit = 200,
                                    tolerance = 1e-8,
                                    verbose= FALSE)
@@ -132,7 +132,7 @@ test_that("PL fit with categorical predictor matches analytical form of MPLE in 
             pl_fit <- emuFit_micro_penalized(X,
                                              Y,
                                              B = matrix(rnorm(20),nrow = 2),
-                                             constraint_fn = function(x) mean(x),
+                                             constraint_fn = rep(list(function(x) mean(x)), 2),
                                              maxit = 200,
                                              tolerance = 1e-8,
                                              verbose= FALSE)
@@ -140,7 +140,7 @@ test_that("PL fit with categorical predictor matches analytical form of MPLE in 
             ml_fit <- emuFit_micro(X,
                                    Y,
                                    B = matrix(rnorm(20),nrow = 2),
-                                   constraint_fn = function(x) mean(x),
+                                   constraint_fn = rep(list(function(x) mean(x)), 2),
                                    maxit = 200,
                                    tolerance = 1e-8,
                                    verbose= FALSE)
@@ -175,14 +175,14 @@ test_that("We get same results with and without warm start", {
   # may need to have large number of iterations and small tolerance
   ml_fit <- emuFit_micro(X,
                          Y,
-                         constraint_fn = function(x) mean(x),
+                         constraint_fn = rep(list(function(x) mean(x)), 2),
                          maxit = 1e3,
                          tolerance = 1e-14,
                          verbose = FALSE)
   
   ml_fit_direct <- emuFit_micro(X,
                                 Y,
-                                constraint_fn = function(x) mean(x),
+                                constraint_fn = rep(list(function(x) mean(x)), 2),
                                 maxit = 1e3,
                                 warm_start = FALSE,
                                 tolerance = 1e-14,
@@ -235,7 +235,7 @@ test_that("ML fit to simple example give reasonable output with J >> n", {
 
   ml_fit <- emuFit_micro(X,
                          Y,
-                         constraint_fn = function(x) mean(x),
+                         constraint_fn = rep(list(function(x) mean(x)), 2),
                          maxit = 500,
                          tolerance = 1e-3,
                          verbose = FALSE)
@@ -262,7 +262,7 @@ test_that("unpenalized fit uses B if given, and therefore fit is quicker", {
   pl_fit_one <- emuFit_micro(X,
                              Y,
                              B = NULL,
-                             constraint_fn = function(x) mean(x),
+                             constraint_fn = rep(list(function(x) mean(x)), 2),
                              maxit = 10000,
                              tolerance = 0.01,
                              verbose= FALSE)
@@ -271,7 +271,7 @@ test_that("unpenalized fit uses B if given, and therefore fit is quicker", {
   pl_fit_two <- emuFit_micro(X,
                              Y,
                              B = pl_fit_one,
-                             constraint_fn = function(x) mean(x),
+                             constraint_fn = rep(list(function(x) mean(x)), 2),
                              maxit = 10000,
                              tolerance = 0.01,
                              verbose= FALSE)

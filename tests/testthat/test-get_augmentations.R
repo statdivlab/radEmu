@@ -6,7 +6,7 @@ test_that("in saturated case, augmentations reduce to haldane correction", {
 
 
     ml_fit <- emuFit_micro(X,Y ,
-                           constraint_fn = function(x) x[2],
+                           constraint_fn = rep(list(function(x) x[2]), 2), 
                            tolerance = 1e-5,
                            verbose = FALSE)
 

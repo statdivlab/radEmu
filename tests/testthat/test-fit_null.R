@@ -20,12 +20,12 @@ test_that("we get same null fit with different j_ref", {
   p <- 2
   
   # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
-  constraint_fn <- function(x){mean(x)}
+  constraint_fn <- rep(list(function(x){mean(x)}), 2)
   
   ##### Arguments to fix:
   
   # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)
-  constraint_grad_fn <- function(x){ rep(1/length(x), length(x))}
+  constraint_grad_fn <- rep(list(function(x){ rep(1/length(x), length(x))}), 2)
   rho_init = 1
   tau = 1.2
   kappa = 0.8
@@ -41,7 +41,7 @@ test_that("we get same null fit with different j_ref", {
     emuFit_micro_penalized(X = X,
                            Y = Y,
                            B = NULL,
-                           constraint_fn = mean,
+                           constraint_fn = rep(list(mean), 2), 
                            tolerance = 1e-7,
                            verbose = FALSE)
   
@@ -70,7 +70,7 @@ test_that("we get same null fit with different j_ref", {
   Bs <- lapply(fits,function(x){
     temp_B <- x$B
     for(k in 1:2){
-      temp_B[k,] <- temp_B[k,] - constraint_fn(temp_B[k,])
+      temp_B[k,] <- temp_B[k,] - constraint_fn[[k]](temp_B[k,])
     }
     return(B_cup_from_B(temp_B))
   })
@@ -83,9 +83,9 @@ test_that("we get same null fit with different j_ref", {
   expect_equal(mean(fits[[1]]$B[2,]), fits[[1]]$B[2,1],tolerance = 1e-4)
   
   # Null fit satisfies null constraints. 
-  expect_equal(Bs[[1]][k_constr,j_constr], constraint_fn(Bs[[1]][k_constr]))
-  expect_equal(Bs[[2]][k_constr,j_constr], constraint_fn(Bs[[2]][k_constr]))
-  expect_equal(Bs[[4]][k_constr,j_constr], constraint_fn(Bs[[4]][k_constr]))
+  expect_equal(Bs[[1]][k_constr,j_constr], constraint_fn[[k_constr]](Bs[[1]][k_constr]))
+  expect_equal(Bs[[2]][k_constr,j_constr], constraint_fn[[k_constr]](Bs[[2]][k_constr]))
+  expect_equal(Bs[[4]][k_constr,j_constr], constraint_fn[[k_constr]](Bs[[4]][k_constr]))
   
   # If trackB = TRUE we get B at each iteration back
   expect_true(max(fits[[4]]$Bs$iter) > 20)
