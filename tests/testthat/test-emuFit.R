@@ -700,6 +700,13 @@ test_that("multiple constraint functions can be submitted", {
   expect_false(sum(res1$B[1, ] == res3$B[1, ]) > 0) # check that row 1 is different when different constraint
   expect_true(all.equal(res1$B[2, ], res3$B[2, ]))
   
+  constraint_lists <- make_reference_constraints(p = 2, j = 2)
+  extra_res <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
+                      penalize = TRUE, tolerance = 0.1, 
+                      constraint_fn = constraint_lists$constraint_list, 
+                      constraint_grad_fn = constraint_lists$constraint_grad_list)
+  expect_true(all.equal(res2$B, extra_res$B))
+  
   expect_error(emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                       penalize = TRUE, tolerance = 0.1, 
                       constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.2), 2, 3), 

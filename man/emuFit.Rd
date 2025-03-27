@@ -119,7 +119,9 @@ function to be used for all rows of B, or a list of length p of constraints to b
 
 \item{constraint_grad_fn}{derivative of constraint_fn with respect to its
 arguments (i.e., elements of a row of B). If \code{constraint_fn} is a list of constraint functions, then
-this argument must also be a list.}
+this argument must also be a list. If \code{constraint_fn} is a single number, or a list that includes a
+single number, then the corresponding \code{constraint_grad_fn} can be set to \code{NULL}, and will be appropriately
+set within the function.}
 
 \item{constraint_param}{If pseudohuber centering is used (this is the default),
 parameter controlling relative weighting of elements closer and further from center.

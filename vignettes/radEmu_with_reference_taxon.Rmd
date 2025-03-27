@@ -119,14 +119,23 @@ ref_taxon <- which(stringr::str_detect(colnames(small_Y), "Fusobacterium nucleat
 ref_taxon # the index of F. nucleatum s. animalis in our Y matrix
 ```
 
-To use that taxon index as the reference, just pass its column index to `constraint_fn`: 
+We suggest when using a reference taxon for covariates, that you still use the "typical" log fold-difference as a constraint for the intercept in the model. This means that we will have different constraint functions for the intercept and for the covariates. In order to create a list of constraint functions to pass on to `emuFit()`, we can use the function `make_reference_constraints()`. 
+
+```{r}
+# use `make_design_matrix` to find p, the number of columns in our design matrix
+head(make_design_matrix(formula = ~ Group, data = wirbel_sample[ch_study_obs, ])) # p = 2
+reference_constraint_lists <- make_reference_constraints(p = 2, j = ref_taxon)
+```
+
+We will pass on the outputs of `make_reference_constraints` in to `emuFit()`. 
 
 ```{r}
 ch_fit_ref <- emuFit(formula = ~ Group, 
                      data = wirbel_sample[ch_study_obs, ],
                      Y = small_Y,
                      run_score_tests = FALSE,
-                     constraint_fn = ref_taxon) 
+                     constraint_fn = reference_constraint_lists$constraint_list,
+                     constraint_grad_fn = reference_constraint_lists$constraint_grad_list) 
 ```
 
 
@@ -183,7 +192,9 @@ Now, instead consider a test using our reference taxon constraint.
 ch_test_ref <- emuFit(formula = ~ Group, 
                       data = wirbel_sample[ch_study_obs, ],
                       Y = small_Y,
-                      constraint_fn = ref_taxon, 
+                      # constraint functions from above 
+                      constraint_fn = reference_constraint_lists$constraint_list,
+                      constraint_grad_fn = reference_constraint_lists$constraint_grad_list, 
                       fitted_model = ch_fit_ref, # provide our previous fit
                       refit = FALSE, # avoid refitting model
                       # test the first taxon, F. nucleatum s. vincentii
