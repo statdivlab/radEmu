@@ -70,7 +70,7 @@
                         <h4 data-toc-skip class="author">Sarah Teichman
 and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2025-03-25</h4>
+            <h4 data-toc-skip class="date">2025-03-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/radEmu_with_reference_taxon.Rmd" class="external-link"><code>vignettes/radEmu_with_reference_taxon.Rmd</code></a></small>
       <div class="d-none name"><code>radEmu_with_reference_taxon.Rmd</code></div>
@@ -226,16 +226,35 @@ animalis</em> is that taxon.</p>
 <code class="sourceCode R"><span><span class="va">ref_taxon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">small_Y</span><span class="op">)</span>, <span class="st">"Fusobacterium nucleatum s. animalis"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ref_taxon</span> <span class="co"># the index of F. nucleatum s. animalis in our Y matrix</span></span>
 <span><span class="co">#&gt; [1] 2</span></span></code></pre></div>
-<p>To use that taxon index as the reference, just pass its column index
-to <code>constraint_fn</code>:</p>
+<p>We suggest when using a reference taxon for covariates, that you
+still use the “typical” log fold-difference as a constraint for the
+intercept in the model. This means that we will have different
+constraint functions for the intercept and for the covariates. In order
+to create a list of constraint functions to pass on to
+<code><a href="../reference/emuFit.html">emuFit()</a></code>, we can use the function
+<code><a href="../reference/make_reference_constraints.html">make_reference_constraints()</a></code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># use `make_design_matrix` to find p, the number of columns in our design matrix</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/make_design_matrix.html">make_design_matrix</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># p = 2</span></span>
+<span><span class="co">#&gt;            (Intercept) GroupCRC</span></span>
+<span><span class="co">#&gt; ERR1018185           1        1</span></span>
+<span><span class="co">#&gt; ERR1018186           1        1</span></span>
+<span><span class="co">#&gt; ERR1018187           1        1</span></span>
+<span><span class="co">#&gt; ERR1018188           1        1</span></span>
+<span><span class="co">#&gt; ERR1018189           1        1</span></span>
+<span><span class="co">#&gt; ERR1018190           1        1</span></span>
+<span><span class="va">reference_constraint_lists</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_reference_constraints.html">make_reference_constraints</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="va">ref_taxon</span><span class="op">)</span></span></code></pre></div>
+<p>We will pass on the outputs of
+<code>make_reference_constraints</code> in to <code><a href="../reference/emuFit.html">emuFit()</a></code>.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_fit_ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, </span>
 <span>                     data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
 <span>                     Y <span class="op">=</span> <span class="va">small_Y</span>,</span>
 <span>                     run_score_tests <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                     constraint_fn <span class="op">=</span> <span class="va">ref_taxon</span><span class="op">)</span> </span></code></pre></div>
+<span>                     constraint_fn <span class="op">=</span> <span class="va">reference_constraint_lists</span><span class="op">$</span><span class="va">constraint_list</span>,</span>
+<span>                     constraint_grad_fn <span class="op">=</span> <span class="va">reference_constraint_lists</span><span class="op">$</span><span class="va">constraint_grad_list</span><span class="op">)</span> </span></code></pre></div>
 <p>Again, let’s look at the first few estimates.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ch_fit_ref</span><span class="op">$</span><span class="va">coef</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   covariate                                                category</span></span>
 <span><span class="co">#&gt; 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]</span></span>
@@ -276,9 +295,9 @@ non-cancer controls is
 times the fold-difference in average abundance of <em>F. nucleatum s.
 animalis</em> in cases compared to controls.</p>
 <p>Let’s look at the distribution of log fold-difference estimates.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_fit_ref</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>Here, we can see a distribution that has the same shape as the
 distribution of estimates when using the default constraint. This is
 because the result of changing the identifiability constraint is to
@@ -302,7 +321,7 @@ reference taxon.</p>
 <p>Finally, let’s test hypotheses about the taxon <em>F. nucleatum s.
 vincentii</em> using both identifiability constraints. First consider
 the default constraint. We will run a robust score test.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_test_default</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, </span>
 <span>                         data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
 <span>                         Y <span class="op">=</span> <span class="va">small_Y</span>,</span>
@@ -314,7 +333,7 @@ the default constraint. We will run a robust score test.</p>
 <span>                         <span class="co"># associated with the case/control covariate</span></span>
 <span>                                              k <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
 <p>Now let’s look at the results.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ch_test_default</span><span class="op">$</span><span class="va">coef</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   covariate                                                category</span></span>
 <span><span class="co">#&gt; 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]</span></span>
@@ -342,11 +361,13 @@ cases to controls across all taxa in the analysis. We conclude that
 controls, relative to the typical taxon in the analysis.</p>
 <p>Now, instead consider a test using our reference taxon
 constraint.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_test_ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, </span>
 <span>                      data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
 <span>                      Y <span class="op">=</span> <span class="va">small_Y</span>,</span>
-<span>                      constraint_fn <span class="op">=</span> <span class="va">ref_taxon</span>, </span>
+<span>                      <span class="co"># constraint functions from above </span></span>
+<span>                      constraint_fn <span class="op">=</span> <span class="va">reference_constraint_lists</span><span class="op">$</span><span class="va">constraint_list</span>,</span>
+<span>                      constraint_grad_fn <span class="op">=</span> <span class="va">reference_constraint_lists</span><span class="op">$</span><span class="va">constraint_grad_list</span>, </span>
 <span>                      fitted_model <span class="op">=</span> <span class="va">ch_fit_ref</span>, <span class="co"># provide our previous fit</span></span>
 <span>                      refit <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co"># avoid refitting model</span></span>
 <span>                      <span class="co"># test the first taxon, F. nucleatum s. vincentii</span></span>
@@ -355,7 +376,7 @@ constraint.</p>
 <span>                      <span class="co"># associated with the case/control covariate</span></span>
 <span>                                           k <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
 <p>Now let’s look at the results.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ch_test_ref</span><span class="op">$</span><span class="va">coef</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   covariate                                                category</span></span>
 <span><span class="co">#&gt; 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]</span></span>

@@ -209,7 +209,9 @@ function to be used for all rows of B, or a list of length p of constraints to b
 <dt id="arg-constraint-grad-fn">constraint_grad_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-grad-fn"></a></dt>
 <dd><p>derivative of constraint_fn with respect to its
 arguments (i.e., elements of a row of B). If <code>constraint_fn</code> is a list of constraint functions, then
-this argument must also be a list.</p></dd>
+this argument must also be a list. If <code>constraint_fn</code> is a single number, or a list that includes a
+single number, then the corresponding <code>constraint_grad_fn</code> can be set to <code>NULL</code>, and will be appropriately
+set within the function.</p></dd>
 
 
 <dt id="arg-constraint-param">constraint_param<a class="anchor" aria-label="anchor" href="#arg-constraint-param"></a></dt>
