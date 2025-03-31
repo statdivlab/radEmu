@@ -8,10 +8,12 @@ make_reference_constraints(p, j)
 }
 \arguments{
 \item{p}{The number of columns in the design matrix \code{X}. If you don't know the
-number of columns, run the function \code{radEmu::make_design_matrix()} in order to
-view the design matrix.}
+number of columns, you can find it with
+\code{ncol(radEmu::make_design_matrix(formula = your_formula, data = your_data))}.
+\code{your_formula} should be the expression you give to \code{emuFit}'s
+\code{formula} argument.}
 
-\item{j}{A single value or vector of length \code{p - 1} where \code{p} is the number
+\item{j}{A single value or a vector of length \code{p - 1} where \code{p} is the number
 of columns in the design matrix \code{X}. If a single value, \code{j} will be used as
 the reference category for all covariates. If a vector of values, \code{j[k]} will be
 used as the reference category for the covariate in design matrix column \code{k + 1}.}
