@@ -56,12 +56,14 @@
 
 <dl><dt id="arg-p">p<a class="anchor" aria-label="anchor" href="#arg-p"></a></dt>
 <dd><p>The number of columns in the design matrix <code>X</code>. If you don't know the
-number of columns, run the function <code><a href="make_design_matrix.html">radEmu::make_design_matrix()</a></code> in order to
-view the design matrix.</p></dd>
+number of columns, you can find it with
+<code>ncol(radEmu::make_design_matrix(formula = your_formula, data = your_data))</code>.
+<code>your_formula</code> should be the expression you give to <code>emuFit</code>'s
+<code>formula</code> argument.</p></dd>
 
 
 <dt id="arg-j">j<a class="anchor" aria-label="anchor" href="#arg-j"></a></dt>
-<dd><p>A single value or vector of length <code>p - 1</code> where <code>p</code> is the number
+<dd><p>A single value or a vector of length <code>p - 1</code> where <code>p</code> is the number
 of columns in the design matrix <code>X</code>. If a single value, <code>j</code> will be used as
 the reference category for all covariates. If a vector of values, <code>j[k]</code> will be
 used as the reference category for the covariate in design matrix column <code>k + 1</code>.</p></dd>
