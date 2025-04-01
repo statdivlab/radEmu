@@ -427,6 +427,9 @@ emuFit <- function(Y,
     if (return_nullB) {
       nullB_list <- vector(mode = "list", length = nrow(test_kj))
     }
+    if (trackB) {
+      trackB_list <- vector(mode = "list", length = nrow(test_kj))
+    }
     for(test_ind in 1:nrow(test_kj)) {
       
       if (verbose %in% c(TRUE, "development")) {
@@ -480,6 +483,9 @@ emuFit <- function(Y,
         if (return_nullB) {
           nullB_list[[test_ind]] <- NA
         }
+        if (trackB) {
+          trackB_list[[test_ind]] <- NA
+        }
       } else {
         
         score_test_hyperparams[test_ind, ] <- 
@@ -492,6 +498,10 @@ emuFit <- function(Y,
             null_B[k, ] <- null_B[k, ] - constraint_fn[[k]](null_B[k, ])
           }
           nullB_list[[test_ind]] <- null_B
+        }
+        
+        if (trackB) {
+          trackB_list[[test_ind]] <- test_result$Bs
         }
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
@@ -683,10 +693,13 @@ emuFit <- function(Y,
   if (refit & penalize) {
     results$estimation_converged <- converged_estimates
   }
-  if (run_score_tests & return_nullB) {
-    results$null_B <- nullB_list
-  }
   if (run_score_tests) {
+    if (return_nullB) {
+      results$null_B <- nullB_list
+    }
+    if (trackB) {
+      results$trackB_list <- trackB_list
+    }
     results$score_test_hyperparams <- score_test_hyperparams
     if (sum(score_test_hyperparams$converged != "converged") > 0) {
       unconverged_test_kj <- test_kj[which(score_test_hyperparams$converged != "converged"), ]
