@@ -285,7 +285,7 @@ ignoring argument 'cluster'.")
     
     if (is.logical(all.equal(constraint_fn[[k]], pseudohuber_center))) {
       if (all.equal(constraint_fn[[k]], pseudohuber_center)) {
-        if (verbose %in% c(TRUE, "development")) message("Centering row ", k, " of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param[k], ".")
+        if (verbose %in% c(TRUE, "development")) message("Centering row ", k, " of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
         
         stopifnot(!is.na(constraint_param))
         
