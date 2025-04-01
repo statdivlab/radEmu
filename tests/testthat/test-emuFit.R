@@ -720,7 +720,8 @@ test_that("multiple constraint functions can be submitted", {
   res4 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                  penalize = TRUE, tolerance = 0.1, 
                  constraint_fn = list(3, 5), 
-                 constraint_grad_fn = list(NULL, NULL))
+                 constraint_grad_fn = list(NULL, NULL),
+                 trackB = TRUE)
   expect_true(all.equal(res4$B[1, 3], 0))
   expect_true(all.equal(res4$B[2, 5], 0))
 })
