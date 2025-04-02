@@ -307,7 +307,6 @@ emuFit <- function(Y,
     } else {
       fitted_B <- B
       if (penalize) {
-        X_cup <- X_cup_from_X(X, J)
         G <- get_G_for_augmentations(X, J, n, X_cup)
         Y_test <- Y_augmented <- Y + 
           get_augmentations(X = X, G = G, Y = Y, B = fitted_B)
