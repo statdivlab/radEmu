@@ -228,7 +228,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
               "inner_maxit" = inner_maxit, 
               "null_B" = constrained_fit$B,
               # "score_stats" = constrained_fit$score_stats,
-              "Bs" = constrained_fit$Bs))
+              "Bs" = constrained_fit$Bs,
+              "niter" = constrained_fit$niter))
   } else{ 
     #for simulations -- if we want to return both the score p-value using
     #information from full model fit and from null model
@@ -276,7 +277,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
                   "inner_maxit" = inner_maxit, 
                   "null_B" = constrained_fit$B,
                   # "score_stats" = constrained_fit$score_stats,
-                  "Bs" = constrained_fit$Bs))
+                  "Bs" = constrained_fit$Bs,
+                  "niter" = constrained_fit$niter))
     }
 
 

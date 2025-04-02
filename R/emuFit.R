@@ -405,7 +405,8 @@ emuFit <- function(Y,
                                          tau = NA,
                                          inner_maxit = NA,
                                          gap = NA,
-                                         converged = NA)
+                                         converged = NA,
+                                         niter = NA)
     
     if (return_score_components) {
       score_components <- vector(mode = "list", length = nrow(test_kj))
@@ -490,7 +491,7 @@ emuFit <- function(Y,
         
         score_test_hyperparams[test_ind, ] <- 
           c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
-            test_result$gap, test_result$convergence)
+            test_result$gap, test_result$convergence, test_result$niter)
         
         if (return_nullB) {
           null_B <- test_result$null_B
