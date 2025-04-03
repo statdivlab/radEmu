@@ -1,5 +1,5 @@
 name: Notify fastEmu on push
-
+ 
 on:
   push:
     branches:
