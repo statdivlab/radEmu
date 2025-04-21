@@ -7,6 +7,8 @@
 
 `radEmu` is an `R` package for estimating changes in the abundance of microbial taxa using amplicon or shotgun sequencing technologies. 
 
+<!-- test -->
+
 If you are a **microbial ecologist** or **bioinformatician**, some of the things that you may like about `radEmu` include
 
 - `radEmu` uses your amplicon or shotgun sequencing to estimate changes in the "absolute abundance" of microbial taxa. Here, "absolute abundance" could be interpreted on the cell count, cell concentration or DNA concentration scale. Yes! It's true! 
