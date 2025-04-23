@@ -69,6 +69,11 @@
 #' @param cluster a numeric vector giving cluster membership for each row of Y to 
 #' be used in computing GEE test statistics. Default is NULL, in which case rows of 
 #' Y are treated as independent.
+#' @param null_fit_constraint the type of constraint, which informs which algorithm
+#' will be used to fit the model under the null hypothesis. NULL by default, in which 
+#' case the standard fitting algorithm will be used. If included, this argument must be either
+#' `scc` for single category constraint, `symmetric` for symmetric functions such
+#' as mean or pseudo-Huber median, or `other`.
 #'
 #' @return A list containing elements `score_stat`, `pval`, `log_pval`,'niter`,
 #' `convergence`, `gap`, `u`, `rho`, `tau`, `inner_maxit`, `null_B`, and `Bs`. `score_stat` gives the 
@@ -116,41 +121,101 @@ score_test <- function(B, #B (MPLE)
                        I_inv = NULL,
                        Dy = NULL,
                        return_both_score_pvals = FALSE,
-                       cluster = NULL){
+                       cluster = NULL,
+                       null_fit_constraint = NULL){
+  
+  # get hyperparameters 
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
 
-
+  # identify if constraint function is symmetric or a single category constraint 
+  if (is.null(null_fit_constraint)) {
+    constraint_type <- "other"
+  } else {
+    constraint_type <- null_fit_constraint
+  }
+  if (!(constraint_type %in% c("other", "symmetric", "scc"))) {
+    stop("The argument `null_fit_constraint` must either be omitted, or must be either
+         `scc` for single category constraint, `symmetric` for symmetric functions such
+         as mean or pseudo-Huber median, or `other`.")
+  }
+  
+  # start fitting
   tries_so_far <- 0
   accept_try <- FALSE
   good_enough_fit <- FALSE
   while(!accept_try){
     #fit under null
-    constrained_fit <- try(fit_null(B = B, #B (MPLE)
-                                    Y = Y, #Y (with augmentations)
-                                    X = X, #design matrix
-                                    X_cup = X_cup,
-                                    k_constr = k_constr, #row index of B to constrain
-                                    j_constr = j_constr, #col index of B to constrain
-                                    constraint_fn = constraint_fn, #constraint function
-                                    constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-                                    # constraint_hess_fn = constraint_hess_fn,
-                                    rho_init = rho_init,
-                                    tau = tau,
-                                    kappa = kappa,
-                                    B_tol = B_tol,
-                                    inner_tol = inner_tol,
-                                    constraint_tol = constraint_tol,
-                                    j_ref = j_ref,
-                                    c1 = c1,
-                                    maxit = maxit,
-                                    inner_maxit = inner_maxit,
-                                    verbose = verbose,
-                                    trackB = trackB
-                                    # I = I,
-                                    # Dy = Dy
-    ))
+    # note that the below could be more concise by dynamically selecting function based on constraint
+    # type without the if/else, however that would break if these functions needed different arguments,
+    # which seemed possible. If they end up having the same arguments, Sarah will fix this
+    if (constraint_type == "other") {
+      constrained_fit <- try(fit_null(B = B, #B (MPLE)
+                                      Y = Y, #Y (with augmentations)
+                                      X = X, #design matrix
+                                      X_cup = X_cup,
+                                      k_constr = k_constr, #row index of B to constrain
+                                      j_constr = j_constr, #col index of B to constrain
+                                      constraint_fn = constraint_fn, #constraint function
+                                      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+                                      rho_init = rho_init,
+                                      tau = tau,
+                                      kappa = kappa,
+                                      B_tol = B_tol,
+                                      inner_tol = inner_tol,
+                                      constraint_tol = constraint_tol,
+                                      j_ref = j_ref,
+                                      c1 = c1,
+                                      maxit = maxit,
+                                      inner_maxit = inner_maxit,
+                                      verbose = verbose,
+                                      trackB = trackB))
+    } else if (constraint_type == "scc") {
+      constrained_fit <- try(fit_null_scc(B = B, #B (MPLE)
+                                          Y = Y, #Y (with augmentations)
+                                          X = X, #design matrix
+                                          X_cup = X_cup,
+                                          k_constr = k_constr, #row index of B to constrain
+                                          j_constr = j_constr, #col index of B to constrain
+                                          constraint_fn = constraint_fn, #constraint function
+                                          constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+                                          rho_init = rho_init,
+                                          tau = tau,
+                                          kappa = kappa,
+                                          B_tol = B_tol,
+                                          inner_tol = inner_tol,
+                                          constraint_tol = constraint_tol,
+                                          j_ref = j_ref,
+                                          c1 = c1,
+                                          maxit = maxit,
+                                          inner_maxit = inner_maxit,
+                                          verbose = verbose,
+                                          trackB = trackB))
+    } else {
+      constrained_fit <- try(fit_null_symmetric(B = B, #B (MPLE)
+                                                Y = Y, #Y (with augmentations)
+                                                X = X, #design matrix
+                                                X_cup = X_cup,
+                                                k_constr = k_constr, #row index of B to constrain
+                                                j_constr = j_constr, #col index of B to constrain
+                                                constraint_fn = constraint_fn, #constraint function
+                                                constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+                                                # rho_init = rho_init,
+                                                # tau = tau,
+                                                # kappa = kappa,
+                                                # B_tol = B_tol,
+                                                # inner_tol = inner_tol,
+                                                # constraint_tol = constraint_tol,
+                                                tolerance = B_tol,
+                                                j_ref = j_ref,
+                                                c1 = c1,
+                                                maxit = maxit,
+                                                # inner_maxit = inner_maxit,
+                                                verbose = verbose,
+                                                trackB = trackB))
+    }
+    
     if(inherits(constrained_fit,"try-error")){
       accept_try <- FALSE
     } else{
