@@ -680,23 +680,23 @@ test_that("giving test_kj as valid strings works", {
 test_that("multiple constraint functions can be submitted", {
   res1 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                 penalize = TRUE, tolerance = 0.1, 
-                constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.1), 2), 
-                constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.1), NULL),
+                constraint_fn = list(function(x) pseudohuber_median(x,0.1), 2), 
+                constraint_grad_fn = list(function(x) dpseudohuber_median_dx(x,0.1), NULL),
                 return_nullB = TRUE)
-  expect_true(all.equal(0, radEmu:::pseudohuber_center(res1$B[1, ], 0.1), 0.0001))
+  expect_true(all.equal(0, pseudohuber_median(res1$B[1, ], 0.1), 0.0001))
   expect_true(all.equal(0, res1$B[2, 2]))
   expect_true(all.equal(0, res1$null_B[[1]][2, 1], tolerance = 1e-4))
   
   res2 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                 penalize = TRUE, tolerance = 0.1, 
-                constraint_fn = list(radEmu:::pseudohuber_center, 2), 
-                constraint_grad_fn = list(radEmu:::dpseudohuber_center_dx, NULL))
+                constraint_fn = list(pseudohuber_median, 2), 
+                constraint_grad_fn = list(dpseudohuber_median_dx, NULL))
   expect_true(all.equal(res1$coef, res2$coef))
   
   res3 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                  penalize = TRUE, tolerance = 0.1, 
-                 constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.2), 2), 
-                 constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.2), NULL))
+                 constraint_fn = list(function(x) pseudohuber_median(x,0.2), 2), 
+                 constraint_grad_fn = list(function(x) dpseudohuber_median_dx(x,0.2), NULL))
   expect_false(sum(res1$B[1, ] == res3$B[1, ]) > 0) # check that row 1 is different when different constraint
   expect_true(all.equal(res1$B[2, ], res3$B[2, ]))
   
@@ -709,13 +709,13 @@ test_that("multiple constraint functions can be submitted", {
   
   expect_error(emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                       penalize = TRUE, tolerance = 0.1, 
-                      constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.2), 2, 3), 
-                      constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.2), NULL, NULL)))
+                      constraint_fn = list(function(x) pseudohuber_median(x,0.2), 2, 3), 
+                      constraint_grad_fn = list(function(x) dpseudohuber_median_dx(x,0.2), NULL, NULL)))
   
   expect_error(emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                       penalize = TRUE, tolerance = 0.1, 
-                      constraint_fn = list(function(x) radEmu:::pseudohuber_center(x,0.2), 2), 
-                      constraint_grad_fn = list(function(x) radEmu:::dpseudohuber_center_dx(x,0.2))))
+                      constraint_fn = list(function(x) pseudohuber_median(x,0.2), 2), 
+                      constraint_grad_fn = list(function(x) dpseudohuber_median_dx(x,0.2))))
   
   res4 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                  penalize = TRUE, tolerance = 0.1, 
