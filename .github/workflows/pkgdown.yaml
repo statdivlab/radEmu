@@ -38,7 +38,7 @@ jobs:
       - name: Install Bioconductor core
         run: |
             if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-            BiocManager::install(version = "3.18")  # or the latest compatible version
+            BiocManager::install(version = "3.21")  # or the latest compatible version
             BiocManager::install(c("BiocGenerics", "S4Vectors", "IRanges", "SummarizedExperiment", "SingleCellExperiment", "TreeSummarizedExperiment", "phyloseq"), ask = FALSE)
         shell: Rscript {0}
 
