@@ -688,7 +688,14 @@ emuFit <- function(Y,
                   "z_hat" = z_hat,
                   "I" = I,
                   "Dy" = Dy,
-                  "cluster" = cluster)
+                  "cluster" = cluster,
+                  "X" = X,
+                  "constraint_fn" = constraint_fn,
+                  "constraint_grad_fn" = constraint_grad_fn)
+  
+  if (is.null(Y_augmented)) {
+    results$Y <- Y
+  } 
   
   if (refit & penalize) {
     results$estimation_converged <- converged_estimates
