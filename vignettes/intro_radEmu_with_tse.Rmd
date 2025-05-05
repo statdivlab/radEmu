@@ -63,8 +63,9 @@ print(paste0("TreeSummarizedExperiment is installed: ", tse))
 Now that we have loaded the `TreeSummarizedExperiment` package, we will create our `TreeSummarizedExperiment` data object. 
 
 ```{r, message = FALSE, eval = tse}
-library(TreeSummarizedExperiment)
 library(SummarizedExperiment)
+library(TreeSummarizedExperiment)
+library(SingleCellExperiment)
 ```
 
 ```{r, eval = tse} 

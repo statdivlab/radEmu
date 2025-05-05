@@ -1,0 +1,14 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  intro_radEmu_with_phyloseq: intro_radEmu_with_phyloseq.html
+  intro_radEmu_with_tse: intro_radEmu_with_tse.html
+  intro_radEmu: intro_radEmu.html
+  parallel_radEmu: parallel_radEmu.html
+  radEmu_clustered_data: radEmu_clustered_data.html
+  radEmu_with_reference_taxon: radEmu_with_reference_taxon.html
+last_built: 2025-05-05T20:41Z
+urls:
+  reference: https://statdivlab.github.io/radEmu/reference
+  article: https://statdivlab.github.io/radEmu/articles
