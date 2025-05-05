@@ -37,7 +37,7 @@ jobs:
           
       - name: Install dependencies
         run: |
-          if (!requireNamespace("BiocManager", quietly = TRUE)){install.packages("BiocManager")}; BiocManager::install(c("phyloseq", "SummarizedExperiement", "TreeSummarizedExperiment", "SingleCellExperiment"), ask = FALSE)
+          if (!requireNamespace("BiocManager", quietly = TRUE)){install.packages("BiocManager")}; BiocManager::install(c("phyloseq", "SummarizedExperiment", "TreeSummarizedExperiment", "SingleCellExperiment"), ask = FALSE)
         shell: Rscript {0}
 
       - name: Build site
