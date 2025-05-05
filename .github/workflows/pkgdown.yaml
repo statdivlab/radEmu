@@ -34,6 +34,12 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+          
+      - name: Install dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE)
+          if (!requireNamespace("BiocManager", quietly = TRUE)){install.packages("BiocManager")}; BiocManager::install(c("phyloseq", "SummarizedExperiement", "TreeSummarizedExperiment", "SingleCellExperiment"), ask = FALSE)
+        shell: Rscript {0}
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = TRUE)
