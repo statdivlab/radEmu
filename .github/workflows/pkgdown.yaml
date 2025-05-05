@@ -37,7 +37,6 @@ jobs:
           
       - name: Install dependencies
         run: |
-          remotes::install_deps(dependencies = TRUE)
           if (!requireNamespace("BiocManager", quietly = TRUE)){install.packages("BiocManager")}; BiocManager::install(c("phyloseq", "SummarizedExperiement", "TreeSummarizedExperiment", "SingleCellExperiment"), ask = FALSE)
         shell: Rscript {0}
 
