@@ -24,7 +24,7 @@
 #'  # here we set large tolerances for the example to run quickly, 
 #'  # but we recommend smaller tolerances in practice
 #' # test whether CountryFRA - constraint_FRA = CountryUSA - constraint_USA for taxon 1 
-#' linear_combo_res <- test_linear_combo(fitted_res = emuRes, 
+#' linear_combo_res <- test_linear_combo(fitted_model = emuRes, 
 #'                                      linear_combo = c(0, 0, 1, -1),
 #'                                      j = 1)
 #'
