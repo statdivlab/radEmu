@@ -32,9 +32,12 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::.
-          needs: website
-          install-suggests: true
+          extra-packages: |
+            any::pkgdown
+            any::TreeSummarizedExperiment
+            any::SummarizedExperiment
+            local::.
+        needs: website
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
