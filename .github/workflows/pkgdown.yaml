@@ -32,7 +32,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, bioc::TreeSummarizedExperiment, bioc::SummarizedExperiment, bioc::SingleCellExperiment, local::.
+          extra-packages: any::pkgdown, local::., bioc::TreeSummarizedExperiment, bioc::SingleCellExperiment, bioc::SummarizedExperiment, bioc::S4Vectors, bioc::IRanges, bioc::GenomeInfoDb, bioc::BiocGenerics, any::ggplot2, any::knitr, any::rmarkdown
           needs: website
 
       - name: Build site
