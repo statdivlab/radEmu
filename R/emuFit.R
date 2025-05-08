@@ -55,7 +55,7 @@
 #' parameter controlling relative weighting of elements closer and further from center.
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 #' the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
-#' centering (implemented in \code{radEmu:::pseudohuber_center()}) then this argument will be ignored.
+#' centering (implemented in \code{radEmu::pseudohuber_median()}) then this argument will be ignored.
 #' @param verbose provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
 #' then key messages about algorithm progress will be displayed. If user sets verbose = "development",
 #' then key messages and technical messages about convergence will be displayed. Most users who want status
@@ -174,8 +174,8 @@ emuFit <- function(Y,
                    use_fullmodel_cov = FALSE,
                    use_both_cov = FALSE,
                    match_row_names = TRUE,
-                   constraint_fn = pseudohuber_center,
-                   constraint_grad_fn = dpseudohuber_center_dx,
+                   constraint_fn = pseudohuber_median,
+                   constraint_grad_fn = dpseudohuber_median_dx,
                    constraint_param = 0.1,
                    verbose = FALSE,
                    tolerance = 1e-4,

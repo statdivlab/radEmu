@@ -52,12 +52,12 @@ test_that("Computed information is equal to numerical derivative with categorica
   j_constr <- 1
   p <- 2
 
-  # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  # constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
   constraint_grad_fn <- rep(list(function(x){mean(x)}), 2)
 
   ##### Arguments to fix:
 
-  # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)
+  # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
   constraint_grad_fn <- rep(list(function(x){ rep(1/length(x), length(x))}), 2)
   rho_init = 1
   tau = 1.2

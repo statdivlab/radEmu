@@ -37,8 +37,8 @@ make_reference_constraints <- function(p, j) {
   constraint_list <- rep(list(NA), p)
   constraint_grad_list <- rep(list(NA), p)
   # set intercept constraint to be pseudo Huber median 
-  constraint_list[[1]] <- (function(x) pseudohuber_center(x, d = 0.1))
-  constraint_grad_list[[1]] <- (function(x) dpseudohuber_center_dx(x, d = 0.1))
+  constraint_list[[1]] <- (function(x) pseudohuber_median(x, d = 0.1))
+  constraint_grad_list[[1]] <- (function(x) dpseudohuber_median_dx(x, d = 0.1))
   # set other constraints based on reference taxon 
   if (p > 2 & length(j) == 1) {
     j <- rep(j, p - 1)

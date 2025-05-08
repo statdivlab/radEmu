@@ -283,14 +283,14 @@ ignoring argument 'cluster'.")
       }})(constraint_cat)
     }
     
-    if (is.logical(all.equal(constraint_fn[[k]], pseudohuber_center))) {
-      if (all.equal(constraint_fn[[k]], pseudohuber_center)) {
+    if (is.logical(all.equal(constraint_fn[[k]], pseudohuber_median))) {
+      if (all.equal(constraint_fn[[k]], pseudohuber_median)) {
         if (verbose %in% c(TRUE, "development")) message("Centering row ", k, " of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
         
         stopifnot(!is.na(constraint_param))
         
-        constraint_fn[[k]] <- (function(x) pseudohuber_center(x, d = constraint_param))
-        constraint_grad_fn[[k]] <- (function(x) dpseudohuber_center_dx(x, d = constraint_param))
+        constraint_fn[[k]] <- (function(x) pseudohuber_median(x, d = constraint_param))
+        constraint_grad_fn[[k]] <- (function(x) dpseudohuber_median_dx(x, d = constraint_param))
         
       } 
     } else {

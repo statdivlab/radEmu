@@ -18,12 +18,12 @@ test_that("Robust score statistic is invariant to reference taxon", {
   j_constr <- 1
   p <- 2
 
-  # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  # constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
   constraint_fn <- rep(list(function(x){mean(x)}), 2)
 
   ##### Arguments to fix:
 
-  # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)
+  # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
   constraint_grad_fn <- rep(list(function(x){ rep(1/length(x), length(x))}), 2)
   rho_init = 1
   tau = 1.2
@@ -121,12 +121,12 @@ under null when Poisson assumption is met", {
   j_constr <- 13
   p <- 2
 
-  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
+  constraint_fn <- rep(list(function(x){ pseudohuber_median(x,0.1)}), 2)
   # constraint_fn <- function(x){mean(x)}
 
   ##### Arguments to fix:
 
-  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_median_dx(x,0.1)}), 2)
   # constraint_grad_fn <- function(x){rep(1/length(x),length(x))}
   rho_init = 1
   tau = 2
@@ -243,12 +243,12 @@ test_that("model-based score statistic is invariant to reference taxon", {
   j_constr <- 3
   p <- 2
 
-  # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  # constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
   constraint_fn <- rep(list(function(x){mean(x)}), 2)
 
   ##### Arguments to fix:
 
-  # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)
+  # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
   constraint_grad_fn <- rep(list(function(x){rep(1/length(x),length(x))}), 2)
   rho_init = 1
   tau = 2
@@ -337,12 +337,12 @@ test_that("model-based score statistic is invariant to reference taxon", {
 #   j_constr <- 1
 #   p <- 2
 #
-#   # constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+#   # constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
 #   constraint_grad_fn <- function(x){x[2]}
 #
 #   ##### Arguments to fix:
 #
-#   # constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)
+#   # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
 #   constraint_grad_fn <- function(x){ 0:1}
 #   rho_init = 1
 #   tau = 1.2
