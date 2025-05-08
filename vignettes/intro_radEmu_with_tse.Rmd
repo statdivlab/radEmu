@@ -66,6 +66,7 @@ Now that we have loaded the `TreeSummarizedExperiment` package, we will create o
 library(TreeSummarizedExperiment)
 library(SummarizedExperiment)
 library(SingleCellExperiment)
+setClassUnion("ExpData", c("matrix", "SummarizedExperiment"))
 ```
 
 ```{r, eval = tse} 
