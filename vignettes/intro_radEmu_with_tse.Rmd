@@ -53,9 +53,7 @@ In the manuscript, we looked at differential abundance across otherwise similar 
 Note that in order to follow along with this tutorial (but not to use `radEmu`!) you will need to have `TreeSummarizedExperiment` installed. We will check if you have `TreeSummarizedExperiment` installed, and if you do not then you can read the following code but it will not be run.
 
 ```{r, results = 'hide'}
-tse <- requireNamespace("TreeSummarizedExperiment", quietly = TRUE) == TRUE & 
-  requireNamespace("SummarizedExperiment", quietly = TRUE) == TRUE & 
-  requireNamespace("SingleCellExperiment", quietly = TRUE) == TRUE 
+tse <- requireNamespace("TreeSummarizedExperiment", quietly = TRUE) == TRUE
 ```
 
 ```{r, echo = FALSE}
@@ -68,6 +66,7 @@ Now that we have loaded the `TreeSummarizedExperiment` package, we will create o
 library(SummarizedExperiment)
 library(TreeSummarizedExperiment)
 library(SingleCellExperiment)
+setClassUnion("ExpData", c("matrix", "SummarizedExperiment"))
 ```
 
 ```{r, eval = tse} 
