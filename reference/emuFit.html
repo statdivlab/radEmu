@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,8 +68,8 @@
 <span>  use_fullmodel_cov <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  use_both_cov <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  match_row_names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  constraint_fn <span class="op">=</span> <span class="va">pseudohuber_center</span>,</span>
-<span>  constraint_grad_fn <span class="op">=</span> <span class="va">dpseudohuber_center_dx</span>,</span>
+<span>  constraint_fn <span class="op">=</span> <span class="va">pseudohuber_median</span>,</span>
+<span>  constraint_grad_fn <span class="op">=</span> <span class="va">dpseudohuber_median_dx</span>,</span>
 <span>  constraint_param <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  tolerance <span class="op">=</span> <span class="fl">1e-04</span>,</span>
@@ -219,7 +219,7 @@ set within the function.</p></dd>
 parameter controlling relative weighting of elements closer and further from center.
 (Limit as <code>constraint_param</code> approaches infinity is the mean; as this parameter approaches zero,
 the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
-centering (implemented in <code>radEmu:::pseudohuber_center()</code>) then this argument will be ignored.</p></dd>
+centering (implemented in <code><a href="pseudohuber_median.html">radEmu::pseudohuber_median()</a></code>) then this argument will be ignored.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
