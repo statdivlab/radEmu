@@ -1,27 +1,27 @@
-test_that("analytical deriv of pseudohuber_center wrt x matches numerical deriv", {
+test_that("analytical deriv of pseudohuber_median wrt x matches numerical deriv", {
 
   set.seed(432)
   x <- rnorm(20)
-  analytic_grad <- dpseudohuber_center_dx(x)
-  numerical_grad <- numDeriv::grad(function(r) pseudohuber_center(x = r),
+  analytic_grad <- dpseudohuber_median_dx(x)
+  numerical_grad <- numDeriv::grad(function(r) pseudohuber_median(x = r),
                                    x)
 
   expect_true(sum((analytic_grad - numerical_grad)^2)<1e-4)
 })
 
-test_that("analytical deriv of pseudohuber_center wrt x matches numerical deriv
+test_that("analytical deriv of pseudohuber_median wrt x matches numerical deriv
 for pseudohuber param d = 0.1", {
 
   set.seed(432)
   x <- rnorm(20)
-  analytic_grad <- dpseudohuber_center_dx(x,d = 0.1)
-  numerical_grad <- numDeriv::grad(function(r) pseudohuber_center(x = r,d = 0.1),
+  analytic_grad <- dpseudohuber_median_dx(x,d = 0.1)
+  numerical_grad <- numDeriv::grad(function(r) pseudohuber_median(x = r,d = 0.1),
                                    x)
 
   expect_true(sum((analytic_grad - numerical_grad)^2)<1e-3)
 })
 
-test_that("analytical deriv of pseudohuber_center wrt x matches numerical deriv
+test_that("analytical deriv of pseudohuber_median wrt x matches numerical deriv
 for pseudohuber param d = 0.1", {
 
   set.seed(432)
@@ -35,8 +35,8 @@ for pseudohuber param d = 0.1", {
          1.978452e+00 ,
          2.959190e+00,
          -2.484989e-09)
-  analytic_grad <- dpseudohuber_center_dx(x,d = 0.1)
-  numerical_grad <- numDeriv::grad(function(r) pseudohuber_center(x = r,d = 0.1),
+  analytic_grad <- dpseudohuber_median_dx(x,d = 0.1)
+  numerical_grad <- numDeriv::grad(function(r) pseudohuber_median(x = r,d = 0.1),
                                    x)
 
   expect_true(sum((analytic_grad - numerical_grad)^2)<1e-3)
