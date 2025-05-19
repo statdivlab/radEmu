@@ -49,12 +49,12 @@
 #                            constr_tol_scaling = 0.8,
 #                            maxit =5000,
 #                            constraint_fn = function(x){
-#                              pseudohuber_center(x,0.1)},
+#                              pseudohuber_median(x,0.1)},
 #                            constraint_grad_fn = function(x){
-#                              dpseudohuber_center_dx(x,0.1)
+#                              dpseudohuber_median_dx(x,0.1)
 #                            },
 #                            constraint_hess_fn = function(x,ind_1,ind_2){
-#                              hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+#                              hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 #                            }))
 #     # )
 #
@@ -120,24 +120,24 @@
 # #                            constr_init_tol = 1e5,
 # #                            maxit =5000,
 # #                                      constraint_fn = function(x){
-# #                                        pseudohuber_center(x,0.1)},
+# #                                        pseudohuber_median(x,0.1)},
 # #                                      constraint_grad_fn = function(x){
-# #                                        dpseudohuber_center_dx(x,0.1)
+# #                                        dpseudohuber_median_dx(x,0.1)
 # #                                      },
 # #                                      constraint_hess_fn = function(x,ind_1,ind_2){
-# #                                        hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+# #                                        hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 # #                                      }))
 # #
 # #     # diagnostic <- lagrangian_fit(X,
 # #     #                            Y,
 # #     #                            B = B,   maxit = 1000,
 # #     #                constraint_fn = function(x){
-# #     #                  pseudohuber_center(x,0.1)},
+# #     #                  pseudohuber_median(x,0.1)},
 # #     #                constraint_grad_fn = function(x){
-# #     #                  dpseudohuber_center_dx(x,0.1)
+# #     #                  dpseudohuber_median_dx(x,0.1)
 # #     #                },
 # #     #                constraint_hess_fn = function(x,ind_1,ind_2){
-# #     #                  hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+# #     #                  hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 # #     #                },
 # #     # j_constr = 10,
 # #     # k_constr = 2,
@@ -226,24 +226,24 @@
 # #                            constr_init_tol = 1e5,
 # #                            maxit =1000,
 # #                            constraint_fn = function(x){
-# #                              pseudohuber_center(x,0.1)},
+# #                              pseudohuber_median(x,0.1)},
 # #                            constraint_grad_fn = function(x){
-# #                              dpseudohuber_center_dx(x,0.1)
+# #                              dpseudohuber_median_dx(x,0.1)
 # #                            },
 # #                            constraint_hess_fn = function(x,ind_1,ind_2){
-# #                              hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+# #                              hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 # #                            }))
 # #
 # #     # diagnostic <- lagrangian_fit(X,
 # #     #                            Y,
 # #     #                            B = B,   maxit = 1000,
 # #     #                constraint_fn = function(x){
-# #     #                  pseudohuber_center(x,0.1)},
+# #     #                  pseudohuber_median(x,0.1)},
 # #     #                constraint_grad_fn = function(x){
-# #     #                  dpseudohuber_center_dx(x,0.1)
+# #     #                  dpseudohuber_median_dx(x,0.1)
 # #     #                },
 # #     #                constraint_hess_fn = function(x,ind_1,ind_2){
-# #     #                  hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+# #     #                  hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 # #     #                },
 # #     # j_constr = 10,
 # #     # k_constr = 2,
@@ -332,24 +332,24 @@
 # #                           constr_init_tol = 1e5,
 # #                           maxit =1000,
 # #                           constraint_fn = function(x){
-# #                             pseudohuber_center(x,0.1)},
+# #                             pseudohuber_median(x,0.1)},
 # #                           constraint_grad_fn = function(x){
-# #                             dpseudohuber_center_dx(x,0.1)
+# #                             dpseudohuber_median_dx(x,0.1)
 # #                           },
 # #                           constraint_hess_fn = function(x,ind_1,ind_2){
-# #                             hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+# #                             hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 # #                           }))
 # #
 # #    # diagnostic <- lagrangian_fit(X,
 # #    #                            Y,
 # #    #                            B = B,   maxit = 1000,
 # #    #                constraint_fn = function(x){
-# #    #                  pseudohuber_center(x,0.1)},
+# #    #                  pseudohuber_median(x,0.1)},
 # #    #                constraint_grad_fn = function(x){
-# #    #                  dpseudohuber_center_dx(x,0.1)
+# #    #                  dpseudohuber_median_dx(x,0.1)
 # #    #                },
 # #    #                constraint_hess_fn = function(x,ind_1,ind_2){
-# #    #                  hess_pseudohuber_center(x,0.1,ind_1,ind_2)
+# #    #                  hess_pseudohuber_median(x,0.1,ind_1,ind_2)
 # #    #                },
 # #    # j_constr = 10,
 # #    # k_constr = 2,
@@ -439,7 +439,7 @@
 # #     score_result <- try(micro_score_test(Y= Y,
 # #                                          X = X,
 # #                                          B= NULL,
-# #                                          constraint_fn = huber_center,
+# #                                          constraint_fn = huber_median,
 # #                                          null_k = 2,
 # #                                          null_j = J/2,
 # #                                          tolerance = 1e-4,

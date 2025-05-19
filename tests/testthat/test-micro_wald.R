@@ -59,7 +59,7 @@ test_that("wald test gives semi-reasonable output with categorical covariate", {
   b0 <- rnorm(10)
   b1 <- 1:10
   b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
+  b1[5] <- pseudohuber_median(b1[-5],0.1)
   b0 <- b0 - mean(b0)
   b <- rbind(b0, b1)
   Y <- radEmu:::simulate_data(n = n,
@@ -76,13 +76,13 @@ test_that("wald test gives semi-reasonable output with categorical covariate", {
   j_constr <- 5
   p <- 2
   
-  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
+  constraint_fn <- rep(list(function(x){ pseudohuber_median(x,0.1)}), 2)
   
   ##### Arguments to fix:
   
-  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_median_dx(x,0.1)}), 2)
   
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+  #constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
   b[2,4] <- constraint_fn[[1]](b[2,-4])
   
   X_cup <- X_cup_from_X(X,J)
@@ -146,7 +146,7 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   b0 <- rnorm(10)
   b1 <- 1:10
   b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
+  b1[5] <- pseudohuber_median(b1[-5],0.1)
   b0 <- b0 - mean(b0)
   b <- rbind(b0, b1)
   Y <- radEmu:::simulate_data(n = n,
@@ -163,13 +163,13 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   j_constr <- 5
   p <- 2
   
-  constraint_fn <- rep(list(function(x){ pseudohuber_center(x,0.1)}), 2)
+  constraint_fn <- rep(list(function(x){ pseudohuber_median(x,0.1)}), 2)
   
   ##### Arguments to fix:
   
-  constraint_grad_fn <- rep(list(function(x){dpseudohuber_center_dx(x,0.1)}), 2)
+  constraint_grad_fn <- rep(list(function(x){dpseudohuber_median_dx(x,0.1)}), 2)
   
-  constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+  #constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
   b[2,4] <- constraint_fn[[1]](b[2,-4])
   
   X_cup <- X_cup_from_X(X,J)

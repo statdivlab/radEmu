@@ -8,7 +8,7 @@ we do *not* get same results if we use incorrect info", {
   b0 <- rnorm(J)
   b1 <- 1:J
   b1 <- b1 - mean(b1)
-  b1[5] <- pseudohuber_center(b1[-5],0.1)
+  b1[5] <- pseudohuber_median(b1[-5],0.1)
   b0 <- b0 - mean(b0)
   b <- rbind(b0, b1)
   Y <- radEmu:::simulate_data(n = n,
@@ -27,7 +27,7 @@ we do *not* get same results if we use incorrect info", {
 
 
 
-  constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+  constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
 
   ##### Arguments to fix:
 
@@ -55,8 +55,8 @@ we do *not* get same results if we use incorrect info", {
                  Y = Y_aug,
                  X = X,
                  X_cup = X_cup,
-                 constraint_fn = rep(list(function(x) pseudohuber_center(x,0.1)), 2), 
-                 constraint_grad_fn = rep(list(function(x) dpseudohuber_center_dx(x,0.1)), 2), 
+                 constraint_fn = rep(list(function(x) pseudohuber_median(x,0.1)), 2), 
+                 constraint_grad_fn = rep(list(function(x) dpseudohuber_median_dx(x,0.1)), 2), 
                  j_ref = j_ref,
                  B_tol = 0.01,
                  constraint_tol= 0.001,
@@ -79,7 +79,7 @@ we do *not* get same results if we use incorrect info", {
                      B =    score_test_as_is$null_B,
                      k_constr = 2,
                      j_constr = 1,
-                     constraint_grad_fn = rep(list(function(x) dpseudohuber_center_dx(x,0.1)), 2), 
+                     constraint_grad_fn = rep(list(function(x) dpseudohuber_median_dx(x,0.1)), 2), 
                      indexes_to_remove = indexes_to_remove,
                      j_ref = j_ref,
                      J = J,
@@ -94,7 +94,7 @@ we do *not* get same results if we use incorrect info", {
                      B =    score_test_as_is$null_B,
                      k_constr = 2,
                      j_constr = 1,
-                     constraint_grad_fn = rep(list(function(x) dpseudohuber_center_dx(x,0.1)), 2), 
+                     constraint_grad_fn = rep(list(function(x) dpseudohuber_median_dx(x,0.1)), 2), 
                      indexes_to_remove = indexes_to_remove,
                      j_ref = j_ref,
                      J = J,
@@ -116,7 +116,7 @@ we do *not* get same results if we use incorrect info", {
 #   b0 <- rnorm(10)
 #   b1 <- 1:10
 #   b1 <- b1 - mean(b1)
-#   b1[5] <- pseudohuber_center(b1[-5],0.1)
+#   b1[5] <- pseudohuber_median(b1[-5],0.1)
 #   b0 <- b0 - mean(b0)
 #   b <- rbind(b0,b1)
 #   Y <- matrix(NA,ncol = 10, nrow = 40)
@@ -127,13 +127,13 @@ we do *not* get same results if we use incorrect info", {
 #
 #
 #
-#   constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+#   constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
 #
 #   ##### Arguments to fix:
 #
-#   constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+#   constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)}
 #
-#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
 #   rho_init = 1
 #   tau = 10
 #   kappa = 0.8
@@ -230,7 +230,7 @@ we do *not* get same results if we use incorrect info", {
 #   b0 <- rnorm(10)
 #   b1 <- 1:10
 #   b1 <- b1 - mean(b1)
-#   b1[5] <- pseudohuber_center(b1[-5],0.1)
+#   b1[5] <- pseudohuber_median(b1[-5],0.1)
 #   b0 <- b0 - mean(b0)
 #   b <- rbind(b0,b1)
 #   Y <- matrix(NA,ncol = 10, nrow = n)
@@ -241,13 +241,13 @@ we do *not* get same results if we use incorrect info", {
 #
 #
 #
-#   constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+#   constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
 #
 #   ##### Arguments to fix:
 #
-#   constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+#   constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)}
 #
-#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
 #   rho_init = 1
 #   tau = 10
 #   kappa = 0.8
@@ -354,7 +354,7 @@ we do *not* get same results if we use incorrect info", {
 #   b0 <- rnorm(10)
 #   b1 <- 1:10
 #   b1 <- b1 - mean(b1)
-#   b1[5] <- pseudohuber_center(b1[-5],0.1)
+#   b1[5] <- pseudohuber_median(b1[-5],0.1)
 #   b0 <- b0 - mean(b0)
 #   b <- rbind(b0,b1)
 #   Y <- matrix(0,ncol = 10, nrow = n)
@@ -365,13 +365,13 @@ we do *not* get same results if we use incorrect info", {
 #
 #
 #
-#   constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+#   constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
 #
 #   ##### Arguments to fix:
 #
-#   constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+#   constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)}
 #
-#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
 #   rho_init = 1
 #   tau = 10
 #   kappa = 0.8
@@ -479,7 +479,7 @@ we do *not* get same results if we use incorrect info", {
 #   b0 <- rnorm(10)
 #   b1 <- 1:10
 #   b1 <- b1 - mean(b1)
-#   b1[5] <- pseudohuber_center(b1[-5],0.1)
+#   b1[5] <- pseudohuber_median(b1[-5],0.1)
 #   b0 <- b0 - mean(b0)
 #   b <- rbind(b0,b1)
 #   Y <- matrix(NA,ncol = 10, nrow = n)
@@ -490,13 +490,13 @@ we do *not* get same results if we use incorrect info", {
 #
 #
 #
-#   constraint_fn <- function(x){ pseudohuber_center(x,0.1)}
+#   constraint_fn <- function(x){ pseudohuber_median(x,0.1)}
 #
 #   ##### Arguments to fix:
 #
-#   constraint_grad_fn <- function(x){dpseudohuber_center_dx(x,0.1)}
+#   constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)}
 #
-#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_center(x,0.1,ind_1,ind_2)}
+#   constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
 #   rho_init = 1
 #   tau = 10
 #   kappa = 0.8

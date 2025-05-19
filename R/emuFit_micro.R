@@ -52,8 +52,8 @@ emuFit_micro <-
 
     # assign constraint if necessary
     if(is.null(constraint_fn)){
-      constraint_fn <- rep(list(function(x) pseudohuber_center(x,0.1)), p)
-      constraint_grad_fn <- rep(list(function(x) dpseudohuber_center_dx(x,0.1)), p)
+      constraint_fn <- rep(list(function(x) pseudohuber_median(x,0.1)), p)
+      constraint_grad_fn <- rep(list(function(x) dpseudohuber_median_dx(x,0.1)), p)
     }
 
 
