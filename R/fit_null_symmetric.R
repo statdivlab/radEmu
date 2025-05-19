@@ -49,6 +49,10 @@ fit_null_symmetric <- function(B,
                                verbose = FALSE, 
                                trackB = FALSE
 ) {
+  if(is.list(constraint_fn)){
+    constraint_fn <- constraint_fn[[k_constr]]
+    constraint_grad_fn <- constraint_grad_fn[[k_constr]]
+  }
   #useful constants
   p <- ncol(X)
   n <- nrow(Y)
@@ -72,6 +76,7 @@ fit_null_symmetric <- function(B,
   #force B to satisfy null constraint
   #(this is the bit where symmetry of g() is important)
   B[k_constr,j_constr] <- constraint_fn(B[k_constr,-j_constr])
+
   
   #update z
   z <- update_z(Y,X,B)
@@ -198,7 +203,7 @@ fit_null_symmetric <- function(B,
             
           } else{
             if(verbose){
-              message("Update for j = ", pairs[np,1]," and ", pairs[np,2], " did not increase log likelihood. Update skipped.")
+              message("Update for j = ", pairs[npairs,1]," and ", pairs[npairs,2], " did not increase log likelihood. Update skipped.")
               }
           }
         } else{
