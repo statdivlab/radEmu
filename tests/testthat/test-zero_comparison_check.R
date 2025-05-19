@@ -8,6 +8,7 @@ form2 <- ~ cov2
 form3 <- ~ cov1 + cov3
 form4 <- ~ cov1 + cov3 + cov4
 form5 <- ~ cov1 + cov2 + cov3 + cov4 + cov5
+form6 <- ~ as.ordered(cov1)
 X1 <- model.matrix(form1, dat)
 X1_base <- matrix(as.vector(X1), nrow = nrow(X1))
 colnames(X1_base) <- colnames(X1)
@@ -21,6 +22,7 @@ X4 <- model.matrix(form4, dat)
 X4_base <- matrix(as.vector(X4), nrow = nrow(X4))
 colnames(X4_base) <- colnames(X4)
 X5 <- model.matrix(form5, dat)
+X6 <- model.matrix(form6, dat)
 Y <- matrix(rpois(18*6, 3), nrow = 18, ncol = 6)
 colnames(Y) <- paste0("category_", 1:ncol(Y))
 Y0 <- Y
@@ -120,4 +122,10 @@ test_that("zero_comparison column is added to coef when it should be, model.matr
   expect_false(emuRes5$coef$zero_comparison[13])
   expect_true(emuRes5$coef$zero_comparison[31])
   expect_false(emuRes5$coef$zero_comparison[32])
+})
+
+# make sure that we aren't flagging ordered factors
+test_that("not flagging ordered factors mistakenly", {
+  zero_comparison_res <- zero_comparison_check(X = X6, Y = Y0)
+  expect_null(zero_comparison_res)
 })

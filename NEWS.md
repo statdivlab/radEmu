@@ -2,6 +2,10 @@
 
 This is a major release that changes the algorithm used to estimate parameters under the null hypothesis in score tests depending on the identifiability constraint that is used. All functions are backwards compatible, but there are major changes in the backend, which may lead to small changes in results of analyses compared to those that were run before this update. 
 
+# radEmu 2.1.1.0
+
+This is a minor release that exports the functions `pseudohuber_median()` and `dpseudohuber_median_dx()`, which calculate the pseudo-Huber smoothed median and its derivative. These are the default constraint functions used in `radEmu`. 
+
 # radEmu 2.0.0.0
 
 This is a major release that speeds up score tests, and forces the user to clarify that they wish to perform score tests. It makes the default behaviour faster, but is not backwards compatible.
