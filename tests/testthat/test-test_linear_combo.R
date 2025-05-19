@@ -38,6 +38,16 @@ test_that("test-linear-combo can run a linear combo with multiple values", {
   all.equal(lin_combo_test14[1, ], lin_combo_test1)
 })
 
+# EDIT THIS ONE!!
+
+# test reparameterization - scale
+test_that("test-linear-combo with reparameterization", {
+  X1 <- X
+  X1[, 2] <- 100*X[, 2]
+  emuRes1 <- emuFit(X = X1, Y = Y, run_score_tests = FALSE, tolerance = 0.01, return_wald_p = TRUE)
+  lin_combo_test <- test_linear_combo(fitted_model = emuRes, linear_combo = c(0, 1/100, 0))
+})
+
 test_that("linear combo test controls t1e for Poisson data, n = 100", {
   
   skip(message = "Skipping test t1e of Wald linear combos because this takes a long time")
@@ -79,3 +89,37 @@ test_that("linear combo test controls t1e for Poisson data, n = 100", {
   expect_true(mean(res$j8 <= 0.05) <= 0.05) # b1 = b2 = 0.8
   
 })
+
+# EDIT THIS ONE!!
+# test reparameterization - location
+set.seed(11)
+J <- 7
+n <- 120
+cov <- rep(c("A", "B", "C"), each = 40)
+b0 <- rnorm(J)
+b0 <- b0 - radEmu:::pseudohuber_center(b0, 0.1)
+b1 <- rnorm(J)
+b1 <- b1 - radEmu:::pseudohuber_center(b1, 0.1)
+b2 <- rnorm(J)
+b2 <- b2 - radEmu:::pseudohuber_center(b2, 0.1)
+b <- rbind(b0, b1, b2)
+X1 <- model.matrix(~ cov, data = data.frame(cov))
+X2 <- model.matrix(~ cov, data = data.frame(cov))
+Y <- radEmu:::simulate_data(n = n,
+                            J = J,
+                            X = X1,
+                            B = b, 
+                            distn = "ZINB",
+                            zinb_size = 2,
+                            zinb_zero_prop = 0.2,
+                            mean_z = 5)
+emuRes1 <- emuFit(X = X1, Y = Y, run_score_tests = FALSE, tolerance = 0.01, return_wald_p = TRUE,
+                  match_row_names = FALSE)
+emuRes2 <- emuFit(X = X2, Y = Y, run_score_tests = FALSE, tolerance = 0.01, return_wald_p = TRUE,
+                  match_row_names = FALSE)
+
+
+test_that("test-linear-combo with reparameterization", {
+  lin_combo_test <- test_linear_combo(fitted_model = emuRes1, linear_combo = c(1, 1, 0))
+})
+
