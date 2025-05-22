@@ -5,9 +5,9 @@
 \alias{psuedohuber_median}
 \title{Calculate the pseudo-Huber smoothed median}
 \usage{
-pseudohuber_median(x, d = 0.1, tolerance = 1e-08)
+pseudohuber_median(x, d = 0.1, tolerance = 1e-08, na.rm = FALSE)
 
-psuedohuber_median(x, d = 0.1, tolerance = 1e-08)
+psuedohuber_median(x, d = 0.1, tolerance = 1e-08, na.rm = FALSE)
 }
 \arguments{
 \item{x}{A vector to calculate the pseudo-Huber smoothed median for.}
@@ -18,6 +18,10 @@ this function approaches the mean.}
 
 \item{tolerance}{Tolerance used to determine convergence in the algorithm used
 to calculate this function value.}
+
+\item{na.rm}{Default is FALSE, if FALSE then when \code{x} includes at least one
+NA value then NA is returned, if TRUE then when \code{x} includes at least one
+NA value then that value is removed and the pseudo-Huber median is computed without it.}
 }
 \value{
 The calculated pseudo-Huber smoothed median over \code{x} with smoothing

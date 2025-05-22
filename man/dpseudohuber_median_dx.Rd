@@ -5,9 +5,9 @@
 \alias{dpsuedohuber_median_dx}
 \title{Calculate the derivative to the pseudo-Huber smoothed median}
 \usage{
-dpseudohuber_median_dx(x, d = 0.1)
+dpseudohuber_median_dx(x, d = 0.1, na.rm = FALSE)
 
-dpsuedohuber_median_dx(x, d = 0.1)
+dpsuedohuber_median_dx(x, d = 0.1, na.rm = FALSE)
 }
 \arguments{
 \item{x}{A vector to calculate the derivative of the pseudo-Huber smoothed median for.}
@@ -15,6 +15,11 @@ dpsuedohuber_median_dx(x, d = 0.1)
 \item{d}{Smoothing parameter, by default set to \code{0.1}. As \code{d} approaches
 \code{0} the pseudo-Huber median function approaches the median and as \code{d} approaches
 infinity this function approaches the mean.}
+
+\item{na.rm}{Passed to \code{pseudohuber_median}, default is FALSE, if FALSE then when
+\code{x} includes at least one NA value then NA is returned, if TRUE then when \code{x}
+includes at least one NA value then that value is removed and the pseudo-Huber median
+is computed without it.}
 }
 \value{
 The derivative of the calculated pseudo-Huber smoothed median over \code{x} with smoothing

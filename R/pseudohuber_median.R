@@ -9,6 +9,9 @@
 #' this function approaches the mean. 
 #' @param tolerance Tolerance used to determine convergence in the algorithm used 
 #' to calculate this function value. 
+#' @param na.rm Default is FALSE, if FALSE then when \code{x} includes at least one
+#' NA value then NA is returned, if TRUE then when \code{x} includes at least one
+#' NA value then that value is removed and the pseudo-Huber median is computed without it.
 #'
 #' @return The calculated pseudo-Huber smoothed median over \code{x} with smoothing 
 #' parameter \code{d}. 
@@ -22,32 +25,44 @@
 #'
 pseudohuber_median <- function(x,
                                d = 0.1, 
-                               tolerance = 1e-8){
+                               tolerance = 1e-8,
+                               na.rm = FALSE){
 
-  y <- median(x) #start at median
-  converged <- FALSE
-
-  ps <- pseudohuber_loss(x -y, d)
-  iter <- 1
-  #successive updates using quadratic approx to pseudohuber criterion
-  #detailed in supplement of Clausen & Willis (2024)
-  while(!converged){
-    scaled_sq <- ((x - y)/d)^2
-
-    w <- sqrt(1/(1 + scaled_sq))
-    old_y <- y
-    y <- weighted.mean(x,w)
-    ps <- c(ps,pseudohuber_loss(x- y,d))
-
-    iter <- iter + 1
-
-    if(abs(y - old_y)<tolerance){
-      converged <- TRUE
+  nas <- sum(is.na(x)) > 0
+  if (!na.rm & nas) {
+    return(NA)
+  } else {
+    
+    if (nas) {
+      x <- x[!is.na(x)]
     }
-
+    
+    y <- median(x) #start at median
+    converged <- FALSE
+    
+    ps <- pseudohuber_loss(x -y, d)
+    iter <- 1
+    #successive updates using quadratic approx to pseudohuber criterion
+    #detailed in supplement of Clausen & Willis (2024)
+    while(!converged){
+      scaled_sq <- ((x - y)/d)^2
+      
+      w <- sqrt(1/(1 + scaled_sq))
+      old_y <- y
+      y <- weighted.mean(x,w)
+      ps <- c(ps,pseudohuber_loss(x- y,d))
+      
+      iter <- iter + 1
+      
+      if(abs(y - old_y)<tolerance){
+        converged <- TRUE
+      }
+      
+    }
+    
+    return(y)
   }
-
-  return(y)
+  
 }
 
 #' @rdname pseudohuber_median
