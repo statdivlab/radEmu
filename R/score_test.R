@@ -155,7 +155,7 @@ score_test <- function(B, #B (MPLE)
       accept_try <- FALSE
     } else{
       if((abs(constrained_fit$gap) <= constraint_tol) &
-         (constrained_fit$niter < maxit)){
+         (constrained_fit$niter < maxit) & (!is.infinite(constrained_fit$rho))){
         accept_try <- TRUE
         good_enough_fit <- TRUE
       } else{
@@ -219,7 +219,8 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit.")
               "pval" = pchisq(score_stat,1,lower.tail = FALSE),
               "log_pval" = pchisq(score_stat,1,lower.tail = FALSE, log.p = TRUE),
               "niter" = constrained_fit$niter,
-              "convergence" = ifelse(constrained_fit$niter>=maxit,'iteration limit reached','converged'),
+              "convergence" = ifelse(constrained_fit$niter>=maxit,'iteration limit reached',
+                                     ifelse(is.infinite(constrained_fit$rho),'problem became ill-conditioned', 'converged')),
               # "proj_score" = constrained_fit$proj_score,
               "gap" = constrained_fit$gap,
               "u" = constrained_fit$u,
