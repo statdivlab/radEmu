@@ -87,11 +87,15 @@ macro_fisher_null <- function(X,
   update_dir <- -info_inverse %*%lag_deriv + 
     sm_half_num%*% Matrix::crossprod(sm_half_num,lag_deriv)/sm_denom
   #shorten step if any of its elements are larger than allowed by max_step
-  if(max(abs(update_dir))>max_step){
-    update_dir <- update_dir/max(abs(update_dir))
+  if(max(abs(update_dir), na.rm = TRUE)>max_step){
+    update_dir <- update_dir/max(abs(update_dir), na.rm = TRUE)
   }
+  
+  # make sure update direction is never missing
+  update_dir[is.na(update_dir)] <- 0
+  
   armijo_term <- c1*sum(update_dir*lag_deriv)
-
+  
   #update direction in long format
   update_dir <- B_from_B_cup(update_dir,J - 1, p)
   #don't update betas for j_ref

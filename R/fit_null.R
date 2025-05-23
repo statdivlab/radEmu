@@ -124,7 +124,7 @@ fit_null <- function(B,
   B_diff <- Inf
   
   while((abs(gap) > constraint_tol | B_diff> B_tol #outer loop
-  ) & iter <= maxit) {
+  ) & iter <= maxit & !is.infinite(rho)) {
     
     iter <- iter + 1    #increment iteration
     inner_iter <- 0     #initiate internal iteration
