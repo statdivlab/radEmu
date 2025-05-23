@@ -460,7 +460,7 @@ emuFit <- function(Y,
       }
       # then check pseudo-Huber median 
       fn_body <- body(constraint_fn[[k]])
-      if (as.character(fn_body[1]) == "pseudohuber_center") {
+      if (as.character(fn_body[1]) == "pseudohuber_median") {
         constraint_type <- "symmetric"
       }
       

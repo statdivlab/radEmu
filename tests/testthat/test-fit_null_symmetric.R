@@ -97,3 +97,100 @@ test_that("we get same null fit with different j_ref", {
   
   
 })
+
+test_that("compare timing old null fit and symmetric null fit", {
+  
+  skip("skip in automated testing because this is a slower bigger simulation study")
+  
+  n <- 50
+  Js <- c(10, 50, 250)
+  ps <- c(2, 4, 8)
+  nsim <- 1
+  
+  dat <- data.frame(bin = rep(0:1, each = 25), cont = rnorm(50), 
+                  count = rpois(50, 30) - 30, 
+                  cat = rep(c("A", "B", "C", "D", "E")))
+  full_X <- model.matrix(~ bin + cont + count + cat, dat)
+  
+  res <- expand.grid(seed = 1:nsim, J = Js, p = ps, old_time = NA, new_time = NA)
+  sim_settings <- expand.grid(J = Js, p = ps)
+  
+  for (s in 1:nrow(sim_settings)) {
+    print(sim_settings[s,])
+    J <- sim_settings$J[s]
+    p <- sim_settings$p[s]
+    Bs <- get_sim_bs(J)
+    B <- rbind(Bs$b0, Bs$b1)
+    if (p == 4) {
+      B <- rbind(B, rnorm(J), rnorm(J))
+      X <- full_X[, 1:4]
+    } else if (p == 8) {
+      B <- rbind(B, rnorm(J), rnorm(J), rnorm(J), rnorm(J), rnorm(J), rnorm(J))
+      X <- full_X
+    } else {
+      X <- full_X[, 1:2]
+    }
+    
+    for (sim in 1:nsim) {
+      print(sim)
+      ind <- which(res$seed == sim & res$J == J & res$p == p)
+      
+      Y <- simulate_data(n = n, J = J, distn = "Poisson", mean_z = 20, B = B, X = X)
+      constraint_fn <- rep(list(function(x)pseudohuber_median(x)), p)
+      constraint_grad_fn <- rep(list(function(x){dpseudohuber_median_dx(x)}), p)
+      
+      full_fit <- emuFit_micro_penalized(X = X,
+                               Y = Y,
+                               B = NULL,
+                               constraint_fn = constraint_fn, 
+                               #tolerance = 1e-7,
+                               verbose = FALSE)
+      
+      B_est <- full_fit$B
+      Y_aug <- full_fit$Y_augmented
+      
+      X_cup <- X_cup_from_X(X,J)
+      
+      j_ref <- get_j_ref(Y_aug)
+      
+      print("fitting null")
+      start <- proc.time() 
+      null_fit <- fit_null(B = B_est,
+                           Y = Y_aug,
+                           X = X ,
+                           X_cup = X_cup,
+                           k_constr = 2,
+                           j_constr = J / 4,
+                           j_ref = j_ref,
+                           constraint_fn = constraint_fn,
+                           #constraint_tol = 1e-5,
+                           #B_tol = 1e-4,
+                           constraint_grad_fn =constraint_grad_fn,
+                           verbose = FALSE,
+                           trackB = FALSE) 
+      end <- proc.time() - start
+      res$old_time[ind] <- end[3]
+      
+      print("fitting new null")
+      start <- proc.time()
+      null_repar_fit <- fit_null_symmetric(Y = Y_aug,
+                                           X = X,
+                                           B = B,
+                                           j_constr = J / 4,
+                                           k_constr = 2,
+                                           j_ref = j_ref,
+                                           constraint_fn = constraint_fn[[1]],
+                                           constraint_grad_fn = constraint_grad_fn[[1]],
+                                           #B_tol = 1e-4,
+                                           verbose = TRUE,
+                                           maxit = 1000)
+      end <- proc.time() - start
+      res$new_time[ind] <- end[3]
+      
+    }
+    
+  }
+             
+  
+})
+
