@@ -48,7 +48,7 @@ we do *not* get same results if we use incorrect info", {
     indexes_to_remove <- (j_ref - 1)*p + 1:p
 
 
-    X_cup <- X_cup_from_X(X,J)
+    X_cup <- X_cup_from_X_fast(X,J)
 
     score_test_as_is <-
       score_test(B = B,

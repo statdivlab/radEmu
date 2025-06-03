@@ -7,7 +7,6 @@ get_G_for_augmentations <- function(X,
   p <- ncol(X)
   #calculate indices of columns to remove from X_cup (aka X_tilde, the expanded design matrix)
   to_delete <- p*(J - 1) + 1:p #col indices for elements of B^J in long B format
-  # X_tilde_J <- X_cup_from_X(X,J)
   X_tilde_J <- X_cup
   for(i in 1:n){
     X_tilde_J[(i - 1)*J  + J,] <- 0

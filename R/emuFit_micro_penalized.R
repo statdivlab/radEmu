@@ -50,7 +50,7 @@ emuFit_micro_penalized <-
     p <- ncol(X)
     n <- nrow(Y)
     if(use_legacy_augmentation){
-      X_tilde <- X_cup_from_X(X,J)
+      X_tilde <- X_cup_from_X_fast(X,J)
     }
     Y_augmented <- Y
     if (is.null(B)) {
@@ -67,7 +67,7 @@ emuFit_micro_penalized <-
 may take a moment.")
       }
       if(is.null(X_cup)){
-        X_cup <- X_cup_from_X(X,J)
+        X_cup <- X_cup_from_X_fast(X,J)
       }
       G <- get_G_for_augmentations(X,J,n,X_cup)
     }

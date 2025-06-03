@@ -49,7 +49,7 @@ test_that("Robust score statistic is invariant to reference taxon", {
 
 
 
-  X_cup <- X_cup_from_X(X,J)
+  X_cup <- X_cup_from_X_fast(X,J)
 
   fit_thing <-
     score_test(B = B, #B (MPLE)
@@ -165,7 +165,7 @@ under null when Poisson assumption is met", {
 
 
 
-    X_cup <- X_cup_from_X(X,J)
+    X_cup <- X_cup_from_X_fast(X,J)
 
     fit_thing <-
       score_test(B = B, #B (MPLE)
@@ -274,7 +274,7 @@ test_that("model-based score statistic is invariant to reference taxon", {
 
 
 
-    X_cup <- X_cup_from_X(X,J)
+    X_cup <- X_cup_from_X_fast(X,J)
 
     fit_thing <-
       score_test(B = B, #B (MPLE)
