@@ -11,7 +11,7 @@ test_that("in saturated case, augmentations reduce to haldane correction", {
                            verbose = FALSE)
 
     X_cup <- X_cup_from_X_fast(X,J)
-    G <- get_G_for_augmentations(X = X,J = J,n = n,
+    G <- get_G_for_augmentations_fast(X = X,J = J,n = n,
                                  X_cup = X_cup)
     expect_true(max(abs(get_augmentations(X = X,
                                           G = G,

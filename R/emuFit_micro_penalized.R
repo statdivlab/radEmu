@@ -69,7 +69,7 @@ may take a moment.")
       if(is.null(X_cup)){
         X_cup <- X_cup_from_X_fast(X,J)
       }
-      G <- get_G_for_augmentations(X,J,n,X_cup)
+      G <- get_G_for_augmentations_fast(X,J,n,X_cup)
     }
     while(!converged){
       # print(counter)
