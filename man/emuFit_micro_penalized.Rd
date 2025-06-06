@@ -49,7 +49,7 @@ exit optimization}
 \item{max_abs_B}{numeric: maximum allowed value for elements of B (in absolute value). In
 most cases this is not needed as Firth penalty will prevent infinite estimates
 under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
-nearly collinear regressors). Default is 50.}
+nearly collinear regressors). Default is 250.}
 
 \item{use_legacy_augmentation}{logical: should an older (slower) implementation of
 data augmentation be used? Only used for testing - there is no advantage to using

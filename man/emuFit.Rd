@@ -30,6 +30,7 @@ emuFit(
   constraint_param = 0.1,
   verbose = FALSE,
   tolerance = 1e-04,
+  max_abs_B = 250,
   B_null_tol = 0.001,
   rho_init = 1,
   inner_tol = 1,
@@ -137,6 +138,11 @@ updates should set verbose = TRUE.}
 \item{tolerance}{tolerance for stopping criterion in full model fitting; once
 no element of B is updated by more than this value in a single step, we exit
 optimization. Defaults to 1e-3.}
+
+\item{max_abs_B}{<aximum allowed value for elements of B (in absolute value) in full model fitting. In
+most cases this is not needed as Firth penalty will prevent infinite estimates
+under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
+nearly collinear regressors). Default is 250.}
 
 \item{B_null_tol}{numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
 B across outer iterations is below this threshold, we declare convergence).

@@ -63,6 +63,10 @@
 #' @param tolerance tolerance for stopping criterion in full model fitting; once
 #' no element of B is updated by more than this value in a single step, we exit
 #' optimization. Defaults to 1e-3.
+#' @param max_abs_B <aximum allowed value for elements of B (in absolute value) in full model fitting. In
+#' most cases this is not needed as Firth penalty will prevent infinite estimates
+#' under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
+#' nearly collinear regressors). Default is 250.
 #' @param rho_init numeric: value at which to initiate rho parameter in augmented Lagrangian
 #' algorithm. Default is 1.
 #' @param tau numeric: value to scale rho by in each iteration of augmented Lagrangian
@@ -179,6 +183,7 @@ emuFit <- function(Y,
                    constraint_param = 0.1,
                    verbose = FALSE,
                    tolerance = 1e-4,
+                   max_abs_B = 250,
                    B_null_tol = 1e-3,
                    rho_init = 1,
                    inner_tol = 1,
@@ -263,6 +268,7 @@ emuFit <- function(Y,
                                max_step = max_step,
                                tolerance = tolerance,
                                verbose = (verbose == "development"),
+                               max_abs_B = max_abs_B,
                                j_ref = j_ref)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
@@ -281,9 +287,15 @@ emuFit <- function(Y,
                      max_stepsize = max_step,
                      tolerance = tolerance,
                      j_ref = j_ref,
+                     max_abs_B = max_abs_B,
                      verbose = (verbose == "development"))
       fitted_B <- fitted_model
       Y_test <- Y
+    }
+    
+    max_est_B <- max(abs(fitted_B))
+    if (max_est_B >= 0.9 * max_abs_B) {
+      warning("At least one estimated B value is within 10% of your `max_abs_B` boundary. We suggest that you rerun estimation with a larger `max_abs_B` value.")
     }
     
   } else {
