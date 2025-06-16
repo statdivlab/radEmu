@@ -64,11 +64,12 @@ get_augmentations <- function(X,
 
 }
 
-# this actually isn't slower in tests
+# this actually isn't faster in tests
 get_augmentations_par <- function(X,
                                   G, #design matrix in beta_vec and z
                                   Y,
-                                  B){
+                                  B,
+                                  par = FALSE){
   
   
   #dimensions
@@ -106,23 +107,30 @@ get_augmentations_par <- function(X,
   #info^(-0.5) by inverting cholesky decomp
   info_half_inv <- Matrix::solve(info_chol)
   
-  augmentations <- matrix(0, nrow = n, ncol =J)
   
-  #get augmentations
-  for(i in 1:n){
-    # print(i)
-    G_i <- G[1:J + (i - 1)*J, , drop = FALSE]
-    G_i <- G_i %*% info_half_inv
+  
+  if (.Platform$OS.type == "unix" & par) {
     
-    augmentations[i, ] <-
+    cores <- parallel::detectCores()
+    aug_res <- parallel::mclapply(1:n, function(i) {
+      G_i <- G[1:J + (i - 1)*J, , drop = FALSE]
+      G_i <- G_i %*% info_half_inv
       Matrix::rowSums(Matrix::Diagonal(x = exp(log_means[(i - 1)*J + 1:J, ])) %*% (G_i^2) )/2
+    }, mc.cores = cores - 1)
+    augmentations <- do.call(rbind, aug_res)
     
+  } else {
+    augmentations <- matrix(0, nrow = n, ncol = J)
+    for(i in 1:n){
+      G_i <- G[1:J + (i - 1)*J, , drop = FALSE]
+      G_i <- G_i %*% info_half_inv
+      
+      augmentations[i, ] <-
+        Matrix::rowSums(Matrix::Diagonal(x = exp(log_means[(i - 1)*J + 1:J, ])) %*% (G_i^2) )/2
+      
+    }
   }
   
-  
-  
   return(augmentations)
-  
-  
   
 }

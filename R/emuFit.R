@@ -63,7 +63,7 @@
 #' @param tolerance tolerance for stopping criterion in full model fitting; once
 #' no element of B is updated by more than this value in a single step, we exit
 #' optimization. Defaults to 1e-3.
-#' @param max_abs_B <aximum allowed value for elements of B (in absolute value) in full model fitting. In
+#' @param max_abs_B maximum allowed value for elements of B (in absolute value) in full model fitting. In
 #' most cases this is not needed as Firth penalty will prevent infinite estimates
 #' under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
 #' nearly collinear regressors). Default is 250.
@@ -108,6 +108,8 @@
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
 #' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
+#' @param est_par logical: when possible should computation be parallelized for estimation under the alternative. This is suggested for large 
+#' \code{n}, especially if when running with \code{verbose = "development"}, the augmentation steps appear to be taking a long time.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
 #' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
@@ -200,7 +202,8 @@ emuFit <- function(Y,
                    return_score_components = FALSE,
                    return_both_score_pvals = FALSE,
                    remove_zero_comparison_pvals = 0.01,
-                   unobserved_taxon_error = TRUE) {
+                   unobserved_taxon_error = TRUE,
+                   est_par = FALSE) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
@@ -269,7 +272,8 @@ emuFit <- function(Y,
                                tolerance = tolerance,
                                verbose = (verbose == "development"),
                                max_abs_B = max_abs_B,
-                               j_ref = j_ref)
+                               j_ref = j_ref,
+                               par = est_par)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
       converged_estimates <- fitted_model$convergence

@@ -27,6 +27,10 @@
 #' during optimization. Default is NULL, in which case this column is chosen based
 #' on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 #' Y_j_ref greater than zero).
+#' @param par ogical: when possible should computation be parallelized for computing augmentation values. 
+#' This is suggested for large \code{n}, especially if when running with \code{verbose = "development"}, 
+#' the augmentation steps appear to be taking a long time.
+#'
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
@@ -43,7 +47,8 @@ emuFit_micro_penalized <-
            verbose = TRUE,
            max_abs_B = 250,
            use_legacy_augmentation = FALSE,
-           j_ref = NULL
+           j_ref = NULL,
+           par = FALSE
   ){
 
     J <- ncol(Y)
@@ -99,10 +104,11 @@ maintained only for testing purposes.")
                         J = J,
                         verbose = verbose)
         } else{
-          augmentations <- get_augmentations(X = X,
-                                             G = G,
-                                             Y = Y,
-                                             B = fitted_model)
+          augmentations <- get_augmentations_par(X = X,
+                                                 G = G,
+                                                 Y = Y,
+                                                 B = fitted_model, 
+                                                 par = par)
           Y_augmented <- Y + augmentations
         }
       }
