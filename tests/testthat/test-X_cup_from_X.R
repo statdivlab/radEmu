@@ -1,6 +1,6 @@
 test_that("X_cup_from_X_fast works and is faster than X_cup_from_X", {
-  X <- cbind(1, rnorm(20), runif(20))
-  J <- 50
+  X <- cbind(1, rnorm(100), runif(100))
+  J <- 200
   start1 <- proc.time()
   Xcup1 <- X_cup_from_X(X, J)
   end1 <- proc.time() - start1
