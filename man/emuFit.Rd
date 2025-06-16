@@ -30,6 +30,7 @@ emuFit(
   constraint_param = 0.1,
   verbose = FALSE,
   tolerance = 1e-04,
+  max_abs_B = 250,
   B_null_tol = 0.001,
   rho_init = 1,
   inner_tol = 1,
@@ -46,7 +47,8 @@ emuFit(
   return_score_components = FALSE,
   return_both_score_pvals = FALSE,
   remove_zero_comparison_pvals = 0.01,
-  unobserved_taxon_error = TRUE
+  unobserved_taxon_error = TRUE,
+  est_par = FALSE
 )
 }
 \arguments{
@@ -138,6 +140,11 @@ updates should set verbose = TRUE.}
 no element of B is updated by more than this value in a single step, we exit
 optimization. Defaults to 1e-3.}
 
+\item{max_abs_B}{maximum allowed value for elements of B (in absolute value) in full model fitting. In
+most cases this is not needed as Firth penalty will prevent infinite estimates
+under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
+nearly collinear regressors). Default is 250.}
+
 \item{B_null_tol}{numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
 B across outer iterations is below this threshold, we declare convergence).
 Default is 0.01.}
@@ -195,6 +202,9 @@ If a value between 0 and 1, all zero-comparison p-values below the value will be
 Default is \code{0.01}.}
 
 \item{unobserved_taxon_error}{logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.}
+
+\item{est_par}{logical: when possible should computation be parallelized for estimation under the alternative. This is suggested for large
+\code{n}, especially if when running with \code{verbose = "development"}, the augmentation steps appear to be taking a long time.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
