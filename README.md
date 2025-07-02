@@ -47,19 +47,21 @@ We are currently only releasing `radEmu` via GitHub. If you'd like us to conside
 
 ## Use
 
-The vignettes demonstrate example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a `phyloseq` object: 
+The vignettes demonstrate example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a `phyloseq` object, and you want to estimate parameters for all taxa and run a test for the parameter associated with "Group" and taxon 1: 
 
 ``` r
 ch_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling, 
-                 Y = my_phyloseq_object) 
+                 Y = my_phyloseq_object, 
+                 test_kj = data.frame(k = 2, j = 1)) 
 ```
 
-and if your abundances and covariates are in a dataframe, you can use the following:
+and if your abundances and covariates are in a dataframe, you can use the following, in which you want to estimate parameters for all taxa and run tests for the parameters associated with "Group" for all taxa: 
 
 ```r
 all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
                   data = my_covariates_df, 
-                  Y = my_abundances_df)
+                  Y = my_abundances_df,
+                  test_kj = data.frame(k = 2, j = 1:ncol(my_abundances_df)))
 ```
 ## Documentation 
 
