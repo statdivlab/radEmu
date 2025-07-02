@@ -323,7 +323,7 @@ fit_null_symmetric <- function(
               }
               lambda <- if (lambda == 0) 1e-4 else 10 * lambda
               if (lambda > 1e6) {
-                stop("Unable to regularise Fisher information – giving up")
+                stop("Unable to regularise Fisher information for inversion")
               }
             }
 
