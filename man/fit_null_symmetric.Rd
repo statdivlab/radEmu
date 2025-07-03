@@ -14,18 +14,13 @@ fit_null_symmetric(
   j_ref,
   constraint_fn,
   constraint_grad_fn,
-  rho_init = 1,
-  tau = 1.2,
-  kappa = 0.8,
   B_tol = 0.01,
-  inner_tol = 0.01,
-  constraint_tol = 1e-04,
-  max_step = 5,
-  c1 = 1e-04,
+  c1 = 0.01,
   maxit = 1000,
   inner_maxit = 25,
   verbose = FALSE,
-  trackB = FALSE
+  trackB = FALSE,
+  use_optim = FALSE
 )
 }
 \arguments{
@@ -47,19 +42,7 @@ fit_null_symmetric(
 
 \item{constraint_grad_fn}{gradient of constraint fn}
 
-\item{rho_init}{where to start quadratic penalty parameter}
-
-\item{tau}{how much to increment rho by each iteration}
-
-\item{kappa}{cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.}
-
 \item{B_tol}{tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$}
-
-\item{inner_tol}{tolerance for inner loop}
-
-\item{constraint_tol}{tolerance for $|B_kj - g(B_k)|$}
-
-\item{max_step}{maximum step size}
 
 \item{c1}{constant for armijo rule}
 

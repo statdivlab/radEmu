@@ -12,7 +12,7 @@ null_repar_ll_gr <- function(
   constraint_grad_fn,
   return_hess = FALSE
 ) {
-  Bjs <- B[, c(js, j_constr)]
+  Bjs <- B[, c(js, j_constr), drop = FALSE]
   njs <- length(js)
   for (jind in 1:njs) {
     Bjs[, jind] <- Bjs[, jind] + x[1:p + (jind - 1) * p]
