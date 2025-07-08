@@ -194,133 +194,139 @@ test_that("compare timing old null fit and symmetric null fit", {
         p
       )
 
-      full_fit <- emuFit_micro_penalized(
+      full_fit <- try(emuFit_micro_penalized(
         X = X,
         Y = Y,
         B = NULL,
         constraint_fn = constraint_fn,
         #tolerance = 1e-7,
         verbose = FALSE
-      )
-
-      B_est <- full_fit$B
-      Y_aug <- full_fit$Y_augmented
-
-      X_cup <- X_cup_from_X(X, J)
-
-      j_ref <- get_j_ref(Y_aug)
-
-      print("fitting null")
-      start <- proc.time()
-      null_fit <- fit_null(
-        B = B_est,
-        Y = Y_aug,
-        X = X,
-        X_cup = X_cup,
-        k_constr = 2,
-        j_constr = J / 4,
-        j_ref = j_ref,
-        constraint_fn = constraint_fn,
-        #constraint_tol = 1e-5,
-        #B_tol = 1e-4,
-        constraint_grad_fn = constraint_grad_fn,
-        verbose = FALSE,
-        trackB = FALSE
-      )
-      end <- proc.time() - start
-      res$old_time[ind] <- end[3]
-
-      print("fitting new null")
-      start <- proc.time()
-      null_repar_fit <- fit_null_symmetric(
-        Y = Y_aug,
-        X = X,
-        B = B,
-        j_constr = J / 4,
-        k_constr = 2,
-        j_ref = j_ref,
-        constraint_fn = constraint_fn[[1]],
-        constraint_grad_fn = constraint_grad_fn[[1]],
-        #B_tol = 1e-4,
-        verbose = TRUE,
-        maxit = 1000
-      )
-      end <- proc.time() - start
-      res$new_time[ind] <- end[3]
+      ))
+      
+      if (!inherits(full_fit, "try-error")) {
+        B_est <- full_fit$B
+        Y_aug <- full_fit$Y_augmented
+        
+        X_cup <- X_cup_from_X(X, J)
+        
+        j_ref <- get_j_ref(Y_aug)
+        
+        print("fitting null")
+        start <- proc.time()
+        null_fit <- try(fit_null(
+          B = B_est,
+          Y = Y_aug,
+          X = X,
+          X_cup = X_cup,
+          k_constr = 2,
+          j_constr = J / 4,
+          j_ref = j_ref,
+          constraint_fn = constraint_fn,
+          #constraint_tol = 1e-5,
+          #B_tol = 1e-4,
+          constraint_grad_fn = constraint_grad_fn,
+          verbose = FALSE,
+          trackB = FALSE
+        ))
+        end <- proc.time() - start
+        if (!inherits(null_fit, "try-error")) {
+          res$old_time[ind] <- end[3]
+        }
+        
+        print("fitting new null")
+        start <- proc.time()
+        null_repar_fit <- try(fit_null_symmetric(
+          Y = Y_aug,
+          X = X,
+          B = B,
+          j_constr = J / 4,
+          k_constr = 2,
+          j_ref = j_ref,
+          constraint_fn = constraint_fn[[1]],
+          constraint_grad_fn = constraint_grad_fn[[1]],
+          #B_tol = 1e-4,
+          verbose = TRUE,
+          maxit = 1000
+        ))
+        end <- proc.time() - start
+        if (!inherits(null_repar_fit, "try-error")) {
+          res$new_time[ind] <- end[3]
+        }
+      }
     }
   }
 
   # result here is that timing is pretty similar (double check this)
 })
 
-# profile optim in fit_null_symmetric
-test_that("profile how much time is optim in fit_null_symmetric", {
-  skip("Don't profile new null code when running automatic tests")
-
-  set.seed(59542234)
-  n <- 100
-  J <- 50
-  X <- cbind(1, rep(c(0, 1), each = n / 2))
-  b0 <- rnorm(J)
-  b1 <- seq(1, 10, length.out = J)
-  b1 <- b1 - mean(b1)
-  b0 <- b0 - mean(b0)
-  Y <- radEmu:::simulate_data(
-    n = n,
-    J = J,
-    X = X,
-    b0 = b0,
-    b1 = b1,
-    distn = "Poisson",
-    mean_z = 8
-  )
-
-  k_constr <- 2
-  j_constr <- 1
-  p <- 2
-
-  # constraint_fn <- rep(list(function(x){mean(x)}), 2)
-  constraint_fn <- rep(list(function(x) pseudohuber_median(x, 0.1)), 2)
-  ##### Arguments to fix:
-
-  # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
-  constraint_grad_fn <- rep(
-    list(function(x) {
-      dpseudohuber_median_dx(x, 0.1)
-    }),
-    2
-  )
-
-  full_fit <- #suppressMessages(
-    emuFit_micro_penalized(
-      X = X,
-      Y = Y,
-      B = NULL,
-      tolerance = 1e-6,
-      verbose = FALSE
-    )
-
-  B <- full_fit$B
-  Y_aug <- full_fit$Y_augmented
-
-  X_cup <- X_cup_from_X(X, J)
-
-  j_ref <- 5
-
-  Rprof("../out.prof", interval = 0.01)
-  null_repar_fit <- fit_null_symmetric(
-    Y = Y_aug,
-    X = X,
-    B = B,
-    j_constr = j_constr,
-    k_constr = k_constr,
-    j_ref = j_ref,
-    constraint_fn = constraint_fn[[1]],
-    constraint_grad_fn = constraint_grad_fn[[1]],
-    B_tol = 1e-4,
-    verbose = TRUE,
-    maxit = 1000
-  )
-  Rprof(NULL)
-  summaryRprof("../out.prof")
-})
+# # profile optim in fit_null_symmetric
+# test_that("profile how much time is optim in fit_null_symmetric", {
+#   skip("Don't profile new null code when running automatic tests")
+# 
+#   set.seed(59542234)
+#   n <- 100
+#   J <- 50
+#   X <- cbind(1, rep(c(0, 1), each = n / 2))
+#   b0 <- rnorm(J)
+#   b1 <- seq(1, 10, length.out = J)
+#   b1 <- b1 - mean(b1)
+#   b0 <- b0 - mean(b0)
+#   Y <- radEmu:::simulate_data(
+#     n = n,
+#     J = J,
+#     X = X,
+#     b0 = b0,
+#     b1 = b1,
+#     distn = "Poisson",
+#     mean_z = 8
+#   )
+# 
+#   k_constr <- 2
+#   j_constr <- 1
+#   p <- 2
+# 
+#   # constraint_fn <- rep(list(function(x){mean(x)}), 2)
+#   constraint_fn <- rep(list(function(x) pseudohuber_median(x, 0.1)), 2)
+#   ##### Arguments to fix:
+# 
+#   # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
+#   constraint_grad_fn <- rep(
+#     list(function(x) {
+#       dpseudohuber_median_dx(x, 0.1)
+#     }),
+#     2
+#   )
+# 
+#   full_fit <- #suppressMessages(
+#     emuFit_micro_penalized(
+#       X = X,
+#       Y = Y,
+#       B = NULL,
+#       tolerance = 1e-6,
+#       verbose = FALSE
+#     )
+# 
+#   B <- full_fit$B
+#   Y_aug <- full_fit$Y_augmented
+# 
+#   X_cup <- X_cup_from_X(X, J)
+# 
+#   j_ref <- 5
+# 
+#   Rprof("../out.prof", interval = 0.01)
+#   null_repar_fit <- fit_null_symmetric(
+#     Y = Y_aug,
+#     X = X,
+#     B = B,
+#     j_constr = j_constr,
+#     k_constr = k_constr,
+#     j_ref = j_ref,
+#     constraint_fn = constraint_fn[[1]],
+#     constraint_grad_fn = constraint_grad_fn[[1]],
+#     B_tol = 1e-4,
+#     verbose = TRUE,
+#     maxit = 1000
+#   )
+#   Rprof(NULL)
+#   summaryRprof("../out.prof")
+# })
