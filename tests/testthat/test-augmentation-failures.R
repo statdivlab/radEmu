@@ -33,8 +33,6 @@ test_that("confirm Matrix Csparse_transpose issue is not happening", {
   ### check data frame inputs ok
   fitted_model_df <- emuFit(Y = as.data.frame(Y)[5:8, ],
                             X = as.data.frame(X)[5:8, ],
-                            formula = ~group,
-                            data = covariates,
                             verbose = FALSE,
                             B_null_tol = 1e-2,
                             tolerance = 0.01,
