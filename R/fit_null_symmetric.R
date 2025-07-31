@@ -272,7 +272,8 @@ fit_null_symmetric <- function(
               k_constr = k_constr,
               constraint_fn = constraint_fn,
               constraint_grad_fn = constraint_grad_fn,
-              return_hess = TRUE # we want info + grad
+              return_hess = TRUE, # we want info + grad
+              return_info_inv = FALSE # we don't want to invert info in grad fn
             )
           }
 

@@ -10,7 +10,8 @@ null_repar_ll_gr <- function(
   k_constr,
   constraint_fn,
   constraint_grad_fn,
-  return_hess = FALSE
+  return_hess = FALSE,
+  return_info_inv = TRUE
 ) {
   Bjs <- B[, c(js, j_constr), drop = FALSE]
   njs <- length(js)
@@ -61,28 +62,40 @@ null_repar_ll_gr <- function(
       function(jind) Matrix::crossprod(X, diag(exp(log_means_js[, jind]))) %*% X
     )
 
-    info_diags <- c(
-      info_diags,
-      Matrix::crossprod(
-        X[, -k_constr, drop = FALSE],
-        diag(exp(log_means_js[, njs + 1]))
-      ) %*%
-        X[, -k_constr, drop = FALSE]
-    )
+    # old code that was causing a bug with incorrect dimension of info for p > 2
+    # info_diags <- c(
+    #   info_diags,
+    #   Matrix::crossprod(
+    #     X[, -k_constr, drop = FALSE],
+    #     diag(exp(log_means_js[, njs + 1]))
+    #   ) %*%
+    #     X[, -k_constr, drop = FALSE]
+    # )
+    
+    # new code to avoid this bug
+    curr_len <- length(info_diags)
+    info_diags[[curr_len + 1]] <- Matrix::crossprod(
+      X[, -k_constr, drop = FALSE], diag(exp(log_means_js[, njs + 1]))) %*%
+      X[, -k_constr, drop = FALSE]
+    
     info <- Matrix::bdiag(info_diags)
-    info_inv <- Matrix::bdiag(lapply(info_diags, qr.solve))
-
-    return(list(
+    
+    return_obj <- list(
       gr = gr,
       info = info,
-      info_inv = info_inv,
       cg = cg,
       cg_info_mult = Matrix::crossprod(
         X[, k_constr, drop = FALSE],
         diag(exp(log_means_js[, njs + 1]))
       ) %*%
         X[, k_constr, drop = FALSE]
-    ))
+    )
+    if (return_info_inv) {
+      info_inv <- Matrix::bdiag(lapply(info_diags, qr.solve))
+      return_obj$info_inv <- info_inv
+    }
+
+    return(return_obj)
   } else {
     return(gr)
   }

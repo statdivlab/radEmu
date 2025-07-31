@@ -143,6 +143,13 @@ score_test <- function(
          as mean or pseudo-Huber median, or `other`."
     )
   }
+  
+  if (constraint_type == "symmetric") {
+    # set ntries to 1, since fit_null_symmetric() is deterministic
+    # eventually change this, so that different tries have different
+    # intialization values 
+    ntries <- 1
+  }
 
   # start fitting
   tries_so_far <- 0
