@@ -15,6 +15,7 @@
 #' @param inner_maxit max iterations per inner loop
 #' @param verbose shout at you?
 #' @param trackB track value of beta across iterations and return?
+#' @param use_optim whether to use `optim` instead of fisher scoring. Default is FALSE.
 #'
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
 #' `gap`, `u`, `rho`, and `Bs`. `B` is a matrix containing parameter estimates
@@ -346,7 +347,7 @@ fit_null_symmetric <- function(
             theta <- theta_new
             if (verbose) {
               cat(sprintf(
-                "Iter %2d  f = %-12.6g  |Δθ| = %-10.3g  λ = %g\n",
+                "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
                 iter,
                 f_new,
                 max(abs(step * step_dir)),
