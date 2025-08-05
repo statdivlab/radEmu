@@ -139,7 +139,7 @@ test_that("compare timing old null fit and symmetric null fit, p = 2", {
   n <- 50
   Js <- c(10, 50, 250)
   ps <- c(2, 4, 8)
-  nsim <- 10
+  nsim <- 4
   
   dat <- data.frame(
     bin = rep(0:1, each = 25),
@@ -212,10 +212,10 @@ test_that("compare timing old null fit and symmetric null fit, p = 2", {
           j_constr = J / 4,
           j_ref = j_ref,
           constraint_fn = constraint_fn,
-          #constraint_tol = 1e-5,
-          #B_tol = 1e-4,
+          constraint_tol = 1e-4,
+          B_tol = 1e-4,
           constraint_grad_fn = constraint_grad_fn,
-          verbose = FALSE,
+          verbose = TRUE,
           trackB = FALSE
         ))
         end <- proc.time() - start
@@ -234,7 +234,7 @@ test_that("compare timing old null fit and symmetric null fit, p = 2", {
           j_ref = j_ref,
           constraint_fn = constraint_fn[[1]],
           constraint_grad_fn = constraint_grad_fn[[1]],
-          #B_tol = 1e-4,
+          B_tol = 1e-4,
           verbose = TRUE,
           maxit = 1000
         ))
@@ -249,12 +249,18 @@ test_that("compare timing old null fit and symmetric null fit, p = 2", {
   library(dplyr)
   res %>% group_by(J) %>% summarise(mean(old_time), mean(new_time))
   
+  # for B_tol set to default, which is 0.01:
+  
   # here we see that new fisher scoring approach is about 60 times slower
   # for J = 10, but about 10 times faster for J = 50 and 250
   
   # this makes sense, based on time to converge in inner loop, likely
   # fewer iterations if pseudohuber median is less variable across
   # change in a pair or single j 
+  
+  # for B_tol set to 1e-4:
+  # for J = 10 the two approaches take a very similar amount of time,
+  # for J = 50 and 250, the new approach takes 2-100x times longer
 })
 
 test_that("compare timing old null fit and symmetric null fit, p = 3", {
@@ -512,7 +518,7 @@ test_that("compare timing old null fit and symmetric null fit - all p, zinb", {
   n <- 50
   Js <- c(10, 50, 250)
   ps <- c(2, 4, 8)
-  nsim <- 5
+  nsim <- 2
   
   dat <- data.frame(
     bin = rep(0:1, each = 25),
