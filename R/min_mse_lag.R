@@ -19,7 +19,7 @@ min_mse_lag <- function(X,Y,B,constraint_grad_fn,k_constr,j_constr,j_ref){
   
   dldB <- do.call(cbind,d_dBjs)
   
-  if (jref == j_constr) {
+  if (j_ref == j_constr) {
     cg <- constraint_grad_fn(B[k_constr,-j_constr])
   } else {
     cg <- constraint_grad_fn(B[k_constr,-j_constr])[-(j_ref - as.numeric(j_ref > j_constr))]

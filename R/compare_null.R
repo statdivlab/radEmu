@@ -20,6 +20,7 @@ compare_null <- function(maxit = 1000, record_gap = 10, X, Y,
       message("Fitting model under alternative")
     }
   }
+  Y <- alt_fit$Y_augmented
   
   # make result data frames for old and new algorithms 
   record_its <- (1:maxit)[1:maxit %% record_gap == 0]
@@ -167,7 +168,7 @@ compare_null <- function(maxit = 1000, record_gap = 10, X, Y,
       old$test_stat[ind] <- get_score_stat(X = X, Y = Y, X_cup = X_cup, B = B, k_constr = k_constr,
                                            j_constr = j_constr, constraint_grad_fn = constraint_grad_fn,
                                            indexes_to_remove = indexes_to_remove, j_ref = j_ref, J = J,
-                                           n = n, p = p)
+                                           n = n, p = p)$score_stat
     }
     
   }
@@ -374,15 +375,6 @@ compare_null <- function(maxit = 1000, record_gap = 10, X, Y,
           
           # -- update
           theta <- theta_new
-          if (verbose) {
-            cat(sprintf(
-              "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
-              iter,
-              f_new,
-              max(abs(step * step_dir)),
-              lambda
-            ))
-          }
           
           # -- convergence?
           if (max(abs(step * step_dir)) < tol) {
@@ -422,10 +414,10 @@ compare_null <- function(maxit = 1000, record_gap = 10, X, Y,
         rep(0, p * length(js) + p - 1),
         fn = prob$fn,
         grad_fn = prob$grad_fn,
-        max_iter = maxit,
+        max_iter = inner_maxit,
         c1 = c1, # Armijo constant
         backtrack_max = inner_maxit,
-        tol = B_tol,
+        tol = inner_tol,
         verbose = verbose
       )
       
@@ -492,7 +484,7 @@ compare_null <- function(maxit = 1000, record_gap = 10, X, Y,
       new$test_stat[ind] <- get_score_stat(X = X, Y = Y, X_cup = X_cup, B = B, k_constr = k_constr,
                                            j_constr = j_constr, constraint_grad_fn = constraint_grad_fn,
                                            indexes_to_remove = indexes_to_remove, j_ref = j_ref, J = J,
-                                           n = n, p = p)
+                                           n = n, p = p)$score_stat
     }
     
     #increment iteration counter

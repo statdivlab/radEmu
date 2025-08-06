@@ -10,6 +10,7 @@
 #' @param constraint_fn constraint function
 #' @param constraint_grad_fn gradient of constraint fn
 #' @param B_tol tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$
+#' @param inner_tol tolerance for inner loop
 #' @param c1 constant for armijo rule
 #' @param maxit maximum iterations
 #' @param inner_maxit max iterations per inner loop
@@ -42,6 +43,7 @@ fit_null_symmetric <- function(
   c1 = 1e-2,
   maxit = 1000,
   inner_maxit = 25,
+  inner_tol = 0.01,
   verbose = FALSE,
   trackB = FALSE,
   use_optim = FALSE
@@ -394,10 +396,12 @@ fit_null_symmetric <- function(
           rep(0, p * length(js) + p - 1),
           fn = prob$fn,
           grad_fn = prob$grad_fn,
-          max_iter = maxit,
+          #max_iter = maxit,
+          max_iter = inner_maxit,
           c1 = c1, # Armijo constant
           backtrack_max = inner_maxit,
-          tol = B_tol,
+          #tol = B_tol,
+          tol = inner_tol, 
           verbose = verbose
         )
 
