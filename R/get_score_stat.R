@@ -19,6 +19,10 @@ get_score_stat <- function(Y,
                            ){
   scores <- vector(n,mode = "list")
   
+  if (is.list(constraint_grad_fn)) {
+    constraint_grad_fn <- constraint_grad_fn[[k_constr]]
+  }
+  
   p <- ncol(X)
   
   #reparametrize using convenience constraint
@@ -50,7 +54,7 @@ get_score_stat <- function(Y,
   #compute derivative of constraint wrt (long/vector format) B 
   H <- matrix(0,nrow = p, ncol = J)
   
-  H[k_constr,] <- constraint_grad_fn[[k_constr]](B[k_constr,])
+  H[k_constr,] <- constraint_grad_fn(B[k_constr,])
   
   H[k_constr,j_constr] <- H[k_constr,j_constr] - 1
   

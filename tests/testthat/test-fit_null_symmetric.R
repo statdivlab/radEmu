@@ -703,3 +703,29 @@ test_that("compare timing old null fit and symmetric null fit - all p, zinb", {
 #   Rprof(NULL)
 #   summaryRprof("../out.prof")
 # })
+
+test_that("test compare_null", {
+  set.seed(59542234)
+  n <- 10
+  J <- 5
+  X <- cbind(1, rep(c(0, 1), each = n / 2))
+  b0 <- rnorm(J)
+  b1 <- seq(1, 10, length.out = J)
+  b1 <- b1 - mean(b1)
+  b0 <- b0 - mean(b0)
+  Y <- radEmu:::simulate_data(
+    n = n,
+    J = J,
+    X = X,
+    b0 = b0,
+    b1 = b1,
+    distn = "Poisson",
+    mean_z = 8
+  )
+  
+  k_constr <- 2
+  j_constr <- 1
+  
+  res <- compare_null(maxit = 10, record_gap = 2, X = X, Y = Y, k_constr = 2, j_constr = 1,
+                      verbose = T)
+})
