@@ -39,3 +39,27 @@ min_mse_lag <- function(X,Y,B,constraint_grad_fn,k_constr,j_constr,j_ref){
   
   return(sum(dldB^2))
 }
+
+mse <- function(X,Y,B){
+  J <- ncol(Y)
+  n <- nrow(Y)
+  z <- update_z(Y,X,B)
+  
+  log_means <- X%*%B
+  
+  for(i in 1:n){
+    log_means[i,] <- log_means[i,] + z[i]
+  }
+  
+  
+  
+  d_dBjs <- lapply(1:J,
+                   function(j)
+                     Matrix::crossprod(X,
+                                       as.matrix(Y[,j,drop = FALSE]) - 
+                                         exp(log_means[,j,drop = FALSE])))
+  
+  dldB <- do.call(cbind,d_dBjs)
+  
+  return(sum(dldB^2))
+}

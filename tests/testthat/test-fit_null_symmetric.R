@@ -709,9 +709,10 @@ test_that("compare timing old null fit and symmetric null fit - all p, zinb", {
 # })
 
 test_that("test compare_null", {
+  skip()
   set.seed(59542234)
-  n <- 10
-  J <- 5
+  n <- 50
+  J <- 50
   X <- cbind(1, rep(c(0, 1), each = n / 2))
   b0 <- rnorm(J)
   b1 <- seq(1, 10, length.out = J)
@@ -723,13 +724,66 @@ test_that("test compare_null", {
     X = X,
     b0 = b0,
     b1 = b1,
-    distn = "Poisson",
-    mean_z = 8
+    distn = "ZINB",
+    mean_z = 20,
+    zinb_size = 5,
+    zinb_zero_prop = 0.6,
   )
   
   k_constr <- 2
   j_constr <- 1
   
-  res <- compare_null(maxit = 10, record_gap = 2, X = X, Y = Y, k_constr = 2, j_constr = 1,
+  res <- compare_null(maxit = 1000, record_gap = 100, X = X, Y = Y, k_constr = 2, j_constr = 1,
                       verbose = T)
+})
+
+test_that("test compare_null on wirbel", {
+  skip()
+  data("wirbel_sample")
+  data("wirbel_otu")
+  wirbel_sample$Group <- factor(wirbel_sample$Group, levels = c("CTR","CRC"))
+  ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
+  small_Y <- wirbel_otu[ch_study_obs, ]
+  category_to_rm <- which(colSums(small_Y) == 0)
+  small_Y <- small_Y[, -category_to_rm]
+  ch_fit <- emuFit(formula = ~ Group, 
+                   data = wirbel_sample[ch_study_obs, ],
+                   Y = small_Y,
+                   run_score_tests = FALSE, compute_cis = FALSE) 
+  k_constr <- 2
+  j_constr <- 1
+  des <- make_design_matrix(formula = ~ Group, data = wirbel_sample[ch_study_obs, ])
+  mse(X = des, Y = small_Y, B = ch_fit$B)
+  res <- compare_null(maxit = 1000, record_gap = 100, X = des, Y = small_Y, k_constr = 2, 
+                      j_constr = 1, verbose = T, alt_fit = ch_fit, old = F)
+})
+
+test_that("test compare_null on wirbel full analysis", {
+  skip()
+  data("wirbel_sample")
+  data("wirbel_otu")
+  wirbel_sample$Group <- factor(wirbel_sample$Group, levels = c("CTR","CRC"))
+  ch_fit_big <- emuFit(formula = ~ Group + Gender + Study + 
+                         Age_spline.1 + Age_spline.2 + 
+                         BMI_spline.1 + BMI_spline.2 + Sampling, 
+                   data = wirbel_sample,
+                   Y = as.matrix(wirbel_otu),
+                   run_score_tests = FALSE, compute_cis = FALSE, verbose = "development") 
+  k_constr <- 2
+  j_constr <- 1
+  des_big <- make_design_matrix(formula = ~ Group + Gender + Study + 
+                              Age_spline.1 + Age_spline.2 + 
+                              BMI_spline.1 + BMI_spline.2 + Sampling, 
+                            data = wirbel_sample)
+  mse(X = des_big, Y = ch_fit_big$Y_augmented, B = ch_fit_big$B)
+  res1 <- compare_null(maxit = 100, record_gap = 10, X = des_big, Y = as.matrix(wirbel_otu), 
+                       k_constr = 2, j_constr = 1, verbose = T, alt_fit = ch_fit_big)
+  res2 <- compare_null(maxit = 100, record_gap = 10, X = des_big, Y = as.matrix(wirbel_otu), 
+                       k_constr = 2, j_constr = 2, verbose = T, alt_fit = ch_fit_big)
+  res3 <- compare_null(maxit = 100, record_gap = 10, X = des_big, Y = as.matrix(wirbel_otu), 
+                       k_constr = 2, j_constr = 3, verbose = T, alt_fit = ch_fit_big)
+  res4 <- compare_null(maxit = 100, record_gap = 10, X = des_big, Y = as.matrix(wirbel_otu), 
+                       k_constr = 2, j_constr = 4, verbose = T, alt_fit = ch_fit_big)
+  res5 <- compare_null(maxit = 100, record_gap = 10, X = des_big, Y = as.matrix(wirbel_otu), 
+                       k_constr = 2, j_constr = 5, verbose = T, alt_fit = ch_fit_big)
 })
