@@ -523,6 +523,7 @@ compare_null <- function(maxit = 1000, record_gap = 10, X, Y,
   
   # return results
   res <- rbind(new, old)
+  res$j_constr <- j_constr
   return(res)
   
 }
