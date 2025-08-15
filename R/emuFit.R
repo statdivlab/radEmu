@@ -63,6 +63,10 @@
 #' @param tolerance tolerance for stopping criterion in full model fitting; once
 #' no element of B is updated by more than this value in a single step, we exit
 #' optimization. Defaults to 1e-3.
+#' @param max_abs_B maximum allowed value for elements of B (in absolute value) in full model fitting. In
+#' most cases this is not needed as Firth penalty will prevent infinite estimates
+#' under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
+#' nearly collinear regressors). Default is 250.
 #' @param rho_init numeric: value at which to initiate rho parameter in augmented Lagrangian
 #' algorithm. Default is 1.
 #' @param tau numeric: value to scale rho by in each iteration of augmented Lagrangian
@@ -104,6 +108,8 @@
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
 #' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
+#' @param est_par logical: when possible should computation be parallelized for estimation under the alternative. This is suggested for large 
+#' \code{n}, especially if when running with \code{verbose = "development"}, the augmentation steps appear to be taking a long time.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
 #' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
@@ -179,6 +185,7 @@ emuFit <- function(Y,
                    constraint_param = 0.1,
                    verbose = FALSE,
                    tolerance = 1e-4,
+                   max_abs_B = 250,
                    B_null_tol = 1e-3,
                    rho_init = 1,
                    inner_tol = 1,
@@ -195,7 +202,8 @@ emuFit <- function(Y,
                    return_score_components = FALSE,
                    return_both_score_pvals = FALSE,
                    remove_zero_comparison_pvals = 0.01,
-                   unobserved_taxon_error = TRUE) {
+                   unobserved_taxon_error = TRUE,
+                   est_par = FALSE) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
@@ -234,7 +242,7 @@ emuFit <- function(Y,
   # check for zero-comparison parameters
   zero_comparison_res <- zero_comparison_check(X = X, Y = Y)
   
-  X_cup <- X_cup_from_X(X,J)
+  X_cup <- X_cup_from_X_fast(X,J)
   
   
   
@@ -263,7 +271,9 @@ emuFit <- function(Y,
                                max_step = max_step,
                                tolerance = tolerance,
                                verbose = (verbose == "development"),
-                               j_ref = j_ref)
+                               max_abs_B = max_abs_B,
+                               j_ref = j_ref,
+                               par = est_par)
       Y_test <- fitted_model$Y_augmented
       fitted_B <- fitted_model$B
       converged_estimates <- fitted_model$convergence
@@ -281,9 +291,15 @@ emuFit <- function(Y,
                      max_stepsize = max_step,
                      tolerance = tolerance,
                      j_ref = j_ref,
+                     max_abs_B = max_abs_B,
                      verbose = (verbose == "development"))
       fitted_B <- fitted_model
       Y_test <- Y
+    }
+    
+    max_est_B <- max(abs(fitted_B))
+    if (max_est_B >= 0.9 * max_abs_B) {
+      warning("At least one estimated B value is within 10% of your `max_abs_B` boundary. We suggest that you rerun estimation with a larger `max_abs_B` value.")
     }
     
   } else {
@@ -307,7 +323,7 @@ emuFit <- function(Y,
     } else {
       fitted_B <- B
       if (penalize) {
-        G <- get_G_for_augmentations(X, J, n, X_cup)
+        G <- get_G_for_augmentations_fast(X, J, n, X_cup)
         Y_test <- Y_augmented <- Y + 
           get_augmentations(X = X, G = G, Y = Y, B = fitted_B)
       } else {

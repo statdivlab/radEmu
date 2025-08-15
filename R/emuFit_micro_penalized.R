@@ -19,7 +19,7 @@
 #' @param max_abs_B numeric: maximum allowed value for elements of B (in absolute value). In
 #' most cases this is not needed as Firth penalty will prevent infinite estimates
 #' under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
-#' nearly collinear regressors). Default is 50.
+#' nearly collinear regressors). Default is 250.
 #' @param use_legacy_augmentation logical: should an older (slower) implementation of
 #' data augmentation be used? Only used for testing - there is no advantage to using
 #' the older implementation in applied settings.
@@ -27,6 +27,10 @@
 #' during optimization. Default is NULL, in which case this column is chosen based
 #' on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 #' Y_j_ref greater than zero).
+#' @param par ogical: when possible should computation be parallelized for computing augmentation values. 
+#' This is suggested for large \code{n}, especially if when running with \code{verbose = "development"}, 
+#' the augmentation steps appear to be taking a long time.
+#'
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
@@ -43,14 +47,15 @@ emuFit_micro_penalized <-
            verbose = TRUE,
            max_abs_B = 250,
            use_legacy_augmentation = FALSE,
-           j_ref = NULL
+           j_ref = NULL,
+           par = FALSE
   ){
 
     J <- ncol(Y)
     p <- ncol(X)
     n <- nrow(Y)
     if(use_legacy_augmentation){
-      X_tilde <- X_cup_from_X(X,J)
+      X_tilde <- X_cup_from_X_fast(X,J)
     }
     Y_augmented <- Y
     if (is.null(B)) {
@@ -67,9 +72,9 @@ emuFit_micro_penalized <-
 may take a moment.")
       }
       if(is.null(X_cup)){
-        X_cup <- X_cup_from_X(X,J)
+        X_cup <- X_cup_from_X_fast(X,J)
       }
-      G <- get_G_for_augmentations(X,J,n,X_cup)
+      G <- get_G_for_augmentations_fast(X,J,n,X_cup)
     }
     while(!converged){
       # print(counter)
@@ -99,10 +104,11 @@ maintained only for testing purposes.")
                         J = J,
                         verbose = verbose)
         } else{
-          augmentations <- get_augmentations(X = X,
-                                             G = G,
-                                             Y = Y,
-                                             B = fitted_model)
+          augmentations <- get_augmentations_par(X = X,
+                                                 G = G,
+                                                 Y = Y,
+                                                 B = fitted_model, 
+                                                 par = par)
           Y_augmented <- Y + augmentations
         }
       }
