@@ -34,7 +34,7 @@ zero_comparison_check <- function(X, Y) {
           J <- ncol(Y)
           group_counts <- matrix(NA, nrow = n_groups, ncol = J)
           for (i in 1:n_groups) {
-            group_counts[i, ] <- colSums(Y[group_ind[[i]], ])
+            group_counts[i, ] <- colSums(Y[group_ind[[i]], , drop = FALSE])
           }
           
           # get matrix that is (p - 1) x J that gives whether or not parameter is zero-comparison
@@ -95,7 +95,7 @@ zero_comparison_check <- function(X, Y) {
         J <- ncol(Y)
         group_counts <- matrix(NA, nrow = n_groups, ncol = J)
         for (i in 1:n_groups) {
-          group_counts[i, ] <- colSums(Y[group_ind[[i]], ])
+          group_counts[i, ] <- colSums(Y[group_ind[[i]], , drop = FALSE])
         }
         
         # get matrix that is (p - 1) x J that gives whether or not parameter is zero-comparison
