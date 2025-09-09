@@ -129,3 +129,12 @@ test_that("not flagging ordered factors mistakenly", {
   zero_comparison_res <- zero_comparison_check(X = X6, Y = Y0)
   expect_null(zero_comparison_res)
 })
+
+# avoid error when there is a covariate level with a single sample
+test_that("no error when level with single samples", {
+  X_sm <- X1[1:13, ]
+  expect_silent(emuRes <- emuFit(Y = Y[1:13, ], X = X_sm, run_score_tests = FALSE, compute_cis = FALSE,
+                    match_row_names = FALSE))
+  expect_silent(emuRes <- emuFit(Y = Y[1:13, ], formula = form1, data = dat[1:13, ], 
+                                 run_score_tests = FALSE, compute_cis = FALSE, match_row_names = FALSE))
+})

@@ -124,6 +124,17 @@ covariates in formula must be provided.")
     }
   }
   
+  # check for NA's in X or that have been removed going from data to X
+  if (is.null(data)) {
+    if (sum(is.na(X)) > 0) {
+      stop("At least one value in your design matrix `X` is NA. Please remove any observations with missing values (NAs) or impute these missing values according to your analysis plan.")
+    }
+  } else {
+    if (nrow(X) < nrow(data)) {
+      warning("Your data includes at least one NA value, and the `model.matrix()` function is automatically dropping all observations with any missing values. If you want to avoid this default behavior, please manually remove observations from your data with missing values or impute these missing values according to your analysis plan.")
+    }
+  }
+  
   # check that if X and Y match in the row names
   if (is.null(rownames(X)) || is.null(rownames(Y))){
     if (nrow(X) == nrow(Y)){
