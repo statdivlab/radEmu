@@ -15,6 +15,7 @@
 #' @param inner_maxit max iterations per inner loop
 #' @param verbose shout at you?
 #' @param trackB track value of beta across iterations and return?
+#' @param use_optim whether to use `optim` instead of fisher scoring. Default is FALSE.
 #'
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
 #' `gap`, `u`, `rho`, and `Bs`. `B` is a matrix containing parameter estimates
@@ -272,7 +273,8 @@ fit_null_symmetric <- function(
               k_constr = k_constr,
               constraint_fn = constraint_fn,
               constraint_grad_fn = constraint_grad_fn,
-              return_hess = TRUE # we want info + grad
+              return_hess = TRUE, # we want info + grad
+              return_info_inv = FALSE # we don't want to invert info in grad fn
             )
           }
 
@@ -323,7 +325,7 @@ fit_null_symmetric <- function(
               }
               lambda <- if (lambda == 0) 1e-4 else 10 * lambda
               if (lambda > 1e6) {
-                stop("Unable to regularise Fisher information – giving up")
+                stop("Unable to regularise Fisher information for inversion")
               }
             }
 
@@ -345,7 +347,7 @@ fit_null_symmetric <- function(
             theta <- theta_new
             if (verbose) {
               cat(sprintf(
-                "Iter %2d  f = %-12.6g  |Δθ| = %-10.3g  λ = %g\n",
+                "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
                 iter,
                 f_new,
                 max(abs(step * step_dir)),

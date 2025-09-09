@@ -16,7 +16,6 @@ null_repar_ll <- function(
     Bjs[, jind] <- Bjs[, jind] + x[1:p + (jind - 1) * p]
   }
   Bjs[-k_constr, njs + 1] <- Bjs[-k_constr, njs + 1] + x[p * njs + 1:(p - 1)]
-
   Bjs[k_constr, njs + 1] <- constraint_fn(c(
     B[k_constr, -c(js, j_constr)],
     Bjs[k_constr, 1:njs]

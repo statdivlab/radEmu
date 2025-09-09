@@ -143,6 +143,13 @@ score_test <- function(
          as mean or pseudo-Huber median, or `other`."
     )
   }
+  
+  if (constraint_type == "symmetric") {
+    # set ntries to 1, since fit_null_symmetric() is deterministic
+    # eventually change this, so that different tries have different
+    # intialization values 
+    ntries <- 1
+  }
 
   # start fitting
   tries_so_far <- 0
@@ -244,7 +251,47 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
     }
   }
 
+  if (!good_enough_fit & constraint_type == "symmetric") {
+    if (inherits(constrained_fit, "try-error")) {
+      message("Optimization via Fisher scoring failed, attempting augmented Lagrangian approach.")
+      constrained_fit <- try(fit_null(
+        B = B, #B (MPLE)
+        Y = Y, #Y (with augmentations)
+        X = X, #design matrix
+        X_cup = X_cup,
+        k_constr = k_constr, #row index of B to constrain
+        j_constr = j_constr, #col index of B to constrain
+        constraint_fn = constraint_fn, #constraint function
+        constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+        rho_init = rho_init,
+        tau = tau,
+        kappa = kappa,
+        B_tol = B_tol,
+        inner_tol = inner_tol,
+        constraint_tol = constraint_tol,
+        j_ref = j_ref,
+        c1 = c1,
+        maxit = maxit,
+        inner_maxit = inner_maxit,
+        verbose = verbose,
+        trackB = trackB
+      ))
+      
+      if (!inherits(constrained_fit, "try-error")) {
+        if (
+          (abs(constrained_fit$gap) <= constraint_tol) &
+          (constrained_fit$niter < maxit) &
+          (!is.infinite(constrained_fit$rho))
+        ) {
+          accept_try <- TRUE
+          good_enough_fit <- TRUE
+        }
+      }
+    }
+  }
+  
   if (!good_enough_fit) {
+    
     warning(
       "Optimization for null fit with k = ",
       k_constr,
@@ -254,6 +301,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       ntries,
       ifelse(ntries > 1, " attempts.", " attempt.")
     )
+    
   }
   B <- constrained_fit$B
   z <- update_z(Y, X, B)
