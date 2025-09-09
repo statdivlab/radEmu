@@ -143,13 +143,13 @@ emuTest <- function(category) {
 Now, we can run our score tests in parallel. We'll just do the first five. It may take a minute or so, depending on your machine. 
 
 ```{r}
-if (.Platform$OS.type != "windows") {
+if (.Platform$OS.type != "windows" & !identical(Sys.getenv("GITHUB_ACTIONS"), "true")) {
   # run if we are on a Mac or Linux machine
   score_res <- mclapply(1:5,
                       emuTest,
                       mc.cores = ncores)
 } else {
-  # don't run if we are on a Windows machine
+  # don't run if we are on a Windows machine, or if testing with GitHub actions
   score_res <- NULL
 }
 ```
