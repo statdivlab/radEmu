@@ -72,7 +72,8 @@
 <span>  I_inv <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  Dy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  cluster <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  null_fit_constraint <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -209,6 +210,14 @@ p-value to be used should be chosen before conducting tests.</p></dd>
 <dd><p>a numeric vector giving cluster membership for each row of Y to
 be used in computing GEE test statistics. Default is NULL, in which case rows of
 Y are treated as independent.</p></dd>
+
+
+<dt id="arg-null-fit-constraint">null_fit_constraint<a class="anchor" aria-label="anchor" href="#arg-null-fit-constraint"></a></dt>
+<dd><p>the type of constraint, which informs which algorithm
+will be used to fit the model under the null hypothesis. NULL by default, in which
+case the standard fitting algorithm will be used. If included, this argument must be either
+<code>scc</code> for single category constraint, <code>symmetric</code> for symmetric functions such
+as mean or pseudo-Huber median, or <code>other</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
