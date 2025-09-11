@@ -42,6 +42,8 @@
 #' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
 #' the minimizer of the pseudo-Huber loss approaches the median.)
 #' @param run_score_tests logical: perform robust score testing? 
+#' @param null_fit_alg Which null fitting algorithm to use \code{"fisher_scoring"} or \code{"augmented_lagrangian"}.
+#' Default and recommended approach is \code{"fisher_scoring"}.
 #' 
 #' @return returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful
 #' errors, warnings, or messages.
@@ -63,7 +65,8 @@ emuFit_check <- function(Y,
                          constraint_fn,
                          constraint_grad_fn,
                          constraint_param,
-                         run_score_tests = TRUE) {
+                         run_score_tests = TRUE,
+                         null_fit_alg = "fisher_scoring") {
   
   # confirm that input to verbose is valid
   if (!(verbose %in% c(FALSE, TRUE, "development"))) {
@@ -319,6 +322,11 @@ ignoring argument 'cluster'.")
     } 
   }
  
+  # check that an appropriate null_fit_alg is given
+  if (!(null_fit_alg %in% c("fisher_scoring", "augmented_lagrangian"))) {
+    stop("The two options for `null_fit_alg` are 'fisher_scoring' or 'augmented_lagrangian'.")
+  }
+  
   return(list(Y = Y, X = X, cluster = cluster, B_null_list = B_null_list, test_kj = test_kj,
               constraint_fn = constraint_fn, constraint_grad_fn = constraint_grad_fn, 
               constraint_param = constraint_param))

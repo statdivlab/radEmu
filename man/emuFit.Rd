@@ -11,76 +11,102 @@ emuFit(
   data = NULL,
   assay_name = NULL,
   cluster = NULL,
-  penalize = TRUE,
-  B = NULL,
-  B_null_list = NULL,
-  fitted_model = NULL,
-  refit = TRUE,
-  test_kj = NULL,
-  alpha = 0.05,
-  return_wald_p = FALSE,
-  compute_cis = TRUE,
-  run_score_tests = TRUE,
-  use_fullmodel_info = FALSE,
-  use_fullmodel_cov = FALSE,
-  use_both_cov = FALSE,
-  match_row_names = TRUE,
   constraint_fn = pseudohuber_median,
   constraint_grad_fn = dpseudohuber_median_dx,
   constraint_param = 0.1,
   verbose = FALSE,
+  match_row_names = TRUE,
+  unobserved_taxon_error = TRUE,
+  penalize = TRUE,
+  B = NULL,
+  fitted_model = NULL,
+  refit = TRUE,
   tolerance = 1e-04,
-  B_null_tol = 0.001,
-  rho_init = 1,
-  inner_tol = 1,
-  ntries = 4,
-  tau = 2,
-  kappa = 0.8,
-  constraint_tol = 1e-05,
-  c1 = 1e-04,
   maxit = 1000,
-  inner_maxit = 25,
-  max_step = 1,
-  trackB = FALSE,
-  return_nullB = FALSE,
-  return_score_components = FALSE,
-  return_both_score_pvals = FALSE,
+  alpha = 0.05,
+  return_wald_p = FALSE,
+  compute_cis = TRUE,
+  run_score_tests = TRUE,
+  test_kj = NULL,
+  null_fit_alg = "fisher_scoring",
+  B_null_list = NULL,
+  maxit_null = 1000,
+  tol_lik = 0.1,
+  tol_test_stat = 0.01,
+  null_window = 5,
+  null_diagnostic_plots = FALSE,
   remove_zero_comparison_pvals = 0.01,
-  unobserved_taxon_error = TRUE
+  control = NULL
 )
 }
 \arguments{
 \item{Y}{an n x J matrix or dataframe of nonnegative observations, or a phyloseq object containing an otu table and sample data.}
 
-\item{X}{an n x p matrix or dataframe of covariates (optional)}
+\item{X}{an n x p design matrix (either provide \code{X} or \code{data} and \code{formula})}
 
-\item{formula}{a one-sided formula specifying the form of the mean model to be fit}
+\item{formula}{a one-sided formula specifying the form of the mean model to be fit (used with \code{data})}
 
 \item{data}{an n x p data frame containing variables given in \code{formula}}
 
 \item{assay_name}{a string containing the desired assay name within a \code{TreeSummarizedExperiment} object.
-This is only required if Y is a \code{TreeSummarizedExperiment} object, otherwise this argument does nothing
-and can be ignored.}
+This is only required if Y is a \code{TreeSummarizedExperiment} object, otherwise this argument can be ignored.}
 
 \item{cluster}{a vector giving cluster membership for each row of Y to be used in computing
 GEE test statistics. Default is NULL, in which case rows of Y are treated as independent.}
 
-\item{penalize}{logical: should Firth penalty be used in fitting model? Default is TRUE.}
+\item{constraint_fn}{(Optional) User-provided constraint function, if default behavior of comparing log fold-difference
+parameters to smoothed median over all categories is not desired. If a number is provided a single category constraint will be used
+with the provided category as a reference category. This argument can either be a single constraint
+function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.}
 
-\item{B}{starting value of coefficient matrix (p x J). If not provided,
-B will be initiated as a zero matrix.}
+\item{constraint_grad_fn}{(Optional) User-provided derivative of constraint function, if default behavior of comparing log fold-difference
+parameters to smoothed median over all categories is not desired. If \code{constraint_fn} is a list of constraint functions, then
+this argument must also be a list. If \code{constraint_fn} is a single number, or a list that includes a
+single number, then the corresponding \code{constraint_grad_fn} can be set to \code{NULL}, and will be appropriately
+set within the function.}
 
-\item{B_null_list}{list of starting values of coefficient matrix (p x J) for null estimation. This should either
-be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
-include the other elements of the list as \code{NULL}.}
+\item{constraint_param}{(Optional) If the smoothed median is used as a constraint (this is the default),
+parameter controlling relative weighting of elements closer and further from center.
+(Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
+the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not smoothed median
+(implemented in \code{radEmu::pseudohuber_median()}) then this argument will be ignored.}
 
-\item{fitted_model}{a fitted model produced by a separate call to emuFit; to
-be provided if score tests are to be run without refitting the full unrestricted model.
-Default is NULL.}
+\item{verbose}{provide updates as model is being fitted? Defaults to \code{FALSE}. If user sets \code{verbose = TRUE},
+then key messages about algorithm progress will be displayed. If user sets \code{verbose = "development"},
+then key messages and technical messages about convergence will be displayed. Most users who want status
+updates should set \code{verbose = TRUE}.}
 
-\item{refit}{logical: if B or fitted_model is provided, should full model be fit (TRUE) or
-should fitting step be skipped (FALSE), e.g., if score tests are to be run on an already
-fitted model. Default is TRUE.}
+\item{match_row_names}{logical: If \code{TRUE}, make sure rows on covariate data and response data correspond to
+the same sample by comparing row names and subsetting/reordering if necessary. Default is \code{TRUE}.}
+
+\item{unobserved_taxon_error}{logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.}
+
+\item{penalize}{logical: should Firth penalty be used? Default is \code{TRUE}. Used in estimation.}
+
+\item{B}{starting value of coefficient matrix (p x J) for estimation. If not provided, B will be initiated as a zero matrix.
+Used in estimation.}
+
+\item{fitted_model}{a fitted model produced by a separate call to emuFit; to be provided if score tests
+are to be run without refitting the full unrestricted model. Default is \code{NULL}.}
+
+\item{refit}{logical: if \code{B} or \code{fitted_model} is provided, should full model be fit (\code{TRUE}) or
+should fitting step be skipped (\code{FALSE}), e.g., if score tests are to be run on an already
+fitted model. Default is \code{TRUE}.}
+
+\item{tolerance}{tolerance for stopping criterion in estimation; once no element of B is updated by more than this value
+in a single step, we exit optimization. Defaults to \code{1e-3}. Used in estimation.}
+
+\item{maxit}{maximum number of outer iterations to perform before exiting optimization. Default is \code{1000}.
+Used in estimation.}
+
+\item{alpha}{nominal type 1 error level to be used to construct confidence intervals. Default is \code{0.05}
+(corresponding to 95\% confidence intervals)}
+
+\item{return_wald_p}{logical: return p-values from Wald tests? Default is \code{FALSE}.}
+
+\item{compute_cis}{logical: compute and return Wald CIs? Default is \code{TRUE}.}
+
+\item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
 
 \item{test_kj}{a data frame whose rows give coordinates (in category j and
 covariate k) of elements of B to construct hypothesis tests for. If you don't know
@@ -89,102 +115,26 @@ which indices k correspond to the covariate(s) that you would like to test, run 
 column of the design matrix corresponds to each covariate in your model. This argument is required when
 running score tests.}
 
-\item{alpha}{nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
-(corresponding to 95\% confidence intervals)}
+\item{null_fit_alg}{Which null fitting algorithm to use for score tests: \code{"fisher_scoring"} or
+\code{"augmented_lagrangian"}. Default and recommended approach is \code{"fisher_scoring"}.}
 
-\item{return_wald_p}{logical: return p-values from Wald tests? Default is FALSE.}
+\item{B_null_list}{list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either
+be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+include the other elements of the list as \code{NULL}.}
 
-\item{compute_cis}{logical: compute and return Wald CIs? Default is TRUE.}
+\item{maxit_null}{maximum number of outer iterations to perform before exiting optimization. Default is \code{1000}.
+Used in estimation under null hypothesis for score tests.}
 
-\item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
+\item{tol_lik}{tolerance for absolute changes in likelihood for stopping criteria. Default is \code{0.1}. Used in
+estimation under null hypothesis for score tests.}
 
-\item{use_fullmodel_info}{logical: TODO? Default is FALSE.}
+\item{tol_test_stat}{tolerance for relative changes in test statistic for stopping criteria. Default is \code{0.01}. Used in
+estimation under null hypothesis for score tests.}
 
-\item{use_fullmodel_cov}{logical: use information matrix and empirical score covariance
-computed for full model fit? Defaults to FALSE, in which case these quantities are
-recomputed for each null model fit for score testing.}
+\item{null_window}{window to use for stopping criteria (this many iterations where stopping criteria is met). Default is \code{5}.
+Used in estimation under null hypothesis for score tests.}
 
-\item{use_both_cov}{logical: should score tests be run using information and
-empirical score covariance evaluated both under the null and full models?
-Used in simulations}
-
-\item{match_row_names}{logical: Make sure rows on covariate data and response data correspond to
-the same sample by comparing row names and subsetting/reordering if necessary.}
-
-\item{constraint_fn}{function g defining a constraint on rows of B; g(B_k) = 0
-for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-pseudohuber loss). If a number is provided a single category constraint will be used
-with the provided category as a reference category. This argument can either be a single constraint
-function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.}
-
-\item{constraint_grad_fn}{derivative of constraint_fn with respect to its
-arguments (i.e., elements of a row of B). If \code{constraint_fn} is a list of constraint functions, then
-this argument must also be a list. If \code{constraint_fn} is a single number, or a list that includes a
-single number, then the corresponding \code{constraint_grad_fn} can be set to \code{NULL}, and will be appropriately
-set within the function.}
-
-\item{constraint_param}{If pseudohuber centering is used (this is the default),
-parameter controlling relative weighting of elements closer and further from center.
-(Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
-the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
-centering (implemented in \code{radEmu::pseudohuber_median()}) then this argument will be ignored.}
-
-\item{verbose}{provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
-then key messages about algorithm progress will be displayed. If user sets verbose = "development",
-then key messages and technical messages about convergence will be displayed. Most users who want status
-updates should set verbose = TRUE.}
-
-\item{tolerance}{tolerance for stopping criterion in full model fitting; once
-no element of B is updated by more than this value in a single step, we exit
-optimization. Defaults to 1e-3.}
-
-\item{B_null_tol}{numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
-B across outer iterations is below this threshold, we declare convergence).
-Default is 0.01.}
-
-\item{rho_init}{numeric: value at which to initiate rho parameter in augmented Lagrangian
-algorithm. Default is 1.}
-
-\item{inner_tol}{numeric: convergence tolerance for augmented Lagrangian subproblems
-within null model fitting. Default is 1.}
-
-\item{ntries}{numeric: how many times should optimization be tried in null
-models where at least one optimization attempt fails? Default is 4.}
-
-\item{tau}{numeric: value to scale rho by in each iteration of augmented Lagrangian
-algorithm that does not move estimate toward zero sufficiently. Default is 2.}
-
-\item{kappa}{numeric: value between 0 and 1 that determines the cutoff on the ratio
-of current distance from feasibility over distance in last iteration triggering
-scaling of rho. If this ratio is above kappa, rho is scaled by tau to encourage
-estimate to move toward feasibility.}
-
-\item{constraint_tol}{numeric: constraint tolerance for fits under null hypotheses
-(tested element of B must be equal to constraint function to within this tolerance for
-a fit to be accepted as a solution to constrained optimization problem). Default is 1e-5.}
-
-\item{c1}{numeric: parameter for Armijo line search. Default is 1e-4.}
-
-\item{maxit}{maximum number of outer iterations of augmented lagrangian algorithm to perform before
-exiting optimization. Default is 1000.}
-
-\item{inner_maxit}{maximum number of coordinate descent passes through columns of B to make within each
-outer iteration of augmented lagrangian algorithm before exiting inner loop}
-
-\item{max_step}{maximum stepsize; update directions computed during optimization
-will be rescaled if a step in any parameter exceeds this value. Defaults to 0.5.}
-
-\item{trackB}{logical: should values of B be recorded across optimization
-iterations and be returned? Primarily used for debugging. Default is FALSE.}
-
-\item{return_nullB}{logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE.}
-
-\item{return_score_components}{logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.}
-
-\item{return_both_score_pvals}{logical: should score p-values be returned using both
-information matrix computed from full model fit and from null model fits? Default is
-FALSE. This parameter is used for simulations - in any applied analysis, type of
-p-value to be used should be chosen before conducting tests.}
+\item{null_diagnostic_plots}{logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.}
 
 \item{remove_zero_comparison_pvals}{Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur
 for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
@@ -194,7 +144,7 @@ If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no z
 If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA.
 Default is \code{0.01}.}
 
-\item{unobserved_taxon_error}{logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.}
+\item{control}{A list of control parameters, to have more control over estimation and hypothesis testing. See \code{control_fn} for details.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
@@ -227,8 +177,7 @@ Fit radEmu model
 data(wirbel_sample_small)
 data(wirbel_otu_small)
 emuRes <- emuFit(formula = ~ Group, data = wirbel_sample_small, Y = wirbel_otu_small,
-                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01, 
-                 constraint_tol = 0.01, B_null_tol = 0.01) 
+                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01) 
  # here we set large tolerances for the example to run quickly, 
  # but we recommend smaller tolerances in practice
 
@@ -238,7 +187,7 @@ library("TreeSummarizedExperiment")
 example("TreeSummarizedExperiment")
 assayNames(tse) <- "counts"
 emuRes <- emuFit(Y = tse, formula = ~ condition, assay_name = "counts", 
-                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01, constraint_tol = 0.01)
+                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01)
  # here we set large tolerances for the example to run quickly, 
  # but we recommend smaller tolerances in practice
 }

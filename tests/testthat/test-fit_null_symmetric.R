@@ -1,21 +1,34 @@
+set.seed(59542234)
+n <- 40
+J <- 20
+X <- cbind(1, rep(c(0, 1), each = n / 2))
+b0 <- rnorm(J)
+b1 <- seq(1, 10, length.out = J)
+b1 <- b1 - mean(b1)
+b0 <- b0 - mean(b0)
+Y <- radEmu:::simulate_data(
+  n = n,
+  J = J,
+  X = X,
+  b0 = b0,
+  b1 = b1,
+  distn = "Poisson",
+  mean_z = 8
+)
+
+test_that("we can run augmented lagrangian approach with argument", {
+  fit1 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "fisher_scoring", tol = 1e-2,
+                 match_row_names = FALSE)
+  fit2 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "augmented_lagrangian", tol = 1e-2,
+                 match_row_names = FALSE)
+  
+  # expect pretty similar results
+  expect_true(all.equal(fit1$coef$score_stat[5], fit2$coef$score_stat[5], tol = 0.01))
+  # but not exactly the same, because different algorithms are being used
+  expect_false(fit1$coef$score_stat[5] == fit2$coef$score_stat[5])
+})
+
 test_that("we get same null fit with different j_ref", {
-  set.seed(59542234)
-  n <- 10
-  J <- 5
-  X <- cbind(1, rep(c(0, 1), each = n / 2))
-  b0 <- rnorm(J)
-  b1 <- seq(1, 10, length.out = J)
-  b1 <- b1 - mean(b1)
-  b0 <- b0 - mean(b0)
-  Y <- radEmu:::simulate_data(
-    n = n,
-    J = J,
-    X = X,
-    b0 = b0,
-    b1 = b1,
-    distn = "Poisson",
-    mean_z = 8
-  )
 
   k_constr <- 2
   j_constr <- 1

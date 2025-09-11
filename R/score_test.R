@@ -74,6 +74,11 @@
 #' case the standard fitting algorithm will be used. If included, this argument must be either
 #' `scc` for single category constraint, `symmetric` for symmetric functions such
 #' as mean or pseudo-Huber median, or `other`.
+#' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
+#' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
+#' @param tol_lik tolerance for absolute changes in likelihood for stopping criteria. Default is `0.1`.
+#' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
+#' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #'
 #' @return A list containing elements `score_stat`, `pval`, `log_pval`,'niter`,
 #' `convergence`, `gap`, `u`, `rho`, `tau`, `inner_maxit`, `null_B`, and `Bs`. `score_stat` gives the
@@ -123,7 +128,12 @@ score_test <- function(
   Dy = NULL,
   return_both_score_pvals = FALSE,
   cluster = NULL,
-  null_fit_constraint = NULL
+  null_fit_constraint = NULL,
+  null_diagnostic_plots = FALSE,
+  ignore_stop = FALSE, 
+  tol_lik = 0.1,
+  tol_test_stat = 0.01,
+  null_window = 5
 ) {
   # get hyperparameters
   n <- nrow(Y)
@@ -222,7 +232,11 @@ score_test <- function(
         maxit = maxit,
         inner_maxit = inner_maxit,
         verbose = verbose,
-        trackB = trackB
+        trackB = trackB,
+        ignore_stop = ignore_stop, 
+        tol_lik = tol_lik,
+        tol_test_stat = tol_test_stat,
+        null_window = null_window
       ))
     }
 
@@ -253,7 +267,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
 
   if (!good_enough_fit & constraint_type == "symmetric") {
     if (inherits(constrained_fit, "try-error")) {
-      message("Optimization via Fisher scoring failed, attempting augmented Lagrangian approach.")
+      message("Optimization via Fisher scoring failed, using augmented Lagrangian algorithm instead.")
       constrained_fit <- try(fit_null(
         B = B, #B (MPLE)
         Y = Y, #Y (with augmentations)
@@ -352,7 +366,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       )
       score_stat <- NA
     }
-    return(list(
+    res <- list(
       "score_stat" = score_stat,
       "score_pieces" = score_res,
       "pval" = pchisq(score_stat, 1, lower.tail = FALSE),
@@ -377,7 +391,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
-    ))
+    )
   } else {
     #for simulations -- if we want to return both the score p-value using
     #information from full model fit and from null model
@@ -415,7 +429,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       score_stat_with_null_info <- NA
     }
 
-    return(list(
+    res <- list(
       "score_stat" = score_stat,
       "score_pieces" = score_res,
       "pval" = pchisq(score_stat, 1, lower.tail = FALSE),
@@ -449,6 +463,12 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
-    ))
+    )
   }
+  
+  if (null_diagnostic_plots) {
+    res$diagnostic_plots <- NULL
+  }
+  
+  return(res)
 }

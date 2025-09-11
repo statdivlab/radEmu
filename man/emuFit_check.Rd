@@ -20,7 +20,8 @@ emuFit_check(
   constraint_fn,
   constraint_grad_fn,
   constraint_param,
-  run_score_tests = TRUE
+  run_score_tests = TRUE,
+  null_fit_alg = "fisher_scoring"
 )
 }
 \arguments{
@@ -81,6 +82,9 @@ parameter controlling relative weighting of elements closer and further from cen
 the minimizer of the pseudo-Huber loss approaches the median.)}
 
 \item{run_score_tests}{logical: perform robust score testing?}
+
+\item{null_fit_alg}{Which null fitting algorithm to use \code{"fisher_scoring"} or \code{"augmented_lagrangian"}.
+Default and recommended approach is \code{"fisher_scoring"}.}
 }
 \value{
 returns objects \code{Y}, \code{X}, \code{cluster}, and \code{B_null_list}, which may be modified by tests, and throw any useful

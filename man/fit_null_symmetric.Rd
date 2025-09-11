@@ -15,12 +15,17 @@ fit_null_symmetric(
   constraint_fn,
   constraint_grad_fn,
   B_tol = 0.01,
+  inner_tol = 0.01,
   c1 = 0.01,
   maxit = 1000,
   inner_maxit = 25,
   verbose = FALSE,
   trackB = FALSE,
-  use_optim = FALSE
+  use_optim = FALSE,
+  ignore_stop = FALSE,
+  tol_lik = 0.1,
+  tol_test_stat = 0.01,
+  null_window = 5
 )
 }
 \arguments{
@@ -44,6 +49,8 @@ fit_null_symmetric(
 
 \item{B_tol}{tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$}
 
+\item{inner_tol}{tolerance for inner loop}
+
 \item{c1}{constant for armijo rule}
 
 \item{maxit}{maximum iterations}
@@ -53,6 +60,16 @@ fit_null_symmetric(
 \item{verbose}{shout at you?}
 
 \item{trackB}{track value of beta across iterations and return?}
+
+\item{use_optim}{whether to use \code{optim} instead of fisher scoring. Default is FALSE.}
+
+\item{ignore_stop}{whether to ignore stopping criteria and run \code{maxit} iterations (could be helpful for diagnostic plots).}
+
+\item{tol_lik}{tolerance for absolute changes in likelihood for stopping criteria. Default is \code{0.1}.}
+
+\item{tol_test_stat}{tolerance for relative changes in test statistic for stopping criteria. Default is \code{0.01}.}
+
+\item{null_window}{window to use for stopping criteria (this many iterations where stopping criteria is met). Default is \code{5}.}
 }
 \value{
 A list containing elements \code{B}, \code{k_constr}, \code{j_constr}, \code{niter}

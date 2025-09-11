@@ -21,6 +21,10 @@ get_score_stat <- function(Y,
   
   p <- ncol(X)
   
+  if (is.list(constraint_grad_fn)) {
+    constraint_grad_fn <- constraint_grad_fn[[k_constr]]
+  }
+  
   #reparametrize using convenience constraint
   for(k in 1:p){
     B[k,] <- B[k,] - B[k,j_ref]
@@ -50,7 +54,7 @@ get_score_stat <- function(Y,
   #compute derivative of constraint wrt (long/vector format) B 
   H <- matrix(0,nrow = p, ncol = J)
   
-  H[k_constr,] <- constraint_grad_fn[[k_constr]](B[k_constr,])
+  H[k_constr,] <- constraint_grad_fn(B[k_constr,])
   
   H[k_constr,j_constr] <- H[k_constr,j_constr] - 1
   
@@ -68,7 +72,33 @@ get_score_stat <- function(Y,
     
     #remove indexes corresponding to convenience constraint
     I <- I[-indexes_to_remove, -indexes_to_remove]
-    I_inv_H <- Matrix::solve(I, H_cup,  method = "cholmod_solve")
+    
+    # -- ensure info is invertible (lambda·diag trick)
+    lambda <- 0
+    solve_ok <- FALSE
+    repeat {
+      if (lambda > 0) {
+        info_reg <- I +
+          lambda *
+          Matrix::Diagonal(
+            n = nrow(I),
+            x = pmax(abs(Matrix::diag(I)), 1)
+          )
+      } else {
+        info_reg <- I
+      }
+      
+      I_inv_H <- try(Matrix::solve(info_reg, H_cup,  method = "cholmod_solve"), silent = TRUE)
+      if (!inherits(I_inv_H, "try-error")) {
+        solve_ok <- TRUE
+        break
+      }
+      lambda <- if (lambda == 0) 1e-4 else 10 * lambda
+      if (lambda > 1e6) {
+        stop("Unable to regularise Fisher information for inversion")
+      }
+    }
+    #I_inv_H <- Matrix::solve(I, H_cup,  method = "cholmod_solve")
     
   } else {
     

@@ -17,6 +17,10 @@
 #' @param verbose shout at you?
 #' @param trackB track value of beta across iterations and return?
 #' @param use_optim whether to use `optim` instead of fisher scoring. Default is FALSE.
+#' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
+#' @param tol_lik tolerance for absolute changes in likelihood for stopping criteria. Default is `0.1`.
+#' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
+#' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #'
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
 #' `gap`, `u`, `rho`, and `Bs`. `B` is a matrix containing parameter estimates
@@ -46,7 +50,11 @@ fit_null_symmetric <- function(
   inner_maxit = 25,
   verbose = FALSE,
   trackB = FALSE,
-  use_optim = FALSE
+  use_optim = FALSE,
+  ignore_stop = FALSE,
+  tol_lik = 0.1,
+  tol_test_stat = 0.01,
+  null_window = 5
 ) {
   if (is.list(constraint_fn)) {
     constraint_fn <- constraint_fn[[k_constr]]
@@ -129,6 +137,7 @@ fit_null_symmetric <- function(
 
   #compute ll
   ll <- sum(Y * log_means - exp(log_means))
+  test_stat <- NA
 
   #initialize 'keep_going' indicator for continuing optimization as well as 'iter'
   #to track optimization iterations
@@ -138,10 +147,14 @@ fit_null_symmetric <- function(
   # temporarily set use_optim to `TRUE` always
   # use_optim <- TRUE
 
+  lik_change <- rep(NA, null_window - 1)
+  test_stat_prop_change <- rep(NA, null_window - 1) 
+  
   #iterate until something happens
   while (keep_going) {
     prev_B <- B
     prev_ll <- ll
+    prev_test_stat <- test_stat
 
     #loop through paired above_g and below_g taxa, and then through remaining singletons
     for (jset in 1:(npairs + nsingles)) {
@@ -452,9 +465,22 @@ fit_null_symmetric <- function(
     }
 
     ll <- sum(Y * log_means - exp(log_means))
+    score_res <- try(get_score_stat(X = X, Y = Y, X_cup = X_cup, B = B, k_constr = k_constr,
+                                    j_constr = j_constr, constraint_grad_fn = constraint_grad_fn,
+                                    indexes_to_remove = (j_ref - 1)*p + 1:p, j_ref = j_ref, J = J,
+                                    n = n, p = p))
+    if (inherits(test_stat, "try-error")) {
+      stop(paste0("fit_null_symmetric() failed because the test statistic could not be computed for iteration ", iter))
+    } else {
+      test_stat <- score_res$score_stat
+    }
 
     #compute gradient of ll
 
+    if (iter > 1) {
+      test_stat_change <- abs((test_stat - prev_test_stat)/prev_test_stat)
+    } 
+    
     if (verbose) {
       #compute gradient if we didn't already
       if (!trackB) {
@@ -474,8 +500,21 @@ fit_null_symmetric <- function(
       #tell you all about the ll, gradient, and how much B has changed this loop
       message("ll = ", round(ll, 1))
       message("ll increased by ", round(ll - prev_ll, 1))
-      message("gr_norm = ", round(sum(gr^2), 1))
-      message("max abs diff in B = ", signif(max(abs(B - prev_B)), 2))
+      if (iter > 1) {
+        message("test statistic changed by ", round(test_stat_change * 100, 2), "%")
+      }
+      #message("gr_norm = ", round(sum(gr^2), 1))
+      #message("max abs diff in B = ", signif(max(abs(B - prev_B)), 2))
+    }
+    
+    if (iter %in% 2:null_window) {
+      lik_change[iter-1] <- ll - prev_ll
+      test_stat_prop_change[iter-1] <- test_stat_change
+    } else if (iter > null_window) {
+      lik_change[1:(null_window - 1)] <- lik_change[2:(null_window - 1)]
+      lik_change[null_window - 1] <- ll - prev_ll
+      test_stat_prop_change[1:(null_window - 2)] <- test_stat_prop_change[2:(null_window - 1)]
+      test_stat_prop_change[null_window - 1] <- test_stat_change 
     }
 
     #recompute above_g and below_g
@@ -511,9 +550,16 @@ fit_null_symmetric <- function(
       converged <- FALSE
     }
 
-    if (max(abs(B - prev_B)) < B_tol) {
-      keep_going <- FALSE
-      converged <- TRUE
+    # update stopping criteria
+    # if (max(abs(B - prev_B)) < B_tol) {
+    #   keep_going <- FALSE
+    #   converged <- TRUE
+    # }
+    if (!(ignore_stop) & (iter - 1) >= null_window) {
+      if (max(lik_change) < tol_lik & max(test_stat_prop_change) < tol_test_stat) {
+        keep_going <- FALSE
+        converged <- TRUE
+      }
     }
   }
 

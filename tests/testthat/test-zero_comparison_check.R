@@ -74,8 +74,9 @@ test_that("remove_zero_comparison_pvals argument works in different ways", {
                     match_row_names = FALSE)
   expect_true(is.na(emuRes1$coef$pval[1]))
   emuRes2 <- emuFit(Y = Y0, X = X1_base, remove_zero_comparison_pvals = TRUE,
-                    test_kj = data.frame(k = 2, j = 1), use_fullmodel_info = TRUE,
-                    return_both_score_pvals = TRUE,
+                    test_kj = data.frame(k = 2, j = 1), 
+                    control = list(use_fullmodel_info = TRUE,
+                                   return_both_score_pvals = TRUE),
                     match_row_names = FALSE)
   expect_true(is.na(emuRes2$coef$score_pval_full_info[1]) &  
                 is.na(emuRes2$coef$score_pval_null_info[1]))
