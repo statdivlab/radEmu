@@ -76,7 +76,7 @@
 #' as mean or pseudo-Huber median, or `other`.
 #' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
-#' @param tol_lik tolerance for absolute changes in likelihood for stopping criteria. Default is `0.1`.
+#' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #'
@@ -94,8 +94,6 @@
 #' B returned but the null fitting algorithm. `Bs` is by default `NULL`; if `trackB = TRUE`,
 #' `Bs` is a data frame containing values of B by outcome category, covariate, and
 #' iteration.
-#'
-#'
 #'
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
@@ -131,7 +129,7 @@ score_test <- function(
   null_fit_constraint = NULL,
   null_diagnostic_plots = FALSE,
   ignore_stop = FALSE, 
-  tol_lik = 0.1,
+  tol_lik = 1e-5,
   tol_test_stat = 0.01,
   null_window = 5
 ) {
@@ -154,99 +152,83 @@ score_test <- function(
     )
   }
   
-  if (constraint_type == "symmetric") {
-    # set ntries to 1, since fit_null_symmetric() is deterministic
-    # eventually change this, so that different tries have different
-    # intialization values 
-    ntries <- 1
-  }
-
   # start fitting
   tries_so_far <- 0
   accept_try <- FALSE
   good_enough_fit <- FALSE
+  
+  if (constraint_type == "symmetric") {
+
+    # try to fit with constraint sandwich algorithm
+    constrained_fit <- try(fit_null_symmetric(
+      B = B, #B (MPLE)
+      Y = Y, #Y (with augmentations)
+      X = X, #design matrix
+      X_cup = X_cup,
+      k_constr = k_constr, #row index of B to constrain
+      j_constr = j_constr, #col index of B to constrain
+      constraint_fn = constraint_fn, #constraint function
+      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+      B_tol = B_tol,
+      j_ref = j_ref,
+      c1 = c1,
+      maxit = maxit,
+      inner_maxit = inner_maxit,
+      verbose = verbose,
+      trackB = trackB,
+      ignore_stop = ignore_stop, 
+      tol_lik = tol_lik,
+      tol_test_stat = tol_test_stat,
+      null_window = null_window
+    ))
+    
+    if (!inherits(constrained_fit, "try-error")) {
+      if (constrained_fit$converged) {
+        accept_try <- TRUE
+        good_enough_fit <- TRUE
+      } else {
+        message("Constraint sandwich algorithm for estimation under the null hypothesis did not converge. Trying again with augmented Lagrangian algorithm.")
+      }
+    } else {
+      message("Constraint sandwich algorithm for estimation under the null hypothesis failed. Trying again with augmented Lagrangian algorithm.")
+    }
+  }
+  
   while (!accept_try) {
     #fit under null
-    # note that the below could be more concise by dynamically selecting function based on constraint
-    # type without the if/else, however that would break if these functions needed different arguments,
-    # which seemed possible. If they end up having the same arguments, Sarah will fix this
-    if (constraint_type == "other") {
-      constrained_fit <- try(fit_null(
-        B = B, #B (MPLE)
-        Y = Y, #Y (with augmentations)
-        X = X, #design matrix
-        X_cup = X_cup,
-        k_constr = k_constr, #row index of B to constrain
-        j_constr = j_constr, #col index of B to constrain
-        constraint_fn = constraint_fn, #constraint function
-        constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-        rho_init = rho_init,
-        tau = tau,
-        kappa = kappa,
-        B_tol = B_tol,
-        inner_tol = inner_tol,
-        constraint_tol = constraint_tol,
-        j_ref = j_ref,
-        c1 = c1,
-        maxit = maxit,
-        inner_maxit = inner_maxit,
-        verbose = verbose,
-        trackB = trackB
-      ))
-    } else if (constraint_type == "scc") {
-      constrained_fit <- try(fit_null_scc(
-        B = B, #B (MPLE)
-        Y = Y, #Y (with augmentations)
-        X = X, #design matrix
-        X_cup = X_cup,
-        k_constr = k_constr, #row index of B to constrain
-        j_constr = j_constr, #col index of B to constrain
-        constraint_fn = constraint_fn, #constraint function
-        constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-        rho_init = rho_init,
-        tau = tau,
-        kappa = kappa,
-        B_tol = B_tol,
-        inner_tol = inner_tol,
-        constraint_tol = constraint_tol,
-        j_ref = j_ref,
-        c1 = c1,
-        maxit = maxit,
-        inner_maxit = inner_maxit,
-        verbose = verbose,
-        trackB = trackB
-      ))
-    } else {
-      constrained_fit <- try(fit_null_symmetric(
-        B = B, #B (MPLE)
-        Y = Y, #Y (with augmentations)
-        X = X, #design matrix
-        X_cup = X_cup,
-        k_constr = k_constr, #row index of B to constrain
-        j_constr = j_constr, #col index of B to constrain
-        constraint_fn = constraint_fn, #constraint function
-        constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-        B_tol = B_tol,
-        j_ref = j_ref,
-        c1 = c1,
-        maxit = maxit,
-        inner_maxit = inner_maxit,
-        verbose = verbose,
-        trackB = trackB,
-        ignore_stop = ignore_stop, 
-        tol_lik = tol_lik,
-        tol_test_stat = tol_test_stat,
-        null_window = null_window
-      ))
-    }
-
+    # !accept try if constraint_type is other or scc (in which case we want to call fit_null()) or if we
+    # already tried the symmetric fitting option in failed (in which case we also want to call fit_null())
+    
+    constrained_fit <- try(fit_null(
+      B = B, #B (MPLE)
+      Y = Y, #Y (with augmentations)
+      X = X, #design matrix
+      X_cup = X_cup,
+      k_constr = k_constr, #row index of B to constrain
+      j_constr = j_constr, #col index of B to constrain
+      constraint_fn = constraint_fn, #constraint function
+      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+      rho_init = rho_init,
+      tau = tau,
+      kappa = kappa,
+      B_tol = B_tol,
+      inner_tol = inner_tol,
+      constraint_tol = constraint_tol,
+      j_ref = j_ref,
+      c1 = c1,
+      maxit = maxit,
+      inner_maxit = inner_maxit,
+      verbose = verbose,
+      trackB = trackB,
+      ignore_stop = ignore_stop,
+      null_diagnostic_plots = null_diagnostic_plots
+    ))
+   
     if (inherits(constrained_fit, "try-error")) {
       accept_try <- FALSE
     } else {
       if (
-        (abs(constrained_fit$gap) <= constraint_tol) &
-          (constrained_fit$niter < maxit) &
-          (!is.infinite(constrained_fit$rho))
+        (constrained_fit$converged)
       ) {
         accept_try <- TRUE
         good_enough_fit <- TRUE
@@ -264,45 +246,6 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       accept_try <- TRUE
     }
   }
-
-  if (!good_enough_fit & constraint_type == "symmetric") {
-    if (inherits(constrained_fit, "try-error")) {
-      message("Optimization via Fisher scoring failed, using augmented Lagrangian algorithm instead.")
-      constrained_fit <- try(fit_null(
-        B = B, #B (MPLE)
-        Y = Y, #Y (with augmentations)
-        X = X, #design matrix
-        X_cup = X_cup,
-        k_constr = k_constr, #row index of B to constrain
-        j_constr = j_constr, #col index of B to constrain
-        constraint_fn = constraint_fn, #constraint function
-        constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-        rho_init = rho_init,
-        tau = tau,
-        kappa = kappa,
-        B_tol = B_tol,
-        inner_tol = inner_tol,
-        constraint_tol = constraint_tol,
-        j_ref = j_ref,
-        c1 = c1,
-        maxit = maxit,
-        inner_maxit = inner_maxit,
-        verbose = verbose,
-        trackB = trackB
-      ))
-      
-      if (!inherits(constrained_fit, "try-error")) {
-        if (
-          (abs(constrained_fit$gap) <= constraint_tol) &
-          (constrained_fit$niter < maxit) &
-          (!is.infinite(constrained_fit$rho))
-        ) {
-          accept_try <- TRUE
-          good_enough_fit <- TRUE
-        }
-      }
-    }
-  }
   
   if (!good_enough_fit) {
     
@@ -317,6 +260,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
     )
     
   }
+  
   B <- constrained_fit$B
   z <- update_z(Y, X, B)
   p <- ncol(X)
@@ -366,32 +310,42 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       )
       score_stat <- NA
     }
+    
+    if (constrained_fit$converged) {
+      converged <- "converged"
+    } else if (constrained_fit$niter >= maxit) {
+      converged <- "iteration limit reached"
+    } else if ("rho" %in% names(constrained_fit) && is.infinite(constrained_fit$rho)) {
+      converged <- "problem became ill-conditioned"
+    } else {
+      converged <- "did not converge"
+    }
+    
     res <- list(
       "score_stat" = score_stat,
       "score_pieces" = score_res,
       "pval" = pchisq(score_stat, 1, lower.tail = FALSE),
       "log_pval" = pchisq(score_stat, 1, lower.tail = FALSE, log.p = TRUE),
       "niter" = constrained_fit$niter,
-      "convergence" = ifelse(
-        constrained_fit$niter >= maxit,
-        'iteration limit reached',
-        ifelse(
-          is.infinite(constrained_fit$rho),
-          'problem became ill-conditioned',
-          'converged'
-        )
-      ),
-      # "proj_score" = constrained_fit$proj_score,
-      "gap" = constrained_fit$gap,
-      "u" = constrained_fit$u,
-      "rho" = constrained_fit$rho,
-      "tau" = tau,
+      "converged" = converged,
       "inner_maxit" = inner_maxit,
       "null_B" = constrained_fit$B,
       # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
     )
+    if ("gap" %in% names(constrained_fit)) {
+      res$gap <- constrained_fit$gap
+    }
+    if ("u" %in% names(constrained_fit)) {
+      res$u <- constrained_fit$u
+    }
+    if ("rho" %in% names(constrained_fit)) {
+      res$rho <- constrained_fit$rho
+    }
+    if ("tau" %in% names(constrained_fit)) {
+      res$tau <- constrained_fit$tau
+    }
   } else {
     #for simulations -- if we want to return both the score p-value using
     #information from full model fit and from null model
@@ -428,7 +382,17 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       )
       score_stat_with_null_info <- NA
     }
-
+  
+    if (constrained_fit$converged) {
+      converged <- "converged"
+    } else if (constrained_fit$niter >= maxit) {
+      converged <- "iteration limit reached"
+    } else if ("rho" %in% names(constrained_fit) && is.infinite(constrained_fit$rho)) {
+      converged <- "problem became ill-conditioned"
+    } else {
+      converged <- "did not converge"
+    }
+    
     res <- list(
       "score_stat" = score_stat,
       "score_pieces" = score_res,
@@ -448,26 +412,35 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
         log.p = TRUE
       ),
       "niter" = constrained_fit$niter,
-      "convergence" = ifelse(
-        constrained_fit$niter >= maxit,
-        'iteration limit reached',
-        'converged'
-      ),
-      # "proj_score" = constrained_fit$proj_score,
-      "gap" = constrained_fit$gap,
-      "u" = constrained_fit$u,
-      "rho" = constrained_fit$rho,
-      "tau" = tau,
+      "converged" = converged,
       "inner_maxit" = inner_maxit,
       "null_B" = constrained_fit$B,
       # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
     )
+    if ("gap" %in% names(constrained_fit)) {
+      res$gap <- constrained_fit$gap
+    }
+    if ("u" %in% names(constrained_fit)) {
+      res$u <- constrained_fit$u
+    }
+    if ("rho" %in% names(constrained_fit)) {
+      res$rho <- constrained_fit$rho
+    }
+    if ("tau" %in% names(constrained_fit)) {
+      res$tau <- constrained_fit$tau
+    }
   }
   
   if (null_diagnostic_plots) {
-    res$diagnostic_plots <- NULL
+    constrained_fit$j <- j_constr
+    constrained_fit$k <- k_constr
+    res$diagnostics <- list(diagnostics_df = constrained_fit$it_df)
+    if (requireNamespace("ggplot2", quietly = TRUE)) {
+      p <- make_diagnostics_plots(constrained_fit$it_df) 
+      res$diagnostics$diagnostics_plots <- p
+    }
   }
   
   return(res)

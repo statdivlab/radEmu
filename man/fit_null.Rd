@@ -25,7 +25,9 @@ fit_null(
   maxit = 1000,
   inner_maxit = 25,
   verbose = FALSE,
-  trackB = FALSE
+  trackB = FALSE,
+  ignore_stop = FALSE,
+  null_diagnostic_plots = FALSE
 )
 }
 \arguments{
@@ -70,6 +72,10 @@ fit_null(
 \item{verbose}{shout at you?}
 
 \item{trackB}{track value of beta across iterations and return?}
+
+\item{ignore_stop}{whether to ignore stopping criteria and run \code{maxit} iterations (could be helpful for diagnostic plots).}
+
+\item{null_diagnostic_plots}{logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.}
 }
 \value{
 A list containing elements \code{B}, \code{k_constr}, \code{j_constr}, \code{niter}

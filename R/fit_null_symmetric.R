@@ -18,18 +18,16 @@
 #' @param trackB track value of beta across iterations and return?
 #' @param use_optim whether to use `optim` instead of fisher scoring. Default is FALSE.
 #' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
-#' @param tol_lik tolerance for absolute changes in likelihood for stopping criteria. Default is `0.1`.
+#' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #'
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
-#' `gap`, `u`, `rho`, and `Bs`. `B` is a matrix containing parameter estimates
+#' and `Bs`. `B` is a matrix containing parameter estimates
 #' under the null (obtained by maximum likelihood on augmented observations Y),
 #' `k_constr`, and `j_constr` give row and column indexes of the parameter
 #' fixed to be equal to the constraint function $g()$ under the null. `niter` is a
-#' scalar giving total number of outer iterations used to fit the null model,
-#' `gap` gives the final value of $g(B_{k constr}) - B_{k constr, j constr}$,
-#' `u` and `rho` are final values of augmented Lagrangian parameters, and
+#' scalar giving total number of outer iterations used to fit the null model, and
 #' `Bs` is a data frame containing values of B by iteration if `trackB` was set
 #' equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm
 #'
@@ -52,7 +50,7 @@ fit_null_symmetric <- function(
   trackB = FALSE,
   use_optim = FALSE,
   ignore_stop = FALSE,
-  tol_lik = 0.1,
+  tol_lik = 1e-5,
   tol_test_stat = 0.01,
   null_window = 5
 ) {
@@ -65,6 +63,11 @@ fit_null_symmetric <- function(
   n <- nrow(Y)
   J <- ncol(Y)
 
+  # data frame to hold results
+  it_df <- data.frame(it = 1:maxit,
+                      lik = NA,
+                      test_stat = NA)
+  
   #reparametrize if convenience constraint taxon is also taxon containing null-constrained param
   if (j_ref == j_constr) {
     arch_j_ref <- j_ref
@@ -360,15 +363,15 @@ fit_null_symmetric <- function(
 
             # -- update
             theta <- theta_new
-            if (verbose) {
-              cat(sprintf(
-                "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
-                iter,
-                f_new,
-                max(abs(step * step_dir)),
-                lambda
-              ))
-            }
+            # if (verbose) {
+            #   cat(sprintf(
+            #     "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
+            #     iter,
+            #     f_new,
+            #     max(abs(step * step_dir)),
+            #     lambda
+            #   ))
+            # }
 
             # -- convergence?
             if (max(abs(step * step_dir)) < tol) {
@@ -469,16 +472,18 @@ fit_null_symmetric <- function(
                                     j_constr = j_constr, constraint_grad_fn = constraint_grad_fn,
                                     indexes_to_remove = (j_ref - 1)*p + 1:p, j_ref = j_ref, J = J,
                                     n = n, p = p))
-    if (inherits(test_stat, "try-error")) {
+    if (inherits(score_res, "try-error")) {
       stop(paste0("fit_null_symmetric() failed because the test statistic could not be computed for iteration ", iter))
     } else {
       test_stat <- score_res$score_stat
     }
 
-    #compute gradient of ll
+    it_df$lik[iter] <- ll
+    it_df$test_stat[iter] <- test_stat
 
     if (iter > 1) {
       test_stat_change <- abs((test_stat - prev_test_stat)/prev_test_stat)
+      ll_change <- abs(ll - prev_ll) / abs(prev_ll)
     } 
     
     if (verbose) {
@@ -499,7 +504,7 @@ fit_null_symmetric <- function(
       }
       #tell you all about the ll, gradient, and how much B has changed this loop
       message("ll = ", round(ll, 1))
-      message("ll increased by ", round(ll - prev_ll, 1))
+      message("ll increased by ", round(ll_change * 100, 2), "%")
       if (iter > 1) {
         message("test statistic changed by ", round(test_stat_change * 100, 2), "%")
       }
@@ -508,11 +513,11 @@ fit_null_symmetric <- function(
     }
     
     if (iter %in% 2:null_window) {
-      lik_change[iter-1] <- ll - prev_ll
+      lik_change[iter-1] <- ll_change
       test_stat_prop_change[iter-1] <- test_stat_change
     } else if (iter > null_window) {
-      lik_change[1:(null_window - 1)] <- lik_change[2:(null_window - 1)]
-      lik_change[null_window - 1] <- ll - prev_ll
+      lik_change[1:(null_window - 2)] <- lik_change[2:(null_window - 1)]
+      lik_change[null_window - 1] <- ll_change
       test_stat_prop_change[1:(null_window - 2)] <- test_stat_prop_change[2:(null_window - 1)]
       test_stat_prop_change[null_window - 1] <- test_stat_change 
     }
@@ -562,6 +567,8 @@ fit_null_symmetric <- function(
       }
     }
   }
+  
+  it_df <- it_df[1:(iter - 1), ]
 
   #if we changed j_ref, change it back
   if (!is.null(arch_j_ref)) {
@@ -574,6 +581,14 @@ fit_null_symmetric <- function(
   if (!trackB) {
     df = NULL
   }
+  
+  # check if converged if ignoring stopping criteria
+  if (ignore_stop) {
+    if (max(lik_change) < tol_lik & max(test_stat_prop_change) < tol_test_stat) {
+      converged <- TRUE
+    }
+  }
+  
   #return a list containing B 'n' fixin's
   return(list(
     B = B,
@@ -582,8 +597,6 @@ fit_null_symmetric <- function(
     niter = iter,
     converged = converged,
     Bs = df,
-    gap = 0, #gap is zero by parametrization
-    "u" = NA,
-    "rho" = NA
+    it_df = it_df
   ))
 }

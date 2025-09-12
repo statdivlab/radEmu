@@ -52,19 +52,19 @@
 #' \code{radEmu::make_design_matrix()} in order to view the design matrix, and identify which
 #' column of the design matrix corresponds to each covariate in your model. This argument is required when
 #' running score tests.
-#' @param null_fit_alg Which null fitting algorithm to use for score tests: \code{"fisher_scoring"} or 
-#' \code{"augmented_lagrangian"}. Default and recommended approach is \code{"fisher_scoring"}.
+#' @param null_fit_alg Which null fitting algorithm to use for score tests: \code{"constraint_sandwich"} or 
+#' \code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}.
 #' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either 
 #' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
 #' include the other elements of the list as \code{NULL}.
 #' @param maxit_null maximum number of outer iterations to perform before exiting optimization. Default is `1000`.
 #' Used in estimation under null hypothesis for score tests.
-#' @param tol_lik tolerance for absolute changes in likelihood for stopping criteria. Default is `0.1`. Used in 
-#' estimation under null hypothesis for score tests. 
+#' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`. Used in 
+#' estimation under null hypothesis for score tests with "constraint_sandwich" algorithm. 
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`. Used in
-#' estimation under null hypothesis for score tests. 
+#' estimation under null hypothesis for score tests with "constraint_sandwich" algorithm. 
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
-#' Used in estimation under null hypothesis for score tests.
+#' Used in estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.
 #' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' @param remove_zero_comparison_pvals Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur 
 #' for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
@@ -74,6 +74,8 @@
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
 #' @param control A list of control parameters, to have more control over estimation and hypothesis testing. See \code{control_fn} for details.
+#' @param ... Additional arguments. Arguments matching the names of \code{control_fn()} options are forwarded to that function and override
+#' defaults. Unknown arguments are ignored with a warning.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
 #' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
@@ -146,24 +148,40 @@ emuFit <- function(Y,
                    compute_cis = TRUE,
                    run_score_tests = TRUE,
                    test_kj = NULL,
-                   null_fit_alg = "fisher_scoring",
+                   null_fit_alg = "constraint_sandwich",
                    B_null_list = NULL,
                    maxit_null = 1000,
-                   tol_lik = 0.1,
+                   tol_lik = 1e-5,
                    tol_test_stat = 0.01,
                    null_window = 5,
                    null_diagnostic_plots = FALSE, 
                    remove_zero_comparison_pvals = 0.01,
-                   control = NULL) {
+                   control = NULL,
+                   ...) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
   
-  # if control not included, get defaults
+  # capture ...
+  dots <- list(...)
+  
+  # get possible control args from formals(control_fn)
+  control_args <- names(formals(control_fn))
+  control_args <- setdiff(control_args, "control") 
+  
+  # split into control_dots vs unknown
+  control_dots <- dots[names(dots) %in% control_args]
+  unknown_dots <- dots[!names(dots) %in% control_args]
+  
+  if (length(unknown_dots) > 0) {
+    warning("Unknown arguments in emuFit(...): ", paste(names(unknown_dots), collapse = ", "))
+  }
+  
+  # merge with user-supplied control list
   if (is.null(control)) {
-    control <- control_fn()
+    control <- control_fn(control_dots)
   } else {
-    control <- control_fn(control)
+    control <- control_fn(utils::modifyList(control, control_dots))
   }
   
   # run checks on arguments in function emuFit_check
@@ -398,10 +416,10 @@ emuFit <- function(Y,
       trackB_list <- vector(mode = "list", length = nrow(test_kj))
     }
     if (null_diagnostic_plots) {
-      diagnostic_plots_list <- vector(mode = "list", length = nrow(test_kj))
+      null_plots <- vector(mode = "list", length = nrow(test_kj))
     }
     
-    if (null_fit_alg == "fisher_scoring") {
+    if (null_fit_alg == "constraint_sandwich") {
       k_list <- list()
       for (k in unique(test_kj$k)) {
         # set as other by default
@@ -476,7 +494,7 @@ emuFit <- function(Y,
                                 constraint_tol = control$constraint_tol,
                                 j_ref = j_ref,
                                 c1 = control$c1,
-                                maxit = maxit,
+                                maxit = maxit_null,
                                 inner_maxit = control$inner_maxit,
                                 ntries = control$ntries,
                                 verbose = (verbose == "development"),
@@ -491,15 +509,7 @@ emuFit <- function(Y,
                                 tol_lik = tol_lik,
                                 tol_test_stat = tol_test_stat,
                                 null_window = null_window)
-      
-      if (control$return_score_components & !(is.null(test_result))) {
-        score_components[[test_ind]] <- test_result$score_pieces
-      }
-      
-      if (null_diagnostic_plots & !(is.null(test_result))) {
-        diagnostic_plots_list[[test_ind]] <- test_result$diagnostic_plots
-      }
-      
+
       if (is.null(test_result)) {
         if (control$return_nullB) {
           nullB_list[[test_ind]] <- NA
@@ -509,9 +519,20 @@ emuFit <- function(Y,
         }
       } else {
         
-        score_test_hyperparams[test_ind, ] <- 
-          c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
-            test_result$gap, test_result$convergence, test_result$niter)
+        if (control$return_score_components) {
+          score_components[[test_ind]] <- test_result$score_pieces
+        }
+        
+        if (null_diagnostic_plots) {
+          null_plots[[test_ind]] <- test_result$diagnostics
+        }
+        
+        cols_to_update <- intersect(names(score_test_hyperparams), names(test_result))
+        score_test_hyperparams[test_ind, cols_to_update] <- test_result[cols_to_update]
+        
+        # score_test_hyperparams[test_ind, ] <- 
+        #   c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
+        #     test_result$gap, test_result$convergence, test_result$niter)
         
         if (control$return_nullB) {
           null_B <- test_result$null_B
@@ -563,7 +584,6 @@ emuFit <- function(Y,
           coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
                                                                   lower.tail = FALSE)
         }
-      
       }
       
       if (verbose %in% c(TRUE, "development")) {
@@ -727,9 +747,14 @@ emuFit <- function(Y,
       results$null_estimation_unconverged <- unconverged_test_kj
       warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
     }
-  }
-  if (run_score_tests & control$return_score_components) {
-    results$score_components <- score_components
+    
+    if (control$return_score_components) {
+      results$score_components <- score_components
+    }
+    
+    if (null_diagnostic_plots) {
+      results$null_diagnostic_plots <- null_plots
+    }
   }
   
   return(structure(results, class = "emuFit"))

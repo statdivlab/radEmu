@@ -73,13 +73,11 @@ fit_null_symmetric(
 }
 \value{
 A list containing elements \code{B}, \code{k_constr}, \code{j_constr}, \code{niter}
-\code{gap}, \code{u}, \code{rho}, and \code{Bs}. \code{B} is a matrix containing parameter estimates
+and \code{Bs}. \code{B} is a matrix containing parameter estimates
 under the null (obtained by maximum likelihood on augmented observations Y),
 \code{k_constr}, and \code{j_constr} give row and column indexes of the parameter
 fixed to be equal to the constraint function $g()$ under the null. \code{niter} is a
-scalar giving total number of outer iterations used to fit the null model,
-\code{gap} gives the final value of $g(B_{k constr}) - B_{k constr, j constr}$,
-\code{u} and \code{rho} are final values of augmented Lagrangian parameters, and
+scalar giving total number of outer iterations used to fit the null model, and
 \code{Bs} is a data frame containing values of B by iteration if \code{trackB} was set
 equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm
 }

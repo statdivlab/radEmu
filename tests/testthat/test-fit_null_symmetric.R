@@ -17,9 +17,9 @@ Y <- radEmu:::simulate_data(
 )
 
 test_that("we can run augmented lagrangian approach with argument", {
-  fit1 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "fisher_scoring", tol = 1e-2,
+  fit1 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "constraint_sandwich", tolerance = 1e-2,
                  match_row_names = FALSE)
-  fit2 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "augmented_lagrangian", tol = 1e-2,
+  fit2 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "augmented_lagrangian", tolerance = 1e-2,
                  match_row_names = FALSE)
   
   # expect pretty similar results
@@ -30,6 +30,8 @@ test_that("we can run augmented lagrangian approach with argument", {
 
 test_that("we get same null fit with different j_ref", {
 
+  skip("confirmed this works but it is too slow for automated testing runs")
+  
   k_constr <- 2
   j_constr <- 1
   p <- 2
@@ -49,7 +51,7 @@ test_that("we get same null fit with different j_ref", {
     Y = Y,
     B = NULL,
     constraint_fn = constraint_fn,
-    tolerance = 1e-7,
+    tolerance = 1e-3,
     verbose = FALSE
   )
 
@@ -79,6 +81,7 @@ test_that("we get same null fit with different j_ref", {
     B = B,
     Y = Y_aug,
     X = X,
+    X_cup = X_cup,
     j_constr = j_constr,
     k_constr = k_constr,
     j_ref = j_ref,
@@ -98,9 +101,9 @@ test_that("we get same null fit with different j_ref", {
     j_ref = j_ref,
     constraint_fn = constraint_fn,
     constraint_grad_fn = constraint_grad_fn,
-    B_tol = 1e-4,
     verbose = FALSE,
-    use_optim = FALSE
+    use_optim = FALSE,
+    X_cup = X_cup
   )
 
   #min_mse_lag finds the lagrange multiplier that minimizes the squared norm

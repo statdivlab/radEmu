@@ -414,7 +414,7 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
                            compute_cis = FALSE,
                            run_score_tests = TRUE, 
                            test_kj = data.frame(k = 1, j = 1:2),
-                           maxit = 1,
+                           maxit_null = 5,
                            inner_maxit = 1)
   })
   

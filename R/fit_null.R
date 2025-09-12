@@ -21,6 +21,8 @@
 #' @param inner_maxit max iterations per inner loop
 #' @param verbose shout at you?
 #' @param trackB track value of beta across iterations and return?
+#' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
+#' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' 
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
 #' `gap`, `u`, `rho`, and `Bs`. `B` is a matrix containing parameter estimates 
@@ -53,12 +55,22 @@ fit_null <- function(B,
                      maxit = 1000, 
                      inner_maxit = 25, 
                      verbose = FALSE, 
-                     trackB = FALSE 
+                     trackB = FALSE,
+                     ignore_stop = FALSE,
+                     null_diagnostic_plots = FALSE
 ) {
   
   J <- ncol(Y)
   n <- nrow(Y)
   p <- ncol(X)
+  
+  it_df <- data.frame(it = 1:maxit,
+                      lik = NA,
+                      max_abs_B = NA,
+                      constraint_diff = NA)
+  if (null_diagnostic_plots) {
+    it_df$test_stat <- NA
+  }
   
   #store cols of B to update in a vector
   j_to_update <- (1:J)[(1:J) != j_ref]
@@ -77,6 +89,8 @@ fit_null <- function(B,
   log_mean <- X%*%B +
     matrix(z,ncol = 1)%*%matrix(1,ncol = J, nrow = 1)
   
+  ll <- sum(log_mean*Y - exp(log_mean))
+  
   if (trackB) {
     Bs <- data.frame(k = rep(1:p,each = J),
                      j = rep(1:J,p),
@@ -92,6 +106,8 @@ fit_null <- function(B,
   
   #set iteration to zero
   iter <- 0
+  
+  converged <- FALSE
   
   #compute gap (i.e. g(B_k) - B_kj)
   gap <- constraint_fn[[k_constr]](B[k_constr,]) - B[k_constr,j_constr]
@@ -123,17 +139,17 @@ fit_null <- function(B,
   use_max_inner_it <- FALSE
   B_diff <- Inf
   
-  while((abs(gap) > constraint_tol | B_diff> B_tol #outer loop
-  ) & iter <= maxit & !is.infinite(rho)) {
+  criteria <- TRUE
+  
+  while(criteria) {
     
     iter <- iter + 1    #increment iteration
     inner_iter <- 0     #initiate internal iteration
     
     #evaluate augmented Lagrangian
-    log_means <- do.call(cbind,lapply(1:J,function(j) X%*%B[,j] + z))
     
     #  get current value of augmented lagrangian
-    curr_lag_val <- sum(-log_means*Y + exp(log_means)) + u*gap + (rho/2)*(gap^2)
+    curr_lag_val <- -ll + u*gap + (rho/2)*(gap^2)
     
     old_gap <- gap # old value of g(B_k) - B_kj
     old_B <- B #old value of B
@@ -236,7 +252,37 @@ fit_null <- function(B,
       use_max_inner_it <- FALSE
     }
     
+    if (ignore_stop) {
+      criteria <- (iter < maxit & !is.infinite(rho))
+    } else {
+      criteria <- (abs(gap) > constraint_tol | B_diff> B_tol) & iter < maxit & !is.infinite(rho)
+    }
+    
+    log_means <- X %*% B +
+      matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
+    
+    ll <- sum(Y * log_means - exp(log_means))
+    it_df$lik[iter] <- ll
+    it_df$max_abs_B[iter] <- B_diff
+    it_df$constraint_diff[iter] <- abs(gap)
+    
+    if (null_diagnostic_plots) {
+      score_res <- try(get_score_stat(X = X, Y = Y, X_cup = X_cup, B = B, k_constr = k_constr,
+                                      j_constr = j_constr, constraint_grad_fn = constraint_grad_fn,
+                                      indexes_to_remove = (j_ref - 1)*p + 1:p, j_ref = j_ref, J = J,
+                                      n = n, p = p))
+      if (!inherits(score_res, "try-error")) {
+        it_df$test_stat[iter] <- score_res$score_stat
+      }
+    }
+    
+    if (abs(gap) <= constraint_tol & B_diff <= B_tol) {
+      converged <- TRUE
+    }
+    
   }
+  
+  it_df <- it_df[1:iter, ]
   
   return(list("B" = B,
               "k_constr" = k_constr,
@@ -247,6 +293,8 @@ fit_null <- function(B,
               "gap" = gap,
               "u" = u,
               "rho" = rho,
-              "Bs" = Bs))
+              "Bs" = Bs,
+              "it_df" = it_df,
+              "converged" = converged))
 }
 

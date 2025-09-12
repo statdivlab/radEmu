@@ -65,32 +65,29 @@ of the robust score test statistic for each null hypothesis tested. Defaults to 
 
 \item{return_both_score_pvals}{Used in estimation under the null hypothesis, with \code{use_both_cov}. Defaults to \code{FALSE}.}
 
-\item{B_null_tol}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm (by dafault
-this algorithm is not used). numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
+\item{B_null_tol}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm.
+numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
 B across outer iterations is below this threshold, we declare convergence). Default is \code{0.001}.}
 
-\item{rho_init}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm (by default
-this algorithm is not used). Value at which to initiate rho parameter in augmented Lagrangian
-algorithm. Default is 1.}
+\item{rho_init}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm.
+Value at which to initiate rho parameter in augmented Lagrangian algorithm. Default is \code{1}.}
 
-\item{tau}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm (by default
-this algorithm is not used). Value to scale \code{rho} by in each iteration of augmented Lagrangian
-algorithm that does not move estimate toward zero sufficiently. Default is \code{2}.}
+\item{tau}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm.
+Value to scale \code{rho} by in each iteration of augmented Lagrangian algorithm that does not move estimate
+toward zero sufficiently. Default is \code{2}.}
 
-\item{kappa}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm (by default
-this algorithm is not used). Value between \code{0} and \code{1} that determines the cutoff on the ratio
-of current distance from feasibility over distance in last iteration triggering
-scaling of \code{rho}. If this ratio is above \code{kappa}, \code{rho} is scaled by \code{tau} to encourage
-estimate to move toward feasibility.}
+\item{kappa}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm. Value
+between \code{0} and \code{1} that determines the cutoff on the ratio of current distance from feasibility over
+distance in last iteration triggering scaling of \code{rho}. If this ratio is above \code{kappa}, \code{rho} is scaled
+by \code{tau} to encourage estimate to move toward feasibility.}
 
-\item{constraint_tol}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm (by default
-this algorithm is not used). Constraint tolerance for fits under null hypotheses
-(tested element of \code{B} must be equal to constraint function to within this tolerance for
-a fit to be accepted as a solution to constrained optimization problem). Default is \code{1e-5}.}
+\item{constraint_tol}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm.
+Constraint tolerance for fits under null hypotheses (tested element of \code{B} must be equal to constraint
+function to within this tolerance for a fit to be accepted as a solution to constrained optimization
+problem). Default is \code{1e-5}.}
 
-\item{ntries}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm (by default
-this algorithm is not used). The number of times to try optimization. Successive tries will change \code{tau} and
-\code{inner_maxit} and retry.}
+\item{ntries}{Used in estimation under the null hypothesis, for the augmented Lagrangian algorithm.
+The number of times to try optimization. Successive tries will change \code{tau} and \code{inner_maxit} and retry.}
 }
 \value{
 A list containing control options, to have more control over optimization algorithms used by \code{radEmu}.

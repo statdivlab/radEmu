@@ -10,4 +10,6 @@ test_that("control_fn works as expected", {
   contr4 <- control_fn(contr3)
   expect_true(all.equal(contr3, contr4))
   
+  expect_warning(control_fn(list(fake_arg = FALSE)))
+  
 })

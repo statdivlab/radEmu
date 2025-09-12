@@ -66,7 +66,7 @@ emuFit_check <- function(Y,
                          constraint_grad_fn,
                          constraint_param,
                          run_score_tests = TRUE,
-                         null_fit_alg = "fisher_scoring") {
+                         null_fit_alg = "constraint_sandwich") {
   
   # confirm that input to verbose is valid
   if (!(verbose %in% c(FALSE, TRUE, "development"))) {
@@ -323,8 +323,8 @@ ignoring argument 'cluster'.")
   }
  
   # check that an appropriate null_fit_alg is given
-  if (!(null_fit_alg %in% c("fisher_scoring", "augmented_lagrangian"))) {
-    stop("The two options for `null_fit_alg` are 'fisher_scoring' or 'augmented_lagrangian'.")
+  if (!(null_fit_alg %in% c("constraint_sandwich", "augmented_lagrangian"))) {
+    stop("The two options for `null_fit_alg` are 'constraint_sandwich' or 'augmented_lagrangian'.")
   }
   
   return(list(Y = Y, X = X, cluster = cluster, B_null_list = B_null_list, test_kj = test_kj,
