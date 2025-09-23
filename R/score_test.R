@@ -1,31 +1,31 @@
 #' Run robust score test
 
-#' @param B value of coefficient matrix (p x J) returned by full model fit or value of coefficient
+#' @param B value of coefficient matrix (p x J) returned by full model fit or value of coefficient 
 #' matrix to start null estimation at given as input to emuFit
 #' @param Y an n x J matrix or dataframe of *augmented* nonnegative observations (i.e.,
 #' observations Y plus augmentations from last iteration of maximum penalized likelihood estimation
 #' for full model)
-#' @param X an n x p matrix of covariates
-#' @param X_cup the design matrix for long format Y in long format B (nJ x pJ)
+#' @param X an n x p matrix of covariates 
+#' @param X_cup the design matrix for long format Y in long format B (nJ x pJ) 
 #' @param k_constr row index of element of B to be tested for equality to row identifiability constraint
 #' @param j_constr column index of element of B to be tested for equality to row identifiability constraint
 #' @param constraint_fn constraint function g to be imposed on each row of B; the null that
 #' is tested is $B_{k_constr,j_constr} = g(B_k_constr)$
 #' @param constraint_grad_fn derivative of constraint_fn with respect to its
 #' arguments (i.e., elements of a row of B)
-#' @param j_ref column dropped from B in convenience parametrization used to compute
+#' @param j_ref column dropped from B in convenience parametrization used to compute 
 #' components of score statistic and fit null; test is invariant to choice of j_ref,
 #' but optimization tends to be faster and more stable if j_ref is a column of Y with
 #' many positive entries
 #' @param c1 numeric: parameter for Armijo line search. Default is 1e-4.
 #' @param maxit numeric: maximum number of outer iterations to perform (default is 1000)
-#' @param inner_maxit numeric: maximum number of inner iterations to perform
+#' @param inner_maxit numeric: maximum number of inner iterations to perform 
 #' per outer iteration (default is 25)
 #' is not provided, all elements of B save the intercept row will be tested.
 #' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
 #' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
 #' pseudohuber loss).
-#' @param constraint_grad_fn function returning gradient of constraint function (as
+#' @param constraint_grad_fn function returning gradient of constraint function (as 
 #' a function of a row of B)
 #' @param rho_init numeric: value at which to initiate rho parameter in augmented Lagrangian
 #' algorithm. Default is 1.
@@ -51,23 +51,23 @@
 #' @param inner_maxit maximum number of coordinate descent passes through columns of B to make within each
 #' outer iteration of augmented lagrangian algorithm before exiting inner loop
 #' @param ntries numeric: total number of times to attempt optimization under null
-#' if optimization fails (optimization parameters will be tweaked in subsequent
+#' if optimization fails (optimization parameters will be tweaked in subsequent 
 #' fits to attempt to avoid failure). Default is 4.
 #' @param verbose provide updates as model is being fitted? Defaults to TRUE.
-#' @param trackB store and return values of B at each iteration of optimization
+#' @param trackB store and return values of B at each iteration of optimization 
 #' algorithm? Useful for debugging. Default is FALSE.
 #' @param I_inv Optional: matrix containing inverted information matrix computed
-#' under full model. Default is NULL, in which case information is recomputed under
+#' under full model. Default is NULL, in which case information is recomputed under 
 #' null, which we recommend.
-#' @param Dy Optional: matrix containing empirical score covariance computed
-#' under full model. Default is NULL, in which case this quantity is recomputed
+#' @param Dy Optional: matrix containing empirical score covariance computed 
+#' under full model. Default is NULL, in which case this quantity is recomputed 
 #' under null, which we recommend.
 #' @param return_both_score_pvals logical: should score p-values be returned using both
 #' information matrix computed from full model fit and from null model fits? Default is
 #' FALSE. This parameter is used for simulations - in any applied analysis, type of
 #' p-value to be used should be chosen before conducting tests.
-#' @param cluster a numeric vector giving cluster membership for each row of Y to
-#' be used in computing GEE test statistics. Default is NULL, in which case rows of
+#' @param cluster a numeric vector giving cluster membership for each row of Y to 
+#' be used in computing GEE test statistics. Default is NULL, in which case rows of 
 #' Y are treated as independent.
 #' @param null_fit_constraint the type of constraint, which informs which algorithm
 #' will be used to fit the model under the null hypothesis. NULL by default, in which
@@ -81,20 +81,20 @@
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #'
 #' @return A list containing elements `score_stat`, `pval`, `log_pval`,'niter`,
-#' `convergence`, `gap`, `u`, `rho`, `tau`, `inner_maxit`, `null_B`, and `Bs`. `score_stat` gives the
+#' `convergence`, `gap`, `u`, `rho`, `tau`, `inner_maxit`, `null_B`, and `Bs`. `score_stat` gives the 
 #' value of the robust score statistic for $H_0: B_{k_constr,j_constr} = g(B_{k_constr})$.
 #' `pval` and `log_pval` are the p-value (on natural and log scales) corresponding to
-#' the score statistic (log_pval may be useful when the p-value is very close to zero).
-#' `gap` is the final value of $g(B_{k_constr}) - B_{k_constr, j_constr}$ obtained in
-#' optimization under the null. `u` and `rho` are final values of augmented
-#' Lagrangian parameters returned by null fitting algorithm. `tau` is the final value of `tau` that
-#' is used to update the `rho` values and `inner_maxit` is the final maximum number of iterations for
+#' the score statistic (log_pval may be useful when the p-value is very close to zero). 
+#' `gap` is the final value of $g(B_{k_constr}) - B_{k_constr, j_constr}$ obtained in 
+#' optimization under the null. `u` and `rho` are final values of augmented 
+#' Lagrangian parameters returned by null fitting algorithm. `tau` is the final value of `tau` that 
+#' is used to update the `rho` values and `inner_maxit` is the final maximum number of iterations for 
 #' the inner optimization loop in optimization under the null, in which B and z parameter values are
-#' maximized for specific `u` and `rho` parameters. `null_B` is the value of
+#' maximized for specific `u` and `rho` parameters. `null_B` is the value of 
 #' B returned but the null fitting algorithm. `Bs` is by default `NULL`; if `trackB = TRUE`,
-#' `Bs` is a data frame containing values of B by outcome category, covariate, and
+#' `Bs` is a data frame containing values of B by outcome category, covariate, and 
 #' iteration.
-#'
+#' 
 #' @importFrom stats cov median model.matrix optim pchisq qnorm weighted.mean
 #' @import Matrix
 #' @import MASS
@@ -262,16 +262,16 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
   }
   
   B <- constrained_fit$B
-  z <- update_z(Y, X, B)
+  z <- update_z(Y,X,B)
   p <- ncol(X)
   J <- ncol(Y)
   n <- nrow(Y)
 
   # message("Make X_cup an argument of score_test and calculate it once in emuFit")
   # X_cup = X_cup_from_X(X,J)
-  #indexes in long format corresponding to the j_constr-th col of B
+    #indexes in long format corresponding to the j_constr-th col of B
   #get score stat
-  indexes_to_remove <- (j_ref - 1) * p + 1:p
+  indexes_to_remove <- (j_ref - 1)*p + 1:p
   score_res <- try(
     get_score_stat(
       Y = Y,
@@ -296,16 +296,16 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
   } else {
     score_stat <- score_res$score_stat
   }
-
-  if (!return_both_score_pvals) {
+  
+  if(!return_both_score_pvals){ 
     #typically we want only one score p-value
     #(using only one version of information matrix)
     if (inherits(score_stat, "try-error")) {
       warning(
-        "score statistic for test of k = ",
-        k_constr,
-        " and j = ",
-        j_constr,
+        "score statistic for test of k = ", 
+        k_constr, 
+        " and j = ", 
+        j_constr, 
         " cannot be computed, likely because the information matrix is computationally singular."
       )
       score_stat <- NA
@@ -346,7 +346,7 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
     if ("tau" %in% names(constrained_fit)) {
       res$tau <- constrained_fit$tau
     }
-  } else {
+  } else{ 
     #for simulations -- if we want to return both the score p-value using
     #information from full model fit and from null model
     score_res_with_null_info <-
@@ -366,22 +366,22 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
         I_inv = NULL,
         Dy = Dy
       )
-    if (inherits(score_res_with_null_info, "try-error")) {
-      score_stat_with_null_info <- score_res_with_null_info
-    } else {
-      score_stat_with_null_info <- score_res_with_null_info$score_stat
-    }
-    score_stat_with_null_info <- score_stat_with_null_info
-    if (inherits(score_stat_with_null_info, "try-error")) {
-      warning(
-        "one of the score statistics for test of k = ",
-        k_constr,
-        " and j = ",
-        j_constr,
-        " cannot be computed, likely because the information matrix is computationally singular."
-      )
-      score_stat_with_null_info <- NA
-    }
+      if (inherits(score_res_with_null_info, "try-error")) {
+        score_stat_with_null_info <- score_res_with_null_info
+      } else {
+        score_stat_with_null_info <- score_res_with_null_info$score_stat
+      }
+      score_stat_with_null_info <- score_stat_with_null_info
+      if (inherits(score_stat_with_null_info, "try-error")) {
+        warning(
+          "one of the score statistics for test of k = ", 
+          k_constr, 
+          " and j = ", 
+          j_constr, 
+          " cannot be computed, likely because the information matrix is computationally singular."
+        )
+        score_stat_with_null_info <- NA
+      }
   
     if (constrained_fit$converged) {
       converged <- "converged"
@@ -444,4 +444,5 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
   }
   
   return(res)
+
 }

@@ -512,7 +512,11 @@ emuFit <- function(Y,
                                 tol_lik = tol_lik,
                                 tol_test_stat = tol_test_stat,
                                 null_window = null_window)
-
+      
+      if (return_score_components & !(is.null(test_result))) {
+        score_components[[test_ind]] <- test_result$score_pieces
+      }
+      
       if (is.null(test_result)) {
         if (control$return_nullB) {
           nullB_list[[test_ind]] <- NA
