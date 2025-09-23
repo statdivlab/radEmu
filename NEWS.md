@@ -2,6 +2,14 @@
 
 This is a major release that changes the algorithm used to estimate parameters under the null hypothesis in score tests depending on the identifiability constraint that is used. All functions are backwards compatible, but there are major changes in the backend, which may lead to small changes in results of analyses compared to those that were run before this update. 
 
+## Breaking changes
+
+A different algorithm is used by default to estimate parameters under the null hypothesis. This algorithm is typically faster and more likely to converge to a solution.
+
+## Additional changes
+
+A `control` argument list is added to `emuFit()`, which includes many arguments that relate to algorithms and convergence. This is not a breaking change because using these arguments outside of the `control` list will not lead to an error. The goal of this is to clarify documentation. 
+
 # radEmu 2.1.1.0
 
 This is a minor release that exports the functions `pseudohuber_median()` and `dpseudohuber_median_dx()`, which calculate the pseudo-Huber smoothed median and its derivative. These are the default constraint functions used in `radEmu`. 
