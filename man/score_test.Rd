@@ -33,7 +33,7 @@ score_test(
   null_fit_constraint = NULL,
   null_diagnostic_plots = FALSE,
   ignore_stop = FALSE,
-  tol_lik = 0.1,
+  tol_lik = 1e-05,
   tol_test_stat = 0.01,
   null_window = 5
 )
@@ -130,7 +130,7 @@ as mean or pseudo-Huber median, or \code{other}.}
 
 \item{ignore_stop}{whether to ignore stopping criteria and run \code{maxit} iterations (could be helpful for diagnostic plots).}
 
-\item{tol_lik}{tolerance for absolute changes in likelihood for stopping criteria. Default is \code{0.1}.}
+\item{tol_lik}{tolerance for relative changes in likelihood for stopping criteria. Default is \code{1e-5}.}
 
 \item{tol_test_stat}{tolerance for relative changes in test statistic for stopping criteria. Default is \code{0.01}.}
 

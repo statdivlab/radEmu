@@ -21,6 +21,7 @@
 #' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
+#' @param max_step Default is `1`
 #'
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
 #' and `Bs`. `B` is a matrix containing parameter estimates
@@ -52,7 +53,8 @@ fit_null_symmetric <- function(
   ignore_stop = FALSE,
   tol_lik = 1e-5,
   tol_test_stat = 0.01,
-  null_window = 5
+  null_window = 5,
+  max_step = 1
 ) {
   if (is.list(constraint_fn)) {
     constraint_fn <- constraint_fn[[k_constr]]
@@ -140,6 +142,9 @@ fit_null_symmetric <- function(
 
   #compute ll
   ll <- sum(Y * log_means - exp(log_means))
+  if (verbose) {
+    print(paste0("Starting ll = ", ll))
+  }
   test_stat <- NA
 
   #initialize 'keep_going' indicator for continuing optimization as well as 'iter'
@@ -323,14 +328,16 @@ fit_null_symmetric <- function(
             # -- ensure info is invertible (lambda·diag trick)
             lambda <- 0
             solve_ok <- FALSE
+            scale <- max(abs(Matrix::diag(info)))
             repeat {
               if (lambda > 0) {
                 info_reg <- info +
                   lambda *
-                    Matrix::Diagonal(
-                      n = nrow(info),
-                      x = pmax(abs(Matrix::diag(info)), 1)
-                    )
+                    #Matrix::Diagonal(
+                    #  n = nrow(info),
+                    #  x = pmax(abs(Matrix::diag(info)), 1)
+                    #)
+                  Matrix::Diagonal(n = nrow(info), x = scale)
               } else {
                 info_reg <- info
               }
@@ -346,23 +353,39 @@ fit_null_symmetric <- function(
                 stop("Unable to regularise Fisher information for inversion")
               }
             }
-
+            
+            # add in max step 
+            max_step_dir <- max(abs(step_dir), na.rm = TRUE)
+            if(max_step_dir > max_step){
+              step_dir <- step_dir / max_step_dir * max_step
+            }
+            
             # -- back-tracking Armijo line search
             step <- 1
             f_curr <- fn(theta)
             slope <- sum(grad * step_dir)
-
+            
             for (bt in seq_len(backtrack_max)) {
               theta_new <- theta + step * step_dir
               f_new <- fn(theta_new)
-              if (f_new <= f_curr + c1 * step * slope) {
+              
+              # added in check for if f_new is getting infinite
+              if (is.finite(f_new) && f_new <= f_curr + c1 * step * slope) {
                 break
               }
               step <- step / 2
             }
+            
+            # if f_new is always infinite, set step to 0 to hit convergence, move on without updating
+            if (!is.finite(f_new)) {
+              step <- 0
+              f_new <- f_curr
+              theta_new <- theta
+            }
 
             # -- update
             theta <- theta_new
+            
             # if (verbose) {
             #   cat(sprintf(
             #     "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
@@ -375,6 +398,15 @@ fit_null_symmetric <- function(
 
             # -- convergence?
             if (max(abs(step * step_dir)) < tol) {
+              
+              if (step == 0) {
+                return(list(
+                  par = theta,
+                  value = f_new,
+                  converged = FALSE,
+                  iter = iter
+                ))
+              }
               return(list(
                 par = theta,
                 value = f_new,
@@ -483,8 +515,8 @@ fit_null_symmetric <- function(
 
     if (iter > 1) {
       test_stat_change <- abs((test_stat - prev_test_stat)/prev_test_stat)
-      ll_change <- abs(ll - prev_ll) / abs(prev_ll)
     } 
+    ll_change <- abs(ll - prev_ll) / abs(prev_ll)
     
     if (verbose) {
       #compute gradient if we didn't already

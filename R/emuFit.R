@@ -53,7 +53,7 @@
 #' column of the design matrix corresponds to each covariate in your model. This argument is required when
 #' running score tests.
 #' @param null_fit_alg Which null fitting algorithm to use for score tests: \code{"constraint_sandwich"} or 
-#' \code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}.
+#' \code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}, unless \code{J < 20}.
 #' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either 
 #' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
 #' include the other elements of the list as \code{NULL}.
@@ -214,6 +214,9 @@ emuFit <- function(Y,
   
   n <- nrow(Y)
   J <- ncol(Y)
+  if (J < 20) {
+    null_fit_alg <- "augmented_lagrangian"
+  }
   p <- ncol(X)
   
   # check for zero-comparison parameters

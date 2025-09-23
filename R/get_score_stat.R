@@ -76,14 +76,15 @@ get_score_stat <- function(Y,
     # -- ensure info is invertible (lambda·diag trick)
     lambda <- 0
     solve_ok <- FALSE
+    scale <- max(abs(Matrix::diag(I)))
     repeat {
       if (lambda > 0) {
         info_reg <- I +
           lambda *
-          Matrix::Diagonal(
-            n = nrow(I),
-            x = pmax(abs(Matrix::diag(I)), 1)
-          )
+         # Matrix::Diagonal(
+         #   n = nrow(I),
+         #   x = pmax(abs(Matrix::diag(I)), 1)
+          Matrix::Diagonal(n = nrow(I), x = scale)
       } else {
         info_reg <- I
       }

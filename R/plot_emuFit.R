@@ -22,7 +22,7 @@
 #'                  data = wirbel_sample_small,
 #'                  Y = wirbel_otu_small,
 #'                  run_score_tests = FALSE,
-#'                  tol = 0.01)
+#'                  tolerance = 0.01)
 #' 
 #' plot_key <- list(p1 = c("Control" = "GroupCTR"),
 #'                  p2 = c("FR-Control" = "StudyFR-CRC",

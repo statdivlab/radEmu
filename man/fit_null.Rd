@@ -55,7 +55,7 @@ fit_null(
 
 \item{kappa}{cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.}
 
-\item{B_tol}{tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$}
+\item{B_tol}{tolerance for convergence in $max_\{k,j\} |B^t_\{kj\} - B^\{(t - 1)\}_\{kj\}|$}
 
 \item{inner_tol}{tolerance for inner loop}
 

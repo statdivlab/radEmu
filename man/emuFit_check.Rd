@@ -21,7 +21,7 @@ emuFit_check(
   constraint_grad_fn,
   constraint_param,
   run_score_tests = TRUE,
-  null_fit_alg = "fisher_scoring"
+  null_fit_alg = "constraint_sandwich"
 )
 }
 \arguments{

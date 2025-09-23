@@ -28,6 +28,64 @@ test_that("we can run augmented lagrangian approach with argument", {
   expect_false(fit1$coef$score_stat[5] == fit2$coef$score_stat[5])
 })
 
+test_that("compare timing", {
+  
+  skip("long for automatic testing")
+  
+  sand_start <- proc.time()
+  fit1 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "constraint_sandwich", tolerance = 1e-2,
+                 match_row_names = FALSE, null_diagnostic_plots = T)
+  sand_end <- proc.time() - sand_start
+  lag_start <- proc.time()
+  fit2 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "augmented_lagrangian", tolerance = 1e-2,
+                 match_row_names = FALSE, null_diagnostic_plots = T)
+  lag_end <- proc.time() - lag_start
+  
+  expect_true(lag_end[3] > sand_end[3])
+  
+  lik1 <- sapply(fit1$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  lik2 <- sapply(fit2$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  lik1 - lik2
+  plot(lik1 - lik2, fit1$coef$score_stat - fit2$coef$score_stat)
+  # when score stats are different, likelihood is higher for constraint_sandwich approach 
+})
+
+test_that("compare timing, ZINB", {
+  
+  skip("long for automatic testing")
+  
+  Y_zinb <- radEmu:::simulate_data(
+    n = n,
+    J = J,
+    X = X,
+    b0 = b0,
+    b1 = b1,
+    distn = "ZINB",
+    mean_z = 8,
+    zinb_size = 5,
+    zinb_zero_prop = 0.6
+  )
+  
+  sand_start <- proc.time()
+  fit1 <- emuFit(X = X, Y = Y_zinb, test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "constraint_sandwich", tolerance = 1e-2,
+                 match_row_names = FALSE, null_diagnostic_plots = T)
+  sand_end <- proc.time() - sand_start
+  lag_start <- proc.time()
+  fit2 <- emuFit(X = X, Y = Y_zinb, test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "augmented_lagrangian", tolerance = 1e-2,
+                 match_row_names = FALSE, null_diagnostic_plots = T)
+  lag_end <- proc.time() - lag_start
+  
+  expect_true(lag_end[3] > sand_end[3])
+  lag_end[3] / sand_end[3] # augmented lagrangian is ~5x slower 
+  
+  lik1 <- sapply(fit1$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  lik2 <- sapply(fit2$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  lik1 - lik2
+  plot(lik1 - lik2, abs(fit1$coef$score_stat - fit2$coef$score_stat))
+  # score stats are quite similar
+  # sometimes likelihood is larger for augmented lagrangian, sometimes for constraint sandwich
+})
+
 test_that("we get same null fit with different j_ref", {
 
   skip("confirmed this works but it is too slow for automated testing runs")
@@ -147,569 +205,122 @@ test_that("we get same null fit with different j_ref", {
   expect_true(null_min_lag_norm > null_repar_min_lag_norm_fs)
 })
 
-test_that("compare timing old null fit and symmetric null fit, p = 2", {
-  skip(
-    "skip in automated testing because this is a slower bigger simulation study"
-  )
+test_that("test corncob data", {
   
-  n <- 50
-  Js <- c(10, 50, 250)
-  ps <- c(2, 4, 8)
-  nsim <- 10
+  # result: constraint sandwich is faster, very similar likelihoods, similar test statistics 
   
-  dat <- data.frame(
-    bin = rep(0:1, each = 25),
-    cont = rnorm(50),
-    count = rpois(50, 3) - 3,
-    cat = rep(c("A", "B", "C", "D", "E"))
-  )
-  full_X <- model.matrix(~ bin + cont + count + cat, dat)
+  skip("don't want to test automatically")
   
-  res <- expand.grid(
-    seed = 1:nsim,
-    J = Js,
-    p = ps[1],
-    old_time = NA,
-    new_time = NA
-  )
-  sim_settings <- expand.grid(J = Js, p = ps[1])
+  # # corncob data
+  # 
+  # library(corncob)
+  # library(phyloseq)
+  # data(soil_phylo_sample)
+  # data(soil_phylo_otu)
+  # soil_phylo <- phyloseq::phyloseq(phyloseq::sample_data(soil_phylo_sample),
+  #                                  phyloseq::otu_table(soil_phylo_otu, taxa_are_rows = TRUE),
+  #                                  phyloseq::tax_table(soil_phylo_taxa))
+  # soil_phylo <- subset_samples(soil_phylo, Day %in% 0:1 & Amdmt %in% 0:1)
+  # soil_phylo <- tax_glom(soil_phylo, taxrank = "Genus")
+  # soil_samp <- data.frame(sample_data(soil_phylo))
+  # soil_otu <- t(unclass(otu_table(soil_phylo)))
+  # 
+  # to_rm <- which(colSums(soil_otu) == 0)
+  # soil_otu <- soil_otu[, -to_rm]
+  # 
+  # soil_fit <- emuFit(formula = ~ Amdmt + Day + Plants, 
+  #                    data = soil_samp,
+  #                    Y = soil_otu,
+  #                    run_score_tests = FALSE, compute_cis = FALSE,
+  #                    tolerance = 1e-5, verbose = "development") 
+  # start_sand <- proc.time()
+  # corn_sand1_new <- emuFit(formula = ~ Amdmt + Day + Plants, 
+  #                      data = soil_samp,
+  #                      Y = soil_otu,
+  #                      fitted_model = soil_fit,
+  #                      refit = FALSE, 
+  #                      compute_cis = FALSE, 
+  #                      test_kj = data.frame(k = 2, j = 1:30), null_fit_alg = "constraint_sandwich",
+  #                      verbose = FALSE, null_diagnostic_plots = T)
+  # end_sand <- proc.time() - start_sand
+  # # 8, 8, 6, 4, 7, 6, 7, 8, 9, 5, 5, 13, 9, 5, 8, 4, 3, 10, 4, 5, 6, 9, 8, 6, 5, 17, 4, 7, 6, 6
+  # start_aug <- proc.time() 
+  # corn_aug1 <- emuFit(formula = ~ Amdmt + Day + Plants, 
+  #                      data = soil_samp,
+  #                      Y = soil_otu,
+  #                      fitted_model = soil_fit,
+  #                      refit = FALSE, 
+  #                      compute_cis = FALSE, 
+  #                      test_kj = data.frame(k = 2, j = 1:30), null_fit_alg = "augmented_lagrangian",
+  #                      verbose = FALSE, null_diagnostic_plots = T)
+  # end_aug <- proc.time() - start_aug
+  # # 11, 91, 15, 11, 15, 16, 17, 90, 64, 16, 54, 140, 103, 15, 18, 13, 11, 18, 18, 12, 14, 17, 18, 20, 11, 33, 10, 16, 17, 18
+  # end_aug[3]; end_sand[3]
+  # 
+  # lik_sand <- sapply(corn_sand1_new$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  # lik_aug <- sapply(corn_aug1$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  # plot(lik_sand - lik_aug, corn_sand1_new$coef$score_stat[1:30] - corn_aug1$coef$score_stat[1:30])
+  # 
+  # plot(corn_sand1_new$coef$score_stat[1:30], corn_sand1_new$coef$score_stat[1:30] - corn_aug1$coef$score_stat[1:30])
+  # 
+  # # sandwich approach is ~4.5 times faster, test stats are very similar, when they are not the sandwich likelihood is 
+  # # almost always larger 
   
-  for (s in 1:nrow(sim_settings)) {
-    print(sim_settings[s, ])
-    J <- sim_settings$J[s]
-    p <- sim_settings$p[s]
-    Bs <- get_sim_bs(J)
-    B <- rbind(Bs$b0, Bs$b1)
-    if (p == 4) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X[, 1:4]
-    } else if (p == 8) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X
-    } else {
-      X <- full_X[, 1:2]
-    }
-    
-    for (sim in 1:nsim) {
-      print(sim)
-      ind <- which(res$seed == sim & res$J == J & res$p == p)
-      
-      Y <- simulate_data(
-        n = n,
-        J = J,
-        distn = "Poisson",
-        mean_z = 20,
-        B = B,
-        X = X
-      )
-      
-      full_fit <- try(emuFit(
-        X = X, Y = Y, run_score_tests = FALSE, compute_cis = FALSE,
-        tolerance = 1e-3))
-      
-      if (!inherits(full_fit, "try-error")) {
-        B_est <- full_fit$B
-        Y_aug <- full_fit$Y_augmented
-        
-        X_cup <- X_cup_from_X(X, J)
-        
-        j_ref <- get_j_ref(Y_aug)
-        
-        print("fitting null")
-        start <- proc.time()
-        null_fit <- try(fit_null(
-          B = B_est,
-          Y = Y_aug,
-          X = X,
-          X_cup = X_cup,
-          k_constr = 2,
-          j_constr = J / 4,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn,
-          #constraint_tol = 1e-5,
-          #B_tol = 1e-4,
-          constraint_grad_fn = constraint_grad_fn,
-          verbose = FALSE,
-          trackB = FALSE
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_fit, "try-error")) {
-          res$old_time[ind] <- end[3]
-        }
-        
-        print("fitting new null")
-        start <- proc.time()
-        null_repar_fit <- try(fit_null_symmetric(
-          Y = Y_aug,
-          X = X,
-          B = B_est,
-          j_constr = J / 4,
-          k_constr = 2,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn[[1]],
-          constraint_grad_fn = constraint_grad_fn[[1]],
-          #B_tol = 1e-4,
-          verbose = TRUE,
-          maxit = 1000
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_repar_fit, "try-error")) {
-          res$new_time[ind] <- end[3]
-        }
-      }
-    }
-  }
-  
-  library(dplyr)
-  res %>% group_by(J) %>% summarise(mean(old_time), mean(new_time))
-  
-  # here we see that new fisher scoring approach is about 60 times slower
-  # for J = 10, but about 10 times faster for J = 50 and 250
-  
-  # this makes sense, based on time to converge in inner loop, likely
-  # fewer iterations if pseudohuber median is less variable across
-  # change in a pair or single j 
 })
 
-test_that("compare timing old null fit and symmetric null fit, p = 3", {
-  skip(
-    "skip in automated testing because this is a slower bigger simulation study"
-  )
+test_that("test wirbel data", {
   
-  n <- 50
-  Js <- c(10, 50, 250)
-  ps <- c(3)
-  nsim <- 10
+  # result: sandwich approach is ~5.9 times faster, test stats are very similar
   
-  dat <- data.frame(
-    bin = rep(0:1, each = 25),
-    cont = rnorm(50),
-    count = rpois(50, 3) - 3,
-    cat = rep(c("A", "B", "C", "D", "E"))
-  )
-  full_X <- model.matrix(~ bin + cont + count + cat, dat)
+  skip("don't want to test automatically")
   
-  res <- expand.grid(
-    seed = 1:nsim,
-    J = Js,
-    p = ps[1],
-    old_time = NA,
-    new_time = NA
-  )
-  sim_settings <- expand.grid(J = Js, p = ps[1])
+  data("wirbel_sample")
+  data("wirbel_otu")
+  data("wirbel_taxonomy")
+  wirbel_phylo <- phyloseq::phyloseq(phyloseq::sample_data(wirbel_sample),
+                                     phyloseq::otu_table(wirbel_otu, taxa_are_rows = FALSE),
+                                     phyloseq::tax_table(wirbel_taxonomy))
+  wirbel_genus <- phyloseq::tax_glom(wirbel_phylo, taxrank = "genus")
+  wirbel_genus_ch <- phyloseq::subset_samples(wirbel_genus, Country == "CHI")
+  zero_taxa <- phyloseq::taxa_sums(wirbel_genus_ch) == 0
+  wirbel_genus_ch <- phyloseq::prune_taxa(zero_taxa == FALSE, wirbel_genus_ch)
+  ch_fit_full <- emuFit(formula = ~ Group + Gender + 
+                          Age_spline.1 + Age_spline.2 + 
+                          Sampling, 
+                        Y = wirbel_genus_ch, run_score_tests = FALSE, 
+                        compute_cis = FALSE, verbose = "development",
+                        tolerance = 1e-5)
   
-  for (s in 1:nrow(sim_settings)) {
-    print(sim_settings[s, ])
-    J <- sim_settings$J[s]
-    p <- sim_settings$p[s]
-    Bs <- get_sim_bs(J)
-    B <- rbind(Bs$b0, Bs$b1)
-    if (p == 4) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X[, 1:4]
-    } else if (p == 8) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X
-    } else {
-      X <- full_X[, 1:3]
-      B <- rbind(B, sample(Bs$b1, J))
-    }
-    
-    for (sim in 1:nsim) {
-      print(sim)
-      ind <- which(res$seed == sim & res$J == J & res$p == p)
-      
-      Y <- simulate_data(
-        n = n,
-        J = J,
-        distn = "Poisson",
-        mean_z = 20,
-        B = B,
-        X = X
-      )
-
-      full_emuFit <- try(emuFit(
-        X = X, Y = Y, run_score_tests = FALSE, compute_cis = FALSE,
-        tolerance = 1e-3))
-      
-      if (!inherits(full_fit, "try-error")) {
-        B_est <- full_emuFit$B
-        Y_aug <- full_emuFit$Y_augmented
-        
-        X_cup <- X_cup_from_X(X, J)
-        
-        j_ref <- get_j_ref(Y_aug)
-        
-        print("fitting null")
-        start <- proc.time()
-        null_fit <- try(fit_null(
-          B = B_est,
-          Y = Y_aug,
-          X = X,
-          X_cup = X_cup,
-          k_constr = 2,
-          j_constr = J / 4,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn,
-          #constraint_tol = 1e-5,
-          #B_tol = 1e-4,
-          constraint_grad_fn = constraint_grad_fn,
-          verbose = FALSE,
-          trackB = FALSE
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_fit, "try-error")) {
-          res$old_time[ind] <- end[3]
-        }
-        
-        print("fitting new null")
-        start <- proc.time()
-        null_repar_fit <- try(fit_null_symmetric(
-          Y = Y_aug,
-          X = X,
-          B = B_est,
-          j_constr = J / 4,
-          k_constr = 2,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn[[1]],
-          constraint_grad_fn = constraint_grad_fn[[1]],
-          #B_tol = 1e-4,
-          verbose = TRUE,
-          maxit = 1000
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_repar_fit, "try-error")) {
-          res$new_time[ind] <- end[3]
-        }
-      }
-    }
-  }
+  start_sand <- proc.time()
+  wirb_sand <- emuFit(formula = ~ Group + Gender + 
+                        Age_spline.1 + Age_spline.2 + 
+                        Sampling, 
+                      Y = wirbel_genus_ch,
+                      fitted_model = ch_fit_full,
+                      refit = FALSE, 
+                      compute_cis = FALSE, 
+                      test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "constraint_sandwich",
+                      verbose = FALSE, null_diagnostic_plots = T)
+  end_sand <- proc.time() - start_sand
+  # 8, 4, 4, 3, 6, 2, 7, 2, 4, 6, 3, 9, 6, 3, 4, 8, 2, 5, 5, 8
+  start_aug <- proc.time()
+  wirb_aug <- emuFit(formula = ~ Group + Gender + 
+                       Age_spline.1 + Age_spline.2 + 
+                       Sampling, 
+                     Y = wirbel_genus_ch,
+                     fitted_model = ch_fit_full,
+                     refit = FALSE, 
+                     compute_cis = FALSE, 
+                     test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "augmented_lagrangian",
+                     verbose = FALSE, null_diagnostic_plots = T)
+  end_aug <- proc.time() - start_aug
+  # 14, 11, 16, 12, 81, 12, 51, 14, 14, 93, 14, 10, 13, 14, 11, 47, 15, 35, 45, 55
+  end_aug[3]; end_sand[3] # constraint sandwich is ~5.9x faster than augmented lagrangian
   
-  library(dplyr)
-  res %>% group_by(J) %>% summarise(mean(old_time), mean(new_time))
+  lik_sand <- sapply(wirb_sand$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  lik_aug <- sapply(wirb_aug$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+  plot(lik_sand - lik_aug, wirb_sand$coef$score_stat[1:20] - wirb_aug$coef$score_stat[1:20])
   
-  # for J = 10, the new approach is a little slower, for J = 50 and 250,
-  # the new approach is ~10x faster
+  plot(wirb_sand$coef$score_stat[1:20], wirb_sand$coef$score_stat[1:20] - wirb_aug$coef$score_stat[1:20])
   
-  # this makes sense, based on time to converge in inner loop, likely
-  # fewer iterations if pseudohuber median is less variable across
-  # change in a pair or single j 
 })
-
-test_that("compare timing old null fit and symmetric null fit - all p", {
-  skip(
-    "skip in automated testing because this is a slower bigger simulation study"
-  )
-
-  n <- 50
-  Js <- c(10, 50, 250)
-  ps <- c(2, 4, 8)
-  nsim <- 10
-
-  dat <- data.frame(
-    bin = rep(0:1, each = 25),
-    cont = rnorm(50),
-    count = rpois(50, 3) - 3,
-    cat = rep(c("A", "B", "C", "D", "E"))
-  )
-  full_X <- model.matrix(~ bin + cont + count + cat, dat)
-
-  res <- expand.grid(
-    seed = 1:nsim,
-    J = Js,
-    p = ps,
-    old_time = NA,
-    new_time = NA
-  )
-  sim_settings <- expand.grid(J = Js, p = ps)
-
-  for (s in 1:nrow(sim_settings)) {
-    print(sim_settings[s, ])
-    J <- sim_settings$J[s]
-    p <- sim_settings$p[s]
-    Bs <- get_sim_bs(J)
-    B <- rbind(Bs$b0, Bs$b1)
-    if (p == 4) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X[, 1:4]
-    } else if (p == 8) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X
-    } else {
-      X <- full_X[, 1:2]
-    }
-
-    for (sim in 1:nsim) {
-      print(sim)
-      ind <- which(res$seed == sim & res$J == J & res$p == p)
-
-      Y <- simulate_data(
-        n = n,
-        J = J,
-        distn = "Poisson",
-        mean_z = 20,
-        B = B,
-        X = X
-      )
-      
-      full_fit <- try(emuFit(
-        X = X, Y = Y, run_score_tests = FALSE, compute_cis = FALSE,
-        tolerance = 1e-3))
-      
-      if (!inherits(full_fit, "try-error")) {
-        B_est <- full_fit$B
-        Y_aug <- full_fit$Y_augmented
-        
-        X_cup <- X_cup_from_X(X, J)
-        
-        j_ref <- get_j_ref(Y_aug)
-        
-        print("fitting null")
-        start <- proc.time()
-        null_fit <- try(fit_null(
-          B = B_est,
-          Y = Y_aug,
-          X = X,
-          X_cup = X_cup,
-          k_constr = 2,
-          j_constr = J / 4,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn,
-          #constraint_tol = 1e-5,
-          #B_tol = 1e-4,
-          constraint_grad_fn = constraint_grad_fn,
-          verbose = FALSE,
-          trackB = FALSE
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_fit, "try-error")) {
-          res$old_time[ind] <- end[3]
-        }
-        
-        print("fitting new null")
-        start <- proc.time()
-        null_repar_fit <- try(fit_null_symmetric(
-          Y = Y_aug,
-          X = X,
-          B = B,
-          j_constr = J / 4,
-          k_constr = 2,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn[[1]],
-          constraint_grad_fn = constraint_grad_fn[[1]],
-          #B_tol = 1e-4,
-          verbose = TRUE,
-          maxit = 1000
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_repar_fit, "try-error")) {
-          res$new_time[ind] <- end[3]
-        }
-      }
-    }
-  }
-
-  res %>% group_by(p, J) %>% summarise(mean(old_time, na.rm = T), mean(new_time, na.rm = T),
-                                       mean(old_time / new_time, na.rm = T))
-  # result here is that timing is pretty similar (double check this)
-})
-
-test_that("compare timing old null fit and symmetric null fit - all p, zinb", {
-  skip(
-    "skip in automated testing because this is a slower bigger simulation study"
-  )
-  
-  n <- 50
-  Js <- c(10, 50, 250)
-  ps <- c(2, 4, 8)
-  nsim <- 5
-  
-  dat <- data.frame(
-    bin = rep(0:1, each = 25),
-    cont = rnorm(50),
-    count = rpois(50, 3) - 3,
-    cat = rep(c("A", "B", "C", "D", "E"))
-  )
-  full_X <- model.matrix(~ bin + cont + count + cat, dat)
-  
-  res <- expand.grid(
-    seed = 1:nsim,
-    J = Js,
-    p = ps,
-    old_time = NA,
-    new_time = NA
-  )
-  sim_settings <- expand.grid(J = Js, p = ps)
-  
-  for (s in 1:nrow(sim_settings)) {
-    print(sim_settings[s, ])
-    J <- sim_settings$J[s]
-    p <- sim_settings$p[s]
-    Bs <- get_sim_bs(J)
-    B <- rbind(Bs$b0, Bs$b1)
-    if (p == 4) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X[, 1:4]
-    } else if (p == 8) {
-      B <- rbind(B, sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J), 
-                 sample(Bs$b1, J), sample(Bs$b1, J))
-      X <- full_X
-    } else {
-      X <- full_X[, 1:2]
-    }
-    
-    for (sim in 1:nsim) {
-      print(sim)
-      ind <- which(res$seed == sim & res$J == J & res$p == p)
-      
-      Y <- simulate_data(
-        n = n,
-        J = J,
-        distn = "ZINB",
-        mean_z = 20,
-        zinb_size = 5,
-        zinb_zero_prop = 0.6,
-        B = B,
-        X = X
-      )
-      
-      full_fit <- try(emuFit(
-        X = X, Y = Y, run_score_tests = FALSE, compute_cis = FALSE,
-        tolerance = 1e-3))
-      
-      if (!inherits(full_fit, "try-error")) {
-        B_est <- full_fit$B
-        Y_aug <- full_fit$Y_augmented
-        
-        X_cup <- X_cup_from_X(X, J)
-        
-        j_ref <- get_j_ref(Y_aug)
-        
-        print("fitting null")
-        start <- proc.time()
-        null_fit <- try(fit_null(
-          B = B_est,
-          Y = Y_aug,
-          X = X,
-          X_cup = X_cup,
-          k_constr = 2,
-          j_constr = J / 4,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn,
-          #constraint_tol = 1e-5,
-          #B_tol = 1e-4,
-          constraint_grad_fn = constraint_grad_fn,
-          verbose = FALSE,
-          trackB = FALSE
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_fit, "try-error")) {
-          res$old_time[ind] <- end[3]
-        }
-        
-        print("fitting new null")
-        start <- proc.time()
-        null_repar_fit <- try(fit_null_symmetric(
-          Y = Y_aug,
-          X = X,
-          B = B,
-          j_constr = J / 4,
-          k_constr = 2,
-          j_ref = j_ref,
-          constraint_fn = constraint_fn[[1]],
-          constraint_grad_fn = constraint_grad_fn[[1]],
-          #B_tol = 1e-4,
-          verbose = TRUE,
-          maxit = 1000
-        ))
-        end <- proc.time() - start
-        if (!inherits(null_repar_fit, "try-error")) {
-          res$new_time[ind] <- end[3]
-        }
-      }
-    }
-  }
-  
-  res %>% group_by(p, J) %>% summarise(mean(old_time, na.rm = T), mean(new_time, na.rm = T),
-                                       mean(old_time / new_time, na.rm = T))
-  # result here is that timing is pretty similar (double check this)
-})
-
-# # profile optim in fit_null_symmetric
-# test_that("profile how much time is optim in fit_null_symmetric", {
-#   skip("Don't profile new null code when running automatic tests")
-# 
-#   set.seed(59542234)
-#   n <- 100
-#   J <- 50
-#   X <- cbind(1, rep(c(0, 1), each = n / 2))
-#   b0 <- rnorm(J)
-#   b1 <- seq(1, 10, length.out = J)
-#   b1 <- b1 - mean(b1)
-#   b0 <- b0 - mean(b0)
-#   Y <- radEmu:::simulate_data(
-#     n = n,
-#     J = J,
-#     X = X,
-#     b0 = b0,
-#     b1 = b1,
-#     distn = "Poisson",
-#     mean_z = 8
-#   )
-# 
-#   k_constr <- 2
-#   j_constr <- 1
-#   p <- 2
-# 
-#   # constraint_fn <- rep(list(function(x){mean(x)}), 2)
-#   constraint_fn <- rep(list(function(x) pseudohuber_median(x, 0.1)), 2)
-#   ##### Arguments to fix:
-# 
-#   # constraint_grad_fn <- function(x){dpseudohuber_median_dx(x,0.1)
-#   constraint_grad_fn <- rep(
-#     list(function(x) {
-#       dpseudohuber_median_dx(x, 0.1)
-#     }),
-#     2
-#   )
-# 
-#   full_fit <- #suppressMessages(
-#     emuFit_micro_penalized(
-#       X = X,
-#       Y = Y,
-#       B = NULL,
-#       tolerance = 1e-6,
-#       verbose = FALSE
-#     )
-# 
-#   B <- full_fit$B
-#   Y_aug <- full_fit$Y_augmented
-# 
-#   X_cup <- X_cup_from_X(X, J)
-# 
-#   j_ref <- 5
-# 
-#   Rprof("../out.prof", interval = 0.01)
-#   null_repar_fit <- fit_null_symmetric(
-#     Y = Y_aug,
-#     X = X,
-#     B = B,
-#     j_constr = j_constr,
-#     k_constr = k_constr,
-#     j_ref = j_ref,
-#     constraint_fn = constraint_fn[[1]],
-#     constraint_grad_fn = constraint_grad_fn[[1]],
-#     B_tol = 1e-4,
-#     verbose = TRUE,
-#     maxit = 1000
-#   )
-#   Rprof(NULL)
-#   summaryRprof("../out.prof")
-# })

@@ -28,15 +28,16 @@ emuFit(
   compute_cis = TRUE,
   run_score_tests = TRUE,
   test_kj = NULL,
-  null_fit_alg = "fisher_scoring",
+  null_fit_alg = "constraint_sandwich",
   B_null_list = NULL,
   maxit_null = 1000,
-  tol_lik = 0.1,
+  tol_lik = 1e-05,
   tol_test_stat = 0.01,
   null_window = 5,
   null_diagnostic_plots = FALSE,
   remove_zero_comparison_pvals = 0.01,
-  control = NULL
+  control = NULL,
+  ...
 )
 }
 \arguments{
@@ -115,8 +116,8 @@ which indices k correspond to the covariate(s) that you would like to test, run 
 column of the design matrix corresponds to each covariate in your model. This argument is required when
 running score tests.}
 
-\item{null_fit_alg}{Which null fitting algorithm to use for score tests: \code{"fisher_scoring"} or
-\code{"augmented_lagrangian"}. Default and recommended approach is \code{"fisher_scoring"}.}
+\item{null_fit_alg}{Which null fitting algorithm to use for score tests: \code{"constraint_sandwich"} or
+\code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}, unless \code{J < 20}.}
 
 \item{B_null_list}{list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either
 be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
@@ -125,14 +126,14 @@ include the other elements of the list as \code{NULL}.}
 \item{maxit_null}{maximum number of outer iterations to perform before exiting optimization. Default is \code{1000}.
 Used in estimation under null hypothesis for score tests.}
 
-\item{tol_lik}{tolerance for absolute changes in likelihood for stopping criteria. Default is \code{0.1}. Used in
-estimation under null hypothesis for score tests.}
+\item{tol_lik}{tolerance for relative changes in likelihood for stopping criteria. Default is \code{1e-5}. Used in
+estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.}
 
 \item{tol_test_stat}{tolerance for relative changes in test statistic for stopping criteria. Default is \code{0.01}. Used in
-estimation under null hypothesis for score tests.}
+estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.}
 
 \item{null_window}{window to use for stopping criteria (this many iterations where stopping criteria is met). Default is \code{5}.
-Used in estimation under null hypothesis for score tests.}
+Used in estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.}
 
 \item{null_diagnostic_plots}{logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.}
 
@@ -145,6 +146,9 @@ If a value between 0 and 1, all zero-comparison p-values below the value will be
 Default is \code{0.01}.}
 
 \item{control}{A list of control parameters, to have more control over estimation and hypothesis testing. See \code{control_fn} for details.}
+
+\item{...}{Additional arguments. Arguments matching the names of \code{control_fn()} options are forwarded to that function and override
+defaults. Unknown arguments are ignored with a warning.}
 }
 \value{
 A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',

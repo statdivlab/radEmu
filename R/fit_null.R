@@ -12,7 +12,7 @@
 #' @param rho_init where to start quadratic penalty parameter
 #' @param tau how much to increment rho by each iteration
 #' @param kappa cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.
-#' @param B_tol tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$
+#' @param B_tol tolerance for convergence in $max_\{k,j\} |B^t_\{kj\} - B^\{(t - 1)\}_\{kj\}|$
 #' @param inner_tol tolerance for inner loop
 #' @param constraint_tol tolerance for $|B_kj - g(B_k)|$
 #' @param max_step maximum step size
@@ -265,6 +265,10 @@ fit_null <- function(B,
     it_df$lik[iter] <- ll
     it_df$max_abs_B[iter] <- B_diff
     it_df$constraint_diff[iter] <- abs(gap)
+    
+    if (verbose) {
+      message("Log likelihood: ", signif (ll,3))
+    }
     
     if (null_diagnostic_plots) {
       score_res <- try(get_score_stat(X = X, Y = Y, X_cup = X_cup, B = B, k_constr = k_constr,
