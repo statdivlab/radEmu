@@ -53,11 +53,11 @@ fit_null_scc(
 
 \item{kappa}{cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.}
 
-\item{B_tol}{tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$}
+\item{B_tol}{tolerance for convergence in \eqn{max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert}}
 
 \item{inner_tol}{tolerance for inner loop}
 
-\item{constraint_tol}{tolerance for $|B_kj - g(B_k)|$}
+\item{constraint_tol}{tolerance for \eqn{\lvert B_kj - g(B_k)\rvert }}
 
 \item{max_step}{maximum step size}
 
@@ -76,9 +76,9 @@ A list containing elements \code{B}, \code{k_constr}, \code{j_constr}, \code{nit
 \code{gap}, \code{u}, \code{rho}, and \code{Bs}. \code{B} is a matrix containing parameter estimates
 under the null (obtained by maximum likelihood on augmented observations Y),
 \code{k_constr}, and \code{j_constr} give row and column indexes of the parameter
-fixed to be equal to the constraint function $g()$ under the null. \code{niter} is a
+fixed to be equal to the constraint function \eqn{g()} under the null. \code{niter} is a
 scalar giving total number of outer iterations used to fit the null model,
-\code{gap} gives the final value of $g(B_{k constr}) - B_{k constr, j constr}$,
+\code{gap} gives the final value of \eqn{g(B_{k constr}) - B_{k constr, j constr}},
 \code{u} and \code{rho} are final values of augmented Lagrangian parameters, and
 \code{Bs} is a data frame containing values of B by iteration if \code{trackB} was set
 equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm

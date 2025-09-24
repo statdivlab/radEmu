@@ -9,7 +9,7 @@
 #' @param j_ref column index of convenience constraint
 #' @param constraint_fn constraint function
 #' @param constraint_grad_fn gradient of constraint fn
-#' @param B_tol tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$
+#' @param B_tol tolerance for convergence in \eqn{max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert}
 #' @param inner_tol tolerance for inner loop
 #' @param c1 constant for armijo rule
 #' @param maxit maximum iterations
@@ -27,7 +27,7 @@
 #' and `Bs`. `B` is a matrix containing parameter estimates
 #' under the null (obtained by maximum likelihood on augmented observations Y),
 #' `k_constr`, and `j_constr` give row and column indexes of the parameter
-#' fixed to be equal to the constraint function $g()$ under the null. `niter` is a
+#' fixed to be equal to the constraint function \eqn{g()} under the null. `niter` is a
 #' scalar giving total number of outer iterations used to fit the null model, and
 #' `Bs` is a data frame containing values of B by iteration if `trackB` was set
 #' equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm

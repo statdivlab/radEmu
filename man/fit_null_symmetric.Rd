@@ -48,7 +48,7 @@ fit_null_symmetric(
 
 \item{constraint_grad_fn}{gradient of constraint fn}
 
-\item{B_tol}{tolerance for convergence in $max_{k,j} |B^t_{kj} - B^{(t - 1)}_{kj}|$}
+\item{B_tol}{tolerance for convergence in \eqn{max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert}}
 
 \item{inner_tol}{tolerance for inner loop}
 
@@ -79,7 +79,7 @@ A list containing elements \code{B}, \code{k_constr}, \code{j_constr}, \code{nit
 and \code{Bs}. \code{B} is a matrix containing parameter estimates
 under the null (obtained by maximum likelihood on augmented observations Y),
 \code{k_constr}, and \code{j_constr} give row and column indexes of the parameter
-fixed to be equal to the constraint function $g()$ under the null. \code{niter} is a
+fixed to be equal to the constraint function \eqn{g()} under the null. \code{niter} is a
 scalar giving total number of outer iterations used to fit the null model, and
 \code{Bs} is a data frame containing values of B by iteration if \code{trackB} was set
 equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm

@@ -12,9 +12,9 @@
 #' @param rho_init where to start quadratic penalty parameter
 #' @param tau how much to increment rho by each iteration
 #' @param kappa cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.
-#' @param B_tol tolerance for convergence in $max_\{k,j\} |B^t_\{kj\} - B^\{(t - 1)\}_\{kj\}|$
+#' @param B_tol tolerance for convergence in \eqn{max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert}
 #' @param inner_tol tolerance for inner loop
-#' @param constraint_tol tolerance for $|B_kj - g(B_k)|$
+#' @param constraint_tol tolerance for \eqn{\lvert B_kj - g(B_k)\rvert}
 #' @param max_step maximum step size
 #' @param c1 constant for armijo rule
 #' @param maxit maximum iterations
@@ -28,9 +28,9 @@
 #' `gap`, `u`, `rho`, and `Bs`. `B` is a matrix containing parameter estimates 
 #' under the null (obtained by maximum likelihood on augmented observations Y),
 #' `k_constr`, and `j_constr` give row and column indexes of the parameter 
-#' fixed to be equal to the constraint function $g()$ under the null. `niter` is a 
+#' fixed to be equal to the constraint function \eqn{g()} under the null. `niter` is a 
 #' scalar giving total number of outer iterations used to fit the null model, 
-#' `gap` gives the final value of $g(B_{k constr}) - B_{k constr, j constr}$, 
+#' `gap` gives the final value of \eqn{g(B_{k constr}) - B_{k constr, j constr}}, 
 #' `u` and `rho` are final values of augmented Lagrangian parameters, and 
 #' `Bs` is a data frame containing values of B by iteration if `trackB` was set 
 #' equal to TRUE (otherwise it contains a NULL value).
