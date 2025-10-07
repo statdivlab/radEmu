@@ -73,7 +73,8 @@
 #' will be used to fit the model under the null hypothesis. NULL by default, in which
 #' case the standard fitting algorithm will be used. If included, this argument must be either
 #' `scc` for single category constraint, `symmetric` for symmetric functions such
-#' as mean or pseudo-Huber median, or `other`.
+#' as mean or pseudo-Huber median, `symmetric_subset` for symmetric function over a subset of
+#' categories, or `other`.
 #' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
 #' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
@@ -144,11 +145,11 @@ score_test <- function(
   } else {
     constraint_type <- null_fit_constraint
   }
-  if (!(constraint_type %in% c("other", "symmetric", "scc"))) {
+  if (!(constraint_type %in% c("other", "symmetric", "symmetric_subset", "scc"))) {
     stop(
       "The argument `null_fit_constraint` must either be omitted, or must be either
          `scc` for single category constraint, `symmetric` for symmetric functions such
-         as mean or pseudo-Huber median, or `other`."
+         as mean or pseudo-Huber median, `symmetric_subset` for symmetric functions over a subset, or `other`."
     )
   }
   
@@ -161,6 +162,43 @@ score_test <- function(
 
     # try to fit with constraint sandwich algorithm
     constrained_fit <- try(fit_null_symmetric(
+      B = B, #B (MPLE)
+      Y = Y, #Y (with augmentations)
+      X = X, #design matrix
+      X_cup = X_cup,
+      k_constr = k_constr, #row index of B to constrain
+      j_constr = j_constr, #col index of B to constrain
+      constraint_fn = constraint_fn, #constraint function
+      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+      B_tol = B_tol,
+      j_ref = j_ref,
+      c1 = c1,
+      maxit = maxit,
+      inner_maxit = inner_maxit,
+      verbose = verbose,
+      trackB = trackB,
+      ignore_stop = ignore_stop, 
+      tol_lik = tol_lik,
+      tol_test_stat = tol_test_stat,
+      null_window = null_window
+    ))
+    
+    if (!inherits(constrained_fit, "try-error")) {
+      if (constrained_fit$converged) {
+        accept_try <- TRUE
+        good_enough_fit <- TRUE
+      } else {
+        message("Constraint sandwich algorithm for estimation under the null hypothesis did not converge. Trying again with augmented Lagrangian algorithm.")
+      }
+    } else {
+      message("Constraint sandwich algorithm for estimation under the null hypothesis failed. Trying again with augmented Lagrangian algorithm.")
+    }
+  }
+  
+  if (constraint_type == "symmetric_subset") {
+    
+    # try to fit with constraint sandwich algorithm
+    constrained_fit <- try(fit_null_symmetric_subset(
       B = B, #B (MPLE)
       Y = Y, #Y (with augmentations)
       X = X, #design matrix

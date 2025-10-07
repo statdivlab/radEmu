@@ -456,6 +456,21 @@ emuFit <- function(Y,
           constraint_type <- "symmetric"
         }
         
+        # check if it is symmetric constraint over a subset 
+        ref_set <- try(get("reference_set", envir = environment(constraint_fn[[k]])))
+        if (!inherits(ref_set, "try-error")) {
+          if (constraint_fn[[k]](v3[ref_set[[k]]]) == mean(v3[ref_set[[k]]])) {
+            constraint_type <- "symmetric_subset"
+          }
+          inner_constraint_fn <- try(get("constraint_fn", envir = environment(constraint_fn[[k]])))
+          if (!inherits(inner_constraint_fn, "try-error")) {
+            if (body(inner_constraint_fn[[k]])[1] == "pseudohuber_median" |
+                body(inner_constraint_fn[[k]])[1] == "radEmu:::pseudohuber_median") {
+              constraint_type <- "symmetric_subset"
+            }
+          }
+        }
+        
         k_list[[k]] <- constraint_type
       }
     } else {
