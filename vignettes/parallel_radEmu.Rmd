@@ -123,6 +123,11 @@ Let's say that I want to run score tests for the first five mOTUs in our dataset
 ```{r}
 ncores <- parallel::detectCores() - 1
 ncores
+
+# if running this vignette in automatic R-CMD-check, reduce cores to 2
+if (identical(Sys.getenv("_R_CHECK_LIMIT_CORES_"), "TRUE")) {
+  ncores <- min(2, ncores)
+}
 ```
 
 Next, I will write a function that will be called in parallel. This function will fit the model under the null and calculate the robust score test statistics. Note that the output of this function is an `emuFit` object.
