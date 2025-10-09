@@ -5,3 +5,4 @@
 ^_pkgdown\.yml$
 ^pkgdown$
 ^\.github$
+^.*manual\.tex$
