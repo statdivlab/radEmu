@@ -85,7 +85,7 @@ test_that("wald test gives semi-reasonable output with categorical covariate", {
   #constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
   b[2,4] <- constraint_fn[[1]](b[2,-4])
   
-  X_cup <- X_cup_from_X(X,J)
+  X_cup <- X_cup_from_X_fast(X,J)
   
   full_fit <- emuFit_micro_penalized(X = X,
                                      Y = Y_old1,
@@ -172,7 +172,7 @@ test_that("wald test gives semi-reasonable output with continuous covariate", {
   #constraint_hess_fn <- function(x,ind_1,ind_2){hess_pseudohuber_median(x,0.1,ind_1,ind_2)}
   b[2,4] <- constraint_fn[[1]](b[2,-4])
   
-  X_cup <- X_cup_from_X(X,J)
+  X_cup <- X_cup_from_X_fast(X,J)
   
   full_fit <- emuFit_micro_penalized(X = X,
                                      Y = Y_old2,

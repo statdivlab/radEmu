@@ -15,7 +15,7 @@ test_that("computing information matrix gives same result regardless of method",
          B_cup = B_cup_from_B(penalized_fit$B),
          B = penalized_fit$B,
          X = X,
-         X_cup = X_cup_from_X(X,2),
+         X_cup = X_cup_from_X_fast(X,2),
          compute_together = TRUE)
 
   info2 <-
@@ -23,7 +23,7 @@ test_that("computing information matrix gives same result regardless of method",
            B_cup = B_cup_from_B(penalized_fit$B),
            B = penalized_fit$B,
            X = X,
-           X_cup = X_cup_from_X(X,2),
+           X_cup = X_cup_from_X_fast(X,2),
            compute_together = FALSE)
 
   expect_equal(as.matrix(info1),as.matrix(info2))
@@ -82,7 +82,7 @@ test_that("Computed information is equal to numerical derivative with categorica
 
   B <- full_fit$B
   Y_aug <- full_fit$Y_augmented
-  X_cup <- X_cup_from_X(X,J)
+  X_cup <- X_cup_from_X_fast(X,J)
   I <- f_info(Y = Y_aug,
               B_cup = B_cup_from_B(B),
               B = B,

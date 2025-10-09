@@ -48,7 +48,7 @@ test_that("we get same null fit with different j_ref", {
   B <- full_fit$B
   Y_aug <- full_fit$Y_augmented
   
-  X_cup <- X_cup_from_X(X,J)
+  X_cup <- X_cup_from_X_fast(X,J)
   
   fits <- vector(5, mode = "list")
   for(j_ref in 1:5){
