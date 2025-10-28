@@ -456,6 +456,7 @@ emuFit <- function(Y,
         }
         
         # check if it is symmetric constraint over a subset 
+        # either there's a reference set and either mean or pseudohuber median
         ref_set <- try(get("reference_set", envir = environment(constraint_fn[[k]]), inherits = TRUE))
         uses_ref <- any(grepl("reference_set", deparse(body(constraint_fn[[k]]))))
         if (!inherits(ref_set, "try-error") & uses_ref) {
@@ -463,6 +464,13 @@ emuFit <- function(Y,
             constraint_type <- "symmetric_subset"
           }
           if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
+            constraint_type <- "symmetric_subset"
+          }
+        }
+        # or the constraint function has an attribute tag telling us its a symmetric subset
+        constraint_type_att <- attr(constraint_fn[[k]], "constraint_type")
+        if (!is.null(constraint_type_att)) {
+          if (constraint_type_att == "symmetric_subset") {
             constraint_type <- "symmetric_subset"
           }
         }

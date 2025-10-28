@@ -124,7 +124,8 @@ Y are treated as independent.}
 will be used to fit the model under the null hypothesis. NULL by default, in which
 case the standard fitting algorithm will be used. If included, this argument must be either
 \code{scc} for single category constraint, \code{symmetric} for symmetric functions such
-as mean or pseudo-Huber median, or \code{other}.}
+as mean or pseudo-Huber median, \code{symmetric_subset} for symmetric function over a subset of
+categories, or \code{other}.}
 
 \item{null_diagnostic_plots}{logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.}
 
