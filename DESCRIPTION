@@ -1,6 +1,6 @@
 Package: radEmu
 Title: Using Relative Abundance Data to Estimate of Multiplicative Differences in Mean Absolute Abundance 
-Version: 2.1.1.1
+Version: 2.2.0.0
 Authors@R: c(person("David", "Clausen", role = c("aut")),
              person("Amy D", "Willis", email = "adwillis@uw.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-2802-4317")),
              person("Sarah", "Teichman", role = "aut"))
