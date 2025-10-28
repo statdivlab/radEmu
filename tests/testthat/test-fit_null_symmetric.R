@@ -16,7 +16,7 @@ Y <- radEmu:::simulate_data(
   mean_z = 8
 )
 
-test_that("we can run augmented lagrangian approach with argument", {
+test_that("we can choose null fit algorithm argument", {
   fit1 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "constraint_sandwich", tolerance = 1e-2,
                  match_row_names = FALSE)
   fit2 <- emuFit(X = X, Y = Y, test_kj = data.frame(k = 2, j = 5), null_fit_alg = "augmented_lagrangian", tolerance = 1e-2,
@@ -47,7 +47,8 @@ test_that("compare timing", {
   lik2 <- sapply(fit2$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
   lik1 - lik2
   plot(lik1 - lik2, fit1$coef$score_stat - fit2$coef$score_stat)
-  # when score stats are different, likelihood is higher for constraint_sandwich approach 
+  
+  # when score stats are notably different, likelihood is higher for constraint_sandwich approach 
 })
 
 test_that("compare timing, ZINB", {
@@ -80,10 +81,13 @@ test_that("compare timing, ZINB", {
   
   lik1 <- sapply(fit1$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
   lik2 <- sapply(fit2$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
-  lik1 - lik2
+  summary(lik1 - lik2)
+  summary((lik1 - lik2) / lik2)
   plot(lik1 - lik2, abs(fit1$coef$score_stat - fit2$coef$score_stat))
-  # score stats are quite similar
-  # sometimes likelihood is larger for augmented lagrangian, sometimes for constraint sandwich
+  summary(abs(fit1$coef$score_stat - fit2$coef$score_stat))
+  # score stats are quite similar (median diff is 0.007, max diff is 0.08)
+  # ll are quite similar, except for a few settings where constraint sandwich is lower by ~1000
+  # this is still 1e-5 of overall ll
 })
 
 test_that("we get same null fit with different j_ref", {
@@ -205,72 +209,75 @@ test_that("we get same null fit with different j_ref", {
   expect_true(null_min_lag_norm > null_repar_min_lag_norm_fs)
 })
 
-test_that("test corncob data", {
-  
-  # result: constraint sandwich is faster, very similar likelihoods, similar test statistics 
-  
-  skip("don't want to test automatically")
-  
-  # # corncob data
-  # 
-  # library(corncob)
-  # library(phyloseq)
-  # data(soil_phylo_sample)
-  # data(soil_phylo_otu)
-  # soil_phylo <- phyloseq::phyloseq(phyloseq::sample_data(soil_phylo_sample),
-  #                                  phyloseq::otu_table(soil_phylo_otu, taxa_are_rows = TRUE),
-  #                                  phyloseq::tax_table(soil_phylo_taxa))
-  # soil_phylo <- subset_samples(soil_phylo, Day %in% 0:1 & Amdmt %in% 0:1)
-  # soil_phylo <- tax_glom(soil_phylo, taxrank = "Genus")
-  # soil_samp <- data.frame(sample_data(soil_phylo))
-  # soil_otu <- t(unclass(otu_table(soil_phylo)))
-  # 
-  # to_rm <- which(colSums(soil_otu) == 0)
-  # soil_otu <- soil_otu[, -to_rm]
-  # 
-  # soil_fit <- emuFit(formula = ~ Amdmt + Day + Plants, 
-  #                    data = soil_samp,
-  #                    Y = soil_otu,
-  #                    run_score_tests = FALSE, compute_cis = FALSE,
-  #                    tolerance = 1e-5, verbose = "development") 
-  # start_sand <- proc.time()
-  # corn_sand1_new <- emuFit(formula = ~ Amdmt + Day + Plants, 
-  #                      data = soil_samp,
-  #                      Y = soil_otu,
-  #                      fitted_model = soil_fit,
-  #                      refit = FALSE, 
-  #                      compute_cis = FALSE, 
-  #                      test_kj = data.frame(k = 2, j = 1:30), null_fit_alg = "constraint_sandwich",
-  #                      verbose = FALSE, null_diagnostic_plots = T)
-  # end_sand <- proc.time() - start_sand
-  # # 8, 8, 6, 4, 7, 6, 7, 8, 9, 5, 5, 13, 9, 5, 8, 4, 3, 10, 4, 5, 6, 9, 8, 6, 5, 17, 4, 7, 6, 6
-  # start_aug <- proc.time() 
-  # corn_aug1 <- emuFit(formula = ~ Amdmt + Day + Plants, 
-  #                      data = soil_samp,
-  #                      Y = soil_otu,
-  #                      fitted_model = soil_fit,
-  #                      refit = FALSE, 
-  #                      compute_cis = FALSE, 
-  #                      test_kj = data.frame(k = 2, j = 1:30), null_fit_alg = "augmented_lagrangian",
-  #                      verbose = FALSE, null_diagnostic_plots = T)
-  # end_aug <- proc.time() - start_aug
-  # # 11, 91, 15, 11, 15, 16, 17, 90, 64, 16, 54, 140, 103, 15, 18, 13, 11, 18, 18, 12, 14, 17, 18, 20, 11, 33, 10, 16, 17, 18
-  # end_aug[3]; end_sand[3]
-  # 
-  # lik_sand <- sapply(corn_sand1_new$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
-  # lik_aug <- sapply(corn_aug1$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
-  # plot(lik_sand - lik_aug, corn_sand1_new$coef$score_stat[1:30] - corn_aug1$coef$score_stat[1:30])
-  # 
-  # plot(corn_sand1_new$coef$score_stat[1:30], corn_sand1_new$coef$score_stat[1:30] - corn_aug1$coef$score_stat[1:30])
-  # 
-  # # sandwich approach is ~4.5 times faster, test stats are very similar, when they are not the sandwich likelihood is 
-  # # almost always larger 
-  
-})
+# # commenting out to avoid note about corncob data not being part of package 
+# # however keeping because these are useful for testing 
+# test_that("test corncob data", {
+#   
+#   skip("don't want to test automatically")
+#   
+#   # corncob data
+# 
+#   library(corncob)
+#   library(phyloseq)
+#   data(soil_phylo_sample)
+#   data(soil_phylo_otu)
+#   soil_phylo <- phyloseq::phyloseq(phyloseq::sample_data(soil_phylo_sample),
+#                                    phyloseq::otu_table(soil_phylo_otu, taxa_are_rows = TRUE),
+#                                    phyloseq::tax_table(soil_phylo_taxa))
+#   soil_phylo <- subset_samples(soil_phylo, Day %in% 0:1 & Amdmt %in% 0:1)
+#   soil_phylo <- tax_glom(soil_phylo, taxrank = "Genus")
+#   soil_samp <- data.frame(sample_data(soil_phylo))
+#   soil_otu <- t(unclass(otu_table(soil_phylo)))
+# 
+#   to_rm <- which(colSums(soil_otu) == 0)
+#   soil_otu <- soil_otu[, -to_rm]
+# 
+#   soil_fit <- emuFit(formula = ~ Amdmt + Day + Plants,
+#                      data = soil_samp,
+#                      Y = soil_otu,
+#                      run_score_tests = FALSE, compute_cis = FALSE,
+#                      tolerance = 1e-5, verbose = "development")
+#   start_sand <- proc.time()
+#   corn_sand1_new <- emuFit(formula = ~ Amdmt + Day + Plants,
+#                        data = soil_samp,
+#                        Y = soil_otu,
+#                        fitted_model = soil_fit,
+#                        refit = FALSE,
+#                        compute_cis = FALSE,
+#                        test_kj = data.frame(k = 2, j = 1:30), null_fit_alg = "constraint_sandwich",
+#                        verbose = TRUE, null_diagnostic_plots = T)
+#   end_sand <- proc.time() - start_sand
+#   # 8, 8, 6, 4, 7, 6, 7, 8, 9, 5, 5, 13, 9, 5, 8, 4, 3, 10, 4, 5, 6, 9, 8, 6, 5, 17, 4, 7, 6, 6
+#   start_aug <- proc.time()
+#   corn_aug1 <- emuFit(formula = ~ Amdmt + Day + Plants,
+#                        data = soil_samp,
+#                        Y = soil_otu,
+#                        fitted_model = soil_fit,
+#                        refit = FALSE,
+#                        compute_cis = FALSE,
+#                        test_kj = data.frame(k = 2, j = 1:30), null_fit_alg = "augmented_lagrangian",
+#                        verbose = FALSE, null_diagnostic_plots = T)
+#   end_aug <- proc.time() - start_aug
+#   # 11, 91, 15, 11, 15, 16, 17, 90, 64, 16, 54, 140, 103, 15, 18, 13, 11, 18, 18, 12, 14, 17, 18, 20, 11, 33, 10, 16, 17, 18
+#   end_aug[3]; end_sand[3]
+# 
+#   lik_sand <- sapply(corn_sand1_new$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+#   lik_aug <- sapply(corn_aug1$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
+#   plot(lik_sand - lik_aug, corn_sand1_new$coef$score_stat[1:30] - corn_aug1$coef$score_stat[1:30])
+# 
+#   plot(corn_sand1_new$coef$score_stat[1:30], corn_sand1_new$coef$score_stat[1:30] - corn_aug1$coef$score_stat[1:30])
+# 
+#   summary(lik_aug - lik_sand)
+#   summary(abs(corn_aug1$coef$score_stat - corn_sand1_new$coef$score_stat))
+#   
+#   # sandwich approach is ~3.5 times faster
+#   # ll from two approaches ranges up to 3.5, overall very similar (for large scale of ll)
+#   # test stats diff is median 0.015, max 0.28
+#   # for the larger test stat differences, sandwich ll is larger 
+#   
+# })
 
 test_that("test wirbel data", {
-  
-  # result: sandwich approach is ~5.9 times faster, test stats are very similar
   
   skip("don't want to test automatically")
   
@@ -300,7 +307,7 @@ test_that("test wirbel data", {
                       refit = FALSE, 
                       compute_cis = FALSE, 
                       test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "constraint_sandwich",
-                      verbose = FALSE, null_diagnostic_plots = T)
+                      verbose = TRUE, null_diagnostic_plots = T)
   end_sand <- proc.time() - start_sand
   # 8, 4, 4, 3, 6, 2, 7, 2, 4, 6, 3, 9, 6, 3, 4, 8, 2, 5, 5, 8
   start_aug <- proc.time()
@@ -312,15 +319,20 @@ test_that("test wirbel data", {
                      refit = FALSE, 
                      compute_cis = FALSE, 
                      test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "augmented_lagrangian",
-                     verbose = FALSE, null_diagnostic_plots = T)
+                     verbose = TRUE, null_diagnostic_plots = T)
   end_aug <- proc.time() - start_aug
   # 14, 11, 16, 12, 81, 12, 51, 14, 14, 93, 14, 10, 13, 14, 11, 47, 15, 35, 45, 55
-  end_aug[3]; end_sand[3] # constraint sandwich is ~5.9x faster than augmented lagrangian
+  end_aug[3]; end_sand[3] # constraint sandwich is ~5.5x faster than augmented lagrangian
   
   lik_sand <- sapply(wirb_sand$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
   lik_aug <- sapply(wirb_aug$null_diagnostic_plots, function(x) {tail(x$diagnostics_df$lik, 1)})
   plot(lik_sand - lik_aug, wirb_sand$coef$score_stat[1:20] - wirb_aug$coef$score_stat[1:20])
   
-  plot(wirb_sand$coef$score_stat[1:20], wirb_sand$coef$score_stat[1:20] - wirb_aug$coef$score_stat[1:20])
-  
+  summary(lik_sand - lik_aug)
+  summary(abs(wirb_sand$coef$score_stat[1:20] - wirb_aug$coef$score_stat[1:20]))
+
+  # results: constraint sandwich is ~5.5 faster
+  # ll range up to ~45, constraint sandwich ll is typically larger (especially for larger differences)
+  # test stat median difference is 0.01, max difference is 0.05
+    
 })
