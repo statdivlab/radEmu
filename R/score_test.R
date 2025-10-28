@@ -140,16 +140,16 @@ score_test <- function(
   p <- ncol(X)
 
   # identify if constraint function is symmetric or a single category constraint
-  if (is.null(null_fit_constraint)) {
-    constraint_type <- "other"
-  } else {
-    constraint_type <- null_fit_constraint
-  }
-  if (!(constraint_type %in% c("other", "symmetric", "symmetric_subset", "scc"))) {
+  if (is.null(attr(constraint_fn[[k_constr]], "constraint_type"))) {
+    attr(constraint_fn[[k_constr]], "constraint_type") <- "other"
+  } 
+  constraint_type <- attr(constraint_fn[[k_constr]], "constraint_type")
+  if (!(constraint_type %in% c("other", "symmetric:mean", "symmetric_subset:mean", "scc",
+                               "symmetric:pseudohuber", "symmetric_subset:pseudohuber"))) {
     stop(
-      "The argument `null_fit_constraint` must either be omitted, or must be either
-         `scc` for single category constraint, `symmetric` for symmetric functions such
-         as mean or pseudo-Huber median, `symmetric_subset` for symmetric functions over a subset, or `other`."
+      "The attribute 'constraint_type' for `constraint_fn[[k_constr]]` must either be omitted, or must be either
+         `scc` for single category constraint, `symmetric:mean` or `symmetric:pseudohuber` for symmetric functions such
+         as mean or pseudo-Huber median, `symmetric_subset:mean` or `symmetric_subset:pseudohuber` for symmetric functions over a subset, or `other`."
     )
   }
   
@@ -158,7 +158,7 @@ score_test <- function(
   accept_try <- FALSE
   good_enough_fit <- FALSE
   
-  if (constraint_type == "symmetric") {
+  if (constraint_type %in% c("symmetric:mean", "symmetric:pseudohuber")) {
 
     # try to fit with constraint sandwich algorithm
     constrained_fit <- try(fit_null_symmetric(
@@ -195,7 +195,7 @@ score_test <- function(
     }
   }
   
-  if (constraint_type == "symmetric_subset") {
+  if (constraint_type %in% c("symmetric_subset:mean", "symmetric_subset:pseudohuber")) {
     
     # try to fit with constraint sandwich algorithm
     constrained_fit <- try(fit_null_symmetric_subset(
@@ -368,7 +368,6 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       "converged" = converged,
       "inner_maxit" = inner_maxit,
       "null_B" = constrained_fit$B,
-      # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
     )
@@ -453,7 +452,6 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       "converged" = converged,
       "inner_maxit" = inner_maxit,
       "null_B" = constrained_fit$B,
-      # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
     )

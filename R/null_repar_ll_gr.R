@@ -41,6 +41,7 @@ null_repar_ll_gr <- function(
     )
   })
   cg <- constraint_grad_vec(
+    constraint_fn, 
     constraint_grad_fn,
     js_used = js,
     Bk_constr = B[k_constr, ],

@@ -1,4 +1,5 @@
-constraint_grad_vec <- function(constraint_grad_fn,
+constraint_grad_vec <- function(constraint_fn,
+                                constraint_grad_fn,
                                 js_used,
                                 Bk_constr,
                                 j_constr,
@@ -11,10 +12,12 @@ constraint_grad_vec <- function(constraint_grad_fn,
     grad_full <- constraint_grad_fn(Bk_constr[indices])
   } else {
     indices <- setdiff(ref_set, j_constr)
-    if (any(grepl("dpseudohuber_median", deparse(body(constraint_grad_fn)), fixed = TRUE))) {
+    if (attr(constraint_fn, "constraint_type") == "symmetric_subset:pseudohuber") {
       grad_full <- dpseudohuber_median_dx(Bk_constr[indices])
-    } else {
+    } else if (attr(constraint_fn, "constraint_type") == "symmetric_subset:mean"){
       grad_full <- rep(1/length(indices), length(indices))
+    } else {
+      grad_full <- constraint_grad_fn(Bk_constr[indices])
     }
   }
   

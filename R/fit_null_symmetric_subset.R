@@ -75,11 +75,9 @@ fit_null_symmetric_subset <- function(
   
   # get subset 
   if (is.null(reference_set)) {
-    ref_set <- try(get("reference_set", envir = environment(constraint_fn)))
-    if (inherits(ref_set, "try-error")) {
-      stop()
-    } else {
-      ref_set_k <- ref_set[[k_constr]]
+    ref_set_k <- attr(constraint_fn, "reference_set")
+    if (is.null(ref_set_k)) {
+      stop("Trying to fit null on a subset, but 'reference_set' isn't included as an attribute of constraint_fn.")
     }
   } else {
     ref_set_k <- reference_set
@@ -498,6 +496,7 @@ fit_null_symmetric_subset <- function(
           j_constr = j_constr,
           k_constr = k_constr,
           j_ref = j_ref,
+          constraint_fn = constraint_fn,
           constraint_grad_fn = constraint_grad_fn,
           gr_only = TRUE,
           ref_set = ref_set_k
@@ -635,23 +634,23 @@ fit_null_symmetric_subset <- function(
     
     if (verbose) {
       #compute gradient if we didn't already
-      if (!trackB) {
-        gr <- get_constrained_gr(
-          Y = Y,
-          X = X,
-          B = B,
-          z = z,
-          js = setdiff(1:J, c(j_constr, j_ref)),
-          j_constr = j_constr,
-          k_constr = k_constr,
-          j_ref = j_ref,
-          constraint_grad_fn = constraint_grad_fn,
-          gr_only = TRUE,
-          ref_set = ref_set_k
-        )
-      }
+      # if (!trackB) {
+      #   gr <- get_constrained_gr(
+      #     Y = Y,
+      #     X = X,
+      #     B = B,
+      #     z = z,
+      #     js = setdiff(1:J, c(j_constr, j_ref)),
+      #     j_constr = j_constr,
+      #     k_constr = k_constr,
+      #     j_ref = j_ref,
+      #     constraint_grad_fn = constraint_grad_fn,
+      #     gr_only = TRUE,
+      #     ref_set = ref_set_k
+      #   )
+      # }
       
-      #tell you all about the ll, gradient, and how much B has changed this loop
+      #tell you all about the ll and test statistic 
       message("ll = ", round(ll, 1))
       message("ll increased by ", round(ll_change * 100, 2), "%")
       if (iter > 1) {

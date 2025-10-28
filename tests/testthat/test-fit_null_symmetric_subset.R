@@ -21,9 +21,12 @@ reference_set <- list(1:30, 20:50)
 for (k in 1:2) {
   constraint_fn[[k]] <- (function(k) {
     force(k)
-    (function(x) { 
+    f_out <- (function(x) { 
       pseudohuber_median(x[reference_set[[k]]])
-    })})(k)
+    })
+    attr(f_out, "reference_set") <- reference_set[[k]]
+    f_out
+  })(k)
   constraint_grad_fn[[k]] <- (function(k) {
     force(k)
     (function(x) {
@@ -78,24 +81,27 @@ test_that("can run without errors", {
 #   
 #   # corncob data
 # 
-#   constraint_fn <- vector(mode = "list", length = 2)
-#   constraint_grad_fn <- vector(mode = "list", length = 2)
-#   reference_set <- list(1:20, 1:20, 30:50, 40:60)
-#   for (k in 1:4) {
-#     constraint_fn[[k]] <- (function(k) {
-#       force(k)
-#       (function(x) { 
-#         pseudohuber_median(x[reference_set[[k]]])
-#       })})(k)
-#     constraint_grad_fn[[k]] <- (function(k) {
-#       force(k)
-#       (function(x) {
-#         grad <- rep(0, length(x))
-#         grad[reference_set[[k]]] <- dpseudohuber_median_dx(x[reference_set[[k]]])
-#         return(grad)
-#       })
-#     })(k)
-#   }
+# constraint_fn <- vector(mode = "list", length = 2)
+# constraint_grad_fn <- vector(mode = "list", length = 2)
+# reference_set <- list(1:20, 1:20, 30:50, 40:60)
+# for (k in 1:4) {
+#   constraint_fn[[k]] <- (function(k) {
+#     force(k)
+#     f_out <- (function(x) {
+#       pseudohuber_median(x[reference_set[[k]]])
+#     })
+#     attr(f_out, "reference_set") <- reference_set[[k]]
+#     f_out
+#   })(k)
+#   constraint_grad_fn[[k]] <- (function(k) {
+#     force(k)
+#     (function(x) {
+#       grad <- rep(0, length(x))
+#       grad[reference_set[[k]]] <- dpseudohuber_median_dx(x[reference_set[[k]]])
+#       return(grad)
+#     })
+#   })(k)
+# }
 #   
 #   library(corncob)
 #   library(phyloseq)
@@ -169,24 +175,27 @@ test_that("can run without errors", {
 # 
 #   # corncob data
 # 
-#   constraint_fn <- vector(mode = "list", length = 2)
-#   constraint_grad_fn <- vector(mode = "list", length = 2)
-#   reference_set <- list(100:130, 1:30, 20:50, 40:70)
-#   for (k in 1:4) {
-#     constraint_fn[[k]] <- (function(k) {
-#       force(k)
-#       (function(x) {
-#         pseudohuber_median(x[reference_set[[k]]])
-#       })})(k)
-#     constraint_grad_fn[[k]] <- (function(k) {
-#       force(k)
-#       (function(x) {
-#         grad <- rep(0, length(x))
-#         grad[reference_set[[k]]] <- dpseudohuber_median_dx(x[reference_set[[k]]])
-#         return(grad)
-#       })
-#     })(k)
-#   }
+# constraint_fn <- vector(mode = "list", length = 2)
+# constraint_grad_fn <- vector(mode = "list", length = 2)
+# reference_set <- list(100:130, 1:30, 20:50, 40:70)
+# for (k in 1:4) {
+#   constraint_fn[[k]] <- (function(k) {
+#     force(k)
+#     f_out <- (function(x) { 
+#       pseudohuber_median(x[reference_set[[k]]])
+#     })
+#     attr(f_out, "reference_set") <- reference_set[[k]]
+#     f_out
+#   })(k)
+#   constraint_grad_fn[[k]] <- (function(k) {
+#     force(k)
+#     (function(x) {
+#       grad <- rep(0, length(x))
+#       grad[reference_set[[k]]] <- dpseudohuber_median_dx(x[reference_set[[k]]])
+#       return(grad)
+#     })
+#   })(k)
+# }
 # 
 #   library(corncob)
 #   library(phyloseq)
@@ -256,24 +265,27 @@ test_that("can run without errors", {
 #   
 #   # corncob data
 #   
-#   constraint_fn <- vector(mode = "list", length = 2)
-#   constraint_grad_fn <- vector(mode = "list", length = 2)
-#   reference_set <- list(1:40, 1:40, 30:70, 40:80)
-#   for (k in 1:4) {
-#     constraint_fn[[k]] <- (function(k) {
-#       force(k)
-#       (function(x) { 
-#         pseudohuber_median(x[reference_set[[k]]])
-#       })})(k)
-#     constraint_grad_fn[[k]] <- (function(k) {
-#       force(k)
-#       (function(x) {
-#         grad <- rep(0, length(x))
-#         grad[reference_set[[k]]] <- dpseudohuber_median_dx(x[reference_set[[k]]])
-#         return(grad)
-#       })
-#     })(k)
-#   }
+# constraint_fn <- vector(mode = "list", length = 2)
+# constraint_grad_fn <- vector(mode = "list", length = 2)
+# reference_set <- list(1:40, 1:40, 30:70, 40:80)
+# for (k in 1:4) {
+#   constraint_fn[[k]] <- (function(k) {
+#     force(k)
+#     f_out <- (function(x) { 
+#       pseudohuber_median(x[reference_set[[k]]])
+#     })
+#     attr(f_out, "reference_set") <- reference_set[[k]]
+#     f_out
+#   })(k)
+#   constraint_grad_fn[[k]] <- (function(k) {
+#     force(k)
+#     (function(x) {
+#       grad <- rep(0, length(x))
+#       grad[reference_set[[k]]] <- dpseudohuber_median_dx(x[reference_set[[k]]])
+#       return(grad)
+#     })
+#   })(k)
+# }
 #   
 #   library(corncob)
 #   library(phyloseq)
@@ -354,9 +366,12 @@ test_that("test wirbel data", {
   for (k in 1:6) {
     constraint_fn[[k]] <- (function(k) {
       force(k)
-      (function(x) { 
+      f_out <- (function(x) { 
         pseudohuber_median(x[reference_set[[k]]])
-      })})(k)
+      })
+      attr(f_out, "reference_set") <- reference_set[[k]]
+      f_out
+      })(k)
     constraint_grad_fn[[k]] <- (function(k) {
       force(k)
       (function(x) {
@@ -385,7 +400,7 @@ test_that("test wirbel data", {
                       refit = FALSE, 
                       compute_cis = FALSE, 
                       test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "constraint_sandwich",
-                      verbose = FALSE, null_diagnostic_plots = T,
+                      verbose = TRUE, null_diagnostic_plots = T,
                       constraint_fn = constraint_fn,
                       constraint_grad_fn = constraint_grad_fn,
                       maxit_null = 100)
@@ -400,7 +415,7 @@ test_that("test wirbel data", {
                      refit = FALSE, 
                      compute_cis = FALSE, 
                      test_kj = data.frame(k = 2, j = 1:20), null_fit_alg = "augmented_lagrangian",
-                     verbose = FALSE, null_diagnostic_plots = T,
+                     verbose = TRUE, null_diagnostic_plots = T,
                      constraint_fn = constraint_fn,
                      constraint_grad_fn = constraint_grad_fn)
   end_aug <- proc.time() - start_aug
@@ -440,9 +455,12 @@ test_that("test wirbel data, reference set of size 30", {
   for (k in 1:6) {
     constraint_fn[[k]] <- (function(k) {
       force(k)
-      (function(x) { 
+      f_out <- (function(x) { 
         pseudohuber_median(x[reference_set[[k]]])
-      })})(k)
+      })
+      attr(f_out, "reference_set") <- reference_set[[k]]
+      f_out
+    })(k)
     constraint_grad_fn[[k]] <- (function(k) {
       force(k)
       (function(x) {

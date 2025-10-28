@@ -1,5 +1,6 @@
 get_constrained_gr <- function(Y, X, B, z, js, j_constr, k_constr, j_ref,
-                               constraint_grad_fn, gr_only = FALSE, ref_set = NULL){
+                               constraint_fn, constraint_grad_fn, 
+                               gr_only = FALSE, ref_set = NULL){
   Bjs <- B[,c(js,j_constr)]
   Yjs <- Y[,c(js,j_constr)]
   log_means_js <- X%*%Bjs
@@ -15,7 +16,8 @@ get_constrained_gr <- function(Y, X, B, z, js, j_constr, k_constr, j_ref,
                                      exp(log_means_js[,jind,drop = FALSE]))
                }
   )
-  cg <- constraint_grad_vec(constraint_grad_fn,
+  cg <- constraint_grad_vec(constraint_fn,
+                            constraint_grad_fn,
                             js_used = js,
                             Bk_constr = B[k_constr,],
                             j_constr = j_constr,

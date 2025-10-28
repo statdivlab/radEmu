@@ -422,63 +422,61 @@ emuFit <- function(Y,
       null_plots <- vector(mode = "list", length = nrow(test_kj))
     }
     
+    # only check if using constraint_sandwich algorithm 
     if (null_fit_alg == "constraint_sandwich") {
-      k_list <- list()
       for (k in unique(test_kj$k)) {
-        # set as other by default
-        constraint_type <- "other"
-        
-        # check if it is a single category constraint
-        v1 <- 1:J
-        v2 <- c(J, 1:(J - 1))
-        r <- constraint_fn[[k]](v1)
-        s <- constraint_fn[[k]](v2)
-        r_grad <- constraint_grad_fn[[k]](v1)
-        s_grad <- constraint_grad_fn[[k]](v2)
-        if ((r == 1 && s == J) | r > 1 && s == (r - 1)) {
-          expected_r_grad <- rep(0, J)
-          expected_r_grad[v1 == r] <- 1
-          if (isTRUE(all.equal(r_grad, expected_r_grad)) &&
-              isTRUE(all.equal(r_grad, s_grad))) {
-            constraint_type <- "scc"
+        if (is.null(attr(constraint_fn[[k]], "constraint_type"))) {
+          
+          # set as other by default
+          constraint_type <- "other"
+          
+          # check if it is a single category constraint
+          v1 <- 1:J
+          v2 <- c(J, 1:(J - 1))
+          r <- constraint_fn[[k]](v1)
+          s <- constraint_fn[[k]](v2)
+          r_grad <- constraint_grad_fn[[k]](v1)
+          s_grad <- constraint_grad_fn[[k]](v2)
+          if ((r == 1 && s == J) | r > 1 && s == (r - 1)) {
+            expected_r_grad <- rep(0, J)
+            expected_r_grad[v1 == r] <- 1
+            if (isTRUE(all.equal(r_grad, expected_r_grad)) &&
+                isTRUE(all.equal(r_grad, s_grad))) {
+              constraint_type <- "scc"
+            }
+          } 
+          
+          # check if symmetric or symmetric subset
+          v3 <- rnorm(J)
+          # check if there is a reference set 
+          if (!is.null(attr(constraint_fn[[k]], "reference_set"))) {
+            ref_set <- attr(constraint_fn[[k]], "reference_set")
+            # is this a mean constraint over a subset?
+            if (isTRUE(all.equal(constraint_fn[[k]](v3), mean(v3[ref_set])))) {
+              constraint_type <- "symmetric_subset:mean"
+            }
+            # is this a pseudohuber median constraint over a subset? 
+            if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
+              constraint_type <- "symmetric_subset:pseudohuber"
+            }
+          } else {
+            # is this a mean constraint? 
+            if (isTRUE(all.equal(constraint_fn[[k]](v3), mean(v3)))) {
+              constraint_type <- "symmetric:mean"
+            }
+            # is this a pseudohuber median constraint? 
+            if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
+              constraint_type <- "symmetric:pseudohuber"
+            }
           }
+          attr(constraint_fn[[k]], "constraint_type") <- constraint_type
         } 
-        
-        # check if it is symmetric constraint 
-        # first check mean 
-        v3 <- rnorm(J)
-        if (constraint_fn[[k]](v3) == mean(v3)) {
-          constraint_type <- "symmetric"
-        }
-        # then check pseudo-Huber median 
-        if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
-          constraint_type <- "symmetric"
-        }
-        
-        # check if it is symmetric constraint over a subset 
-        # either there's a reference set and either mean or pseudohuber median
-        ref_set <- try(get("reference_set", envir = environment(constraint_fn[[k]]), inherits = TRUE))
-        uses_ref <- any(grepl("reference_set", deparse(body(constraint_fn[[k]]))))
-        if (!inherits(ref_set, "try-error") & uses_ref) {
-          if (constraint_fn[[k]](v3) == mean(v3[ref_set[[k]]])) {
-            constraint_type <- "symmetric_subset"
-          }
-          if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
-            constraint_type <- "symmetric_subset"
-          }
-        }
-        # or the constraint function has an attribute tag telling us its a symmetric subset
-        constraint_type_att <- attr(constraint_fn[[k]], "constraint_type")
-        if (!is.null(constraint_type_att)) {
-          if (constraint_type_att == "symmetric_subset") {
-            constraint_type <- "symmetric_subset"
-          }
-        }
-
-        k_list[[k]] <- constraint_type
       }
     } else {
-      k_list <- as.list(rep("other", max(test_kj$k)))
+      # using augmented lagrangian algorithm, so we don't care about constraint_type
+      for (k in unique(test_kj$k)) {
+        attr(constraint_fn[[k]], "constraint_type") <- "other"
+       }
     }
     
     for(test_ind in 1:nrow(test_kj)) {
