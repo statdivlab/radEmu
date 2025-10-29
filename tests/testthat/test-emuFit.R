@@ -33,13 +33,9 @@ test_that("emuFit takes formulas and actually fits a model", {
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           use_fullmodel_info = FALSE,
-                           use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE,
                            test_kj = data.frame(k = 2, j = 1:6))
   })
   
@@ -69,13 +65,12 @@ test_that("emuFit takes formulas and actually fits a model", {
   fitted_model_use_fullmodel_info <- emuFit(Y = Y,
                                             X = X,
                                             formula = ~group,
-                                            tau = 2,
                                             B_null_tol = 0.01,
                                             tolerance = 0.01,
                                             data = covariates,
                                             run_score_tests= TRUE,
                                             return_wald_p = TRUE, ### diff
-                                            use_fullmodel_info = TRUE, ### diff
+                                            control = list(use_fullmodel_info = TRUE), ### diff
                                             verbose = FALSE,
                                             test_kj = data.frame(k = 2, j = 1:6))
   
@@ -92,14 +87,14 @@ test_that("emuFit takes formulas and actually fits a model", {
   fitted_model_both <-  emuFit(Y = Y,
                                X = X,
                                formula = ~group,
-                               tau = 1.2,
                                data = covariates,
                                run_score_tests= TRUE,
                                return_wald_p = TRUE,
-                               use_fullmodel_info = TRUE,
                                verbose = FALSE,
-                               return_both_score_pvals = TRUE,
-                               test_kj = data.frame(k = 2, j = 1:6))
+                               test_kj = data.frame(k = 2, j = 1:6),
+                               control = list(tau = 1.2, 
+                                              use_fullmodel_info = TRUE,
+                                              return_both_score_pvals = TRUE))
   
   ps_full <- fitted_model_both$coef$score_pval_full_info
   ps_null <- fitted_model_both$coef$score_pval_null_info
@@ -142,13 +137,9 @@ test_that("emuFit takes cluster argument without breaking ",{
                                    verbose = FALSE,
                                    B_null_tol = 1e-2,
                                    tolerance = 0.01,
-                                   tau = 2,
                                    return_wald_p = FALSE,
                                    compute_cis = TRUE,
                                    run_score_tests = TRUE, 
-                                   use_fullmodel_info = FALSE,
-                                   use_fullmodel_cov = FALSE,
-                                   return_both_score_pvals = FALSE,
                                    cluster = rep(1:3,each = 4),
                                    test_kj = data.frame(k = 2, j = 1:6))
           })
@@ -161,13 +152,9 @@ test_that("emuFit takes cluster argument without breaking ",{
                                    verbose = FALSE,
                                    B_null_tol = 1e-2,
                                    tolerance = 0.01,
-                                   tau = 2,
                                    return_wald_p = FALSE,
                                    compute_cis = TRUE,
                                    run_score_tests = TRUE, 
-                                   use_fullmodel_info = FALSE,
-                                   use_fullmodel_cov = FALSE,
-                                   return_both_score_pvals = FALSE,
                                    test_kj = data.frame(k = 2, j = 1:6))
   })
   
@@ -363,13 +350,9 @@ test_that("emuFit runs without penalty", {
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           use_fullmodel_info = FALSE,
-                           use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE,
                            test_kj = data.frame(k = 2, j = 1:6))
   })
 })
@@ -383,13 +366,9 @@ test_that("emuFit runs with just intercept model", {
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           use_fullmodel_info = FALSE,
-                           use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE,
                            test_kj = data.frame(k = 1, j = 1:6))
   })
   
@@ -399,13 +378,9 @@ test_that("emuFit runs with just intercept model", {
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           use_fullmodel_info = FALSE,
-                           use_fullmodel_cov = FALSE,
-                           return_both_score_pvals = FALSE,
                            test_kj = data.frame(k = 1, j = 1:6))
   })
   
@@ -421,7 +396,6 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = FALSE,
                            run_score_tests = FALSE, 
@@ -431,25 +405,24 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
   
   # check that warning is returned when estimation under the null doesn't converge
   suppressWarnings({
-    fitted_model <- emuFit(Y = Y,
+    fitted_model2 <- emuFit(Y = Y,
                            X = cbind(X, rnorm(nrow(X))),
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = FALSE,
                            run_score_tests = TRUE, 
                            test_kj = data.frame(k = 1, j = 1:2),
-                           maxit = 1,
+                           maxit_null = 5,
                            inner_maxit = 1)
   })
   
   # check that fitted model contains score_test_hyperparams object
-  expect_true("score_test_hyperparams" %in% names(fitted_model))
+  expect_true("score_test_hyperparams" %in% names(fitted_model2))
   
   # check that fitted model contains data frame of unconverged test_kj
-  expect_type(fitted_model$null_estimation_unconverged, "list")
+  expect_type(fitted_model2$null_estimation_unconverged, "list")
 })
 
 test_that("test that B_null_list object can be used and throws appropriate warnings when used incorrectly", {
@@ -460,7 +433,6 @@ test_that("test that B_null_list object can be used and throws appropriate warni
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = FALSE,
                            run_score_tests = TRUE, 
@@ -474,7 +446,6 @@ test_that("test that B_null_list object can be used and throws appropriate warni
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = FALSE,
                            run_score_tests = TRUE, 
@@ -488,7 +459,6 @@ test_that("test that B_null_list object can be used and throws appropriate warni
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = FALSE,
                            run_score_tests = TRUE, 
@@ -536,7 +506,6 @@ test_that("emuFit throws error when there is a category with all zero counts", {
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           tau = 2,
                            return_wald_p = FALSE,
                            compute_cis = FALSE,
                            run_score_tests = FALSE)
@@ -553,7 +522,6 @@ test_that("Confirm zi is different when penalty is applied or not", {
                      penalize = TRUE,
                      B_null_tol = 1e-2,
                      tolerance = 0.01,
-                     tau = 2,
                      return_wald_p = FALSE,
                      compute_cis = FALSE,
                      run_score_tests = FALSE)
@@ -566,7 +534,6 @@ test_that("Confirm zi is different when penalty is applied or not", {
                      penalize = FALSE,
                      B_null_tol = 1e-2,
                      tolerance = 0.01,
-                     tau = 2,
                      return_wald_p = FALSE,
                      compute_cis = FALSE,
                      run_score_tests = FALSE)
@@ -619,7 +586,6 @@ test_that("emuFit produces appropriate output when verbose = TRUE", {
                                                       verbose = TRUE,
                                                       B_null_tol = 1e-2,
                                                       tolerance = 0.01,
-                                                      tau = 2,
                                                       test_kj = data.frame(j = 1, k = 2)))
   expect_true(TRUE %in% grepl("Running score test", messages) & 
                 TRUE %in% grepl("has completed in approximately", messages))
@@ -634,7 +600,6 @@ test_that("emuFit refits starting at provided value if `B` or `fitted_model` are
                                                       data = covariates,
                                                       B_null_tol = 1e-2,
                                                       tolerance = 0.01,
-                                                      tau = 2,
                                                       run_score_tests = FALSE,
                                                       compute_cis = FALSE, 
                                                       verbose = "development"))
@@ -646,7 +611,6 @@ test_that("emuFit refits starting at provided value if `B` or `fitted_model` are
                                                              data = covariates,
                                                              B_null_tol = 1e-2,
                                                              tolerance = 0.01,
-                                                             tau = 2,
                                                              run_score_tests = FALSE,
                                                              compute_cis = FALSE,
                                                              verbose = "development"))
@@ -658,7 +622,6 @@ test_that("emuFit refits starting at provided value if `B` or `fitted_model` are
                                                                data = covariates,
                                                                B_null_tol = 1e-2,
                                                                tolerance = 0.01,
-                                                               tau = 2,
                                                                run_score_tests = FALSE,
                                                                compute_cis = FALSE,
                                                                verbose = "development"))
@@ -682,7 +645,7 @@ test_that("multiple constraint functions can be submitted", {
                 penalize = TRUE, tolerance = 0.1, 
                 constraint_fn = list(function(x) pseudohuber_median(x,0.1), 2), 
                 constraint_grad_fn = list(function(x) dpseudohuber_median_dx(x,0.1), NULL),
-                return_nullB = TRUE)
+                control = list(return_nullB = TRUE))
   expect_true(all.equal(0, pseudohuber_median(res1$B[1, ], 0.1), 0.0001))
   expect_true(all.equal(0, res1$B[2, 2]))
   expect_true(all.equal(0, res1$null_B[[1]][2, 1], tolerance = 1e-4))
@@ -721,7 +684,7 @@ test_that("multiple constraint functions can be submitted", {
                  penalize = TRUE, tolerance = 0.1, 
                  constraint_fn = list(3, 5), 
                  constraint_grad_fn = list(NULL, NULL),
-                 trackB = TRUE)
+                 control = list(trackB = TRUE))
   expect_true(all.equal(res4$B[1, 3], 0))
   expect_true(all.equal(res4$B[2, 5], 0))
 })

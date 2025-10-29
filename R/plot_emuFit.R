@@ -22,7 +22,7 @@
 #'                  data = wirbel_sample_small,
 #'                  Y = wirbel_otu_small,
 #'                  run_score_tests = FALSE,
-#'                  tol = 0.01)
+#'                  tolerance = 0.01)
 #' 
 #' plot_key <- list(p1 = c("Control" = "GroupCTR"),
 #'                  p2 = c("FR-Control" = "StudyFR-CRC",
@@ -92,8 +92,7 @@ plot.emuFit <- function(x,
                                      labels = new_variable_names))
   
   # now separate output coefficients into a list for each plot
-  coef_list <- mod$coef %>%
-    split(.$plot_key)
+  coef_list <- split(mod$coef, mod$coef$plot_key)
   
   # match coefficient names using user-provided "taxon_names" data frame
   coef_list_renamed <- lapply(coef_list, function(coef_subset){

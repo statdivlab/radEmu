@@ -17,13 +17,9 @@ fitted_model <- emuFit(Y = Y,
                        verbose = FALSE,
                        B_null_tol = 1e-2,
                        tolerance = 0.01,
-                       tau = 2,
                        return_wald_p = FALSE,
                        compute_cis = TRUE,
                        run_score_tests = FALSE, 
-                       use_fullmodel_info = FALSE,
-                       use_fullmodel_cov = FALSE,
-                       return_both_score_pvals = FALSE,
                        match_row_names = FALSE)
 
 test_that("plot() returns data frame and plot", {
