@@ -430,21 +430,27 @@ emuFit <- function(Y,
           # set as other by default
           constraint_type <- "other"
           
-          # check if it is a single category constraint
-          v1 <- 1:J
-          v2 <- c(J, 1:(J - 1))
-          r <- constraint_fn[[k]](v1)
-          s <- constraint_fn[[k]](v2)
-          r_grad <- constraint_grad_fn[[k]](v1)
-          s_grad <- constraint_grad_fn[[k]](v2)
-          if ((r == 1 && s == J) | r > 1 && s == (r - 1)) {
-            expected_r_grad <- rep(0, J)
-            expected_r_grad[v1 == r] <- 1
-            if (isTRUE(all.equal(r_grad, expected_r_grad)) &&
-                isTRUE(all.equal(r_grad, s_grad))) {
-              constraint_type <- "scc"
-            }
-          } 
+          # commenting out single category constraint 
+          # because this check can cause function to lag
+          # when there is a reference set, and currently
+          # we are treating a single category constraint the
+          # same as "other"
+          
+          # # check if it is a single category constraint
+          # v1 <- 1:J
+          # v2 <- c(J, 1:(J - 1))
+          # r <- constraint_fn[[k]](v1)
+          # s <- constraint_fn[[k]](v2)
+          # r_grad <- constraint_grad_fn[[k]](v1)
+          # s_grad <- constraint_grad_fn[[k]](v2)
+          # if ((r == 1 && s == J) | r > 1 && s == (r - 1)) {
+          #   expected_r_grad <- rep(0, J)
+          #   expected_r_grad[v1 == r] <- 1
+          #   if (isTRUE(all.equal(r_grad, expected_r_grad)) &&
+          #       isTRUE(all.equal(r_grad, s_grad))) {
+          #     constraint_type <- "scc"
+          #   }
+          # } 
           
           # check if symmetric or symmetric subset
           v3 <- rnorm(J)
