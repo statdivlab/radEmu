@@ -69,12 +69,6 @@
 #' @param cluster a numeric vector giving cluster membership for each row of Y to 
 #' be used in computing GEE test statistics. Default is NULL, in which case rows of 
 #' Y are treated as independent.
-#' @param null_fit_constraint the type of constraint, which informs which algorithm
-#' will be used to fit the model under the null hypothesis. NULL by default, in which
-#' case the standard fitting algorithm will be used. If included, this argument must be either
-#' `scc` for single category constraint, `symmetric` for symmetric functions such
-#' as mean or pseudo-Huber median, `symmetric_subset` for symmetric function over a subset of
-#' categories, or `other`.
 #' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
 #' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
@@ -127,7 +121,6 @@ score_test <- function(
   Dy = NULL,
   return_both_score_pvals = FALSE,
   cluster = NULL,
-  null_fit_constraint = NULL,
   null_diagnostic_plots = FALSE,
   ignore_stop = FALSE, 
   tol_lik = 1e-5,
