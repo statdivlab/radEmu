@@ -107,21 +107,8 @@ less efficient implementation (and that both substantially differ from MLE", {
                                        maxit = 1000,
                                        tolerance = 1e-3,
                                        verbose= FALSE)
-  #using old implementation should trigger a message explaining there's no
-  #reason to do this except for testing
-  suppressMessages(expect_message(
-    pl_fit_old <- emuFit_micro_penalized(X,
-                                         Y,
-                                         B = NULL,
-                                         constraint_fn = rep(list(function(x) mean(x)), 2),
-                                         maxit = 10000,
-                                         tolerance = 1e-3,
-                                         verbose= TRUE,
-                                         use_legacy_augmentation = TRUE)))
   
   expect_true(max(abs(ml_fit - pl_fit_new$B))>1)
-  expect_true(max(abs(ml_fit - pl_fit_old$B))>1)
-  expect_equal(pl_fit_new,pl_fit_old,tolerance = 1e-6)
 })
 
 
@@ -158,21 +145,8 @@ less efficient implementation (and that both substantially differ from MLE", {
                                        maxit = 10000,
                                        tolerance = 0.001,
                                        verbose= FALSE)
-  #using old implementation should trigger a message explaining there's no
-  #reason to do this except for testing
-  suppressMessages(expect_message(
-    pl_fit_old <- emuFit_micro_penalized(X,
-                                         Y,
-                                         B = NULL,
-                                         constraint_fn = rep(list(function(x) mean(x)), 2),
-                                         maxit = 10000,
-                                         tolerance = 0.001,
-                                         verbose= TRUE,
-                                         use_legacy_augmentation = TRUE)))
   
   expect_true(max(abs(ml_fit - pl_fit_new$B))>0.5)
-  expect_true(max(abs(ml_fit - pl_fit_old$B))>0.5)
-  expect_equal(pl_fit_new,pl_fit_old)
 })
 
 test_that("penalized fit uses B if given, and therefore fit is quicker", {
