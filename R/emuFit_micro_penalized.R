@@ -1,4 +1,3 @@
-
 #' Fit radEmu model with Firth penalty
 #'
 #' @param X a p x J design matrix
@@ -28,22 +27,22 @@
 #' g(B_k) = 0)
 #'
 emuFit_micro_penalized <-
-  function(X,
-           Y,
-           B = NULL,
-           X_cup = NULL,
-           constraint_fn = NULL,
-           maxit = 500,
-           ml_maxit = 5,
-           tolerance = 1e-3,
-           max_step = 5,
-           verbose = TRUE,
-           max_abs_B = 250,
-           j_ref = NULL
-  ){
-    
+  function(
+    X,
+    Y,
+    B = NULL,
+    X_cup = NULL,
+    constraint_fn = NULL,
+    maxit = 500,
+    ml_maxit = 5,
+    tolerance = 1e-3,
+    max_step = 5,
+    verbose = TRUE,
+    max_abs_B = 250,
+    j_ref = NULL
+  ) {
     J <- ncol(Y)
-    p <- ncol(X) 
+    p <- ncol(X)
     n <- nrow(Y)
     Y_augmented <- Y
     if (is.null(B)) {
@@ -54,75 +53,81 @@ emuFit_micro_penalized <-
     converged <- FALSE
     counter <- 0
     #get design matrix we'll use for computing augmentations
-    
-    if(verbose){
-      message("Constructing expanded design matrix. For larger datasets this
-may take a moment.")
+
+    if (verbose) {
+      message(
+        "Constructing expanded design matrix. For larger datasets this
+may take a moment."
+      )
     }
-    if(is.null(X_cup)){
-      X_cup <- X_cup_from_X(X,J)
+    if (is.null(X_cup)) {
+      X_cup <- X_cup_from_X(X, J)
     }
-    G <- get_G_for_augmentations(X,J,n,X_cup)
-    
-    while(!converged){
+    G <- get_G_for_augmentations(X, J, n, X_cup)
+
+    while (!converged) {
       # print(counter)
-      
-      if(counter ==0 & is.null(B)){ 
-        Y_augmented <- Y + 1e-3*mean(Y) #ensures we don't diverge to 
-        #infinity in first iteration 
-        #after which point we use 
+
+      if (counter == 0 & is.null(B)) {
+        Y_augmented <- Y + 1e-3 * mean(Y) #ensures we don't diverge to
+        #infinity in first iteration
+        #after which point we use
         #data augmentations based on B
         #is there a smarter way to start?
         #probably.
-      } else{
-        if(verbose){
-          message("Computing data augmentations for Firth penalty. For larger models, this may take some time.")
+      } else {
+        if (verbose) {
+          message(
+            "Computing data augmentations for Firth penalty. For larger models, this may take some time."
+          )
         }
-        
-        augmentations <- get_augmentations(X = X,
-                                           G = G,
-                                           Y = Y,
-                                           B = fitted_model)
+
+        augmentations <- get_augmentations(
+          X = X,
+          G = G,
+          Y = Y,
+          B = fitted_model
+        )
         Y_augmented <- Y + augmentations
-        
       }
-      if(!is.null(fitted_model)){
+      if (!is.null(fitted_model)) {
         old_B <- fitted_model
-      } else{
+      } else {
         old_B <- Inf
       }
       #fit model by ML to data with augmentations
-      fitted_model <- emuFit_micro(X,
-                                   Y_augmented,
-                                   B = fitted_model,
-                                   constraint_fn = constraint_fn,
-                                   # maxit = maxit,
-                                   maxit = ml_maxit,
-                                   warm_start = TRUE,
-                                   max_abs_B = max_abs_B,
-                                   use_working_constraint = TRUE,
-                                   max_stepsize = max_step,
-                                   tolerance = tolerance,
-                                   verbose = verbose,
-                                   j_ref = j_ref)
-      
-      
-      B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model)<max_abs_B])
-      
-      if(B_diff < tolerance){
+      fitted_model <- emuFit_micro(
+        X,
+        Y_augmented,
+        B = fitted_model,
+        constraint_fn = constraint_fn,
+        maxit = ml_maxit,
+        warm_start = TRUE,
+        max_abs_B = max_abs_B,
+        use_working_constraint = TRUE,
+        max_stepsize = max_step,
+        tolerance = tolerance,
+        verbose = verbose,
+        j_ref = j_ref
+      )
+
+      B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model) < max_abs_B])
+
+      if (B_diff < tolerance) {
         converged <- TRUE
         actually_converged <- TRUE
       }
-      
-      if(counter>maxit){
+
+      if (counter > maxit) {
         converged <- TRUE
         actually_converged <- FALSE
       }
       counter <- counter + 1
     }
-    
-    return(list("Y_augmented" = Y_augmented,
-                "B" = fitted_model,
-                "convergence" = actually_converged))
-    
+
+    return(list(
+      "Y_augmented" = Y_augmented,
+      "B" = fitted_model,
+      "convergence" = actually_converged
+    ))
   }
