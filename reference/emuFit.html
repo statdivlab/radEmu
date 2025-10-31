@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,42 +54,33 @@
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  assay_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  penalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  B <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  B_null_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fitted_model <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  refit <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  test_kj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  return_wald_p <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  compute_cis <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  run_score_tests <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  use_fullmodel_info <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  use_fullmodel_cov <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  use_both_cov <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  match_row_names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  constraint_fn <span class="op">=</span> <span class="va">pseudohuber_median</span>,</span>
 <span>  constraint_grad_fn <span class="op">=</span> <span class="va">dpseudohuber_median_dx</span>,</span>
 <span>  constraint_param <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  match_row_names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  unobserved_taxon_error <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  penalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  B <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fitted_model <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  refit <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  tolerance <span class="op">=</span> <span class="fl">1e-04</span>,</span>
-<span>  B_null_tol <span class="op">=</span> <span class="fl">0.001</span>,</span>
-<span>  rho_init <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  inner_tol <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  ntries <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  kappa <span class="op">=</span> <span class="fl">0.8</span>,</span>
-<span>  constraint_tol <span class="op">=</span> <span class="fl">1e-05</span>,</span>
-<span>  c1 <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  maxit <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  inner_maxit <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  max_step <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  trackB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  return_nullB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  return_score_components <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  return_wald_p <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  compute_cis <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  run_score_tests <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  test_kj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  null_fit_alg <span class="op">=</span> <span class="st">"constraint_sandwich"</span>,</span>
+<span>  B_null_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  maxit_null <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  tol_lik <span class="op">=</span> <span class="fl">1e-05</span>,</span>
+<span>  tol_test_stat <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  null_window <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  null_diagnostic_plots <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  remove_zero_comparison_pvals <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  unobserved_taxon_error <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  control <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -102,11 +93,11 @@
 
 
 <dt id="arg-x">X<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>an n x p matrix or dataframe of covariates (optional)</p></dd>
+<dd><p>an n x p design matrix (either provide <code>X</code> or <code>data</code> and <code>formula</code>)</p></dd>
 
 
 <dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
-<dd><p>a one-sided formula specifying the form of the mean model to be fit</p></dd>
+<dd><p>a one-sided formula specifying the form of the mean model to be fit (used with <code>data</code>)</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
@@ -115,8 +106,7 @@
 
 <dt id="arg-assay-name">assay_name<a class="anchor" aria-label="anchor" href="#arg-assay-name"></a></dt>
 <dd><p>a string containing the desired assay name within a <code>TreeSummarizedExperiment</code> object.
-This is only required if Y is a <code>TreeSummarizedExperiment</code> object, otherwise this argument does nothing
-and can be ignored.</p></dd>
+This is only required if Y is a <code>TreeSummarizedExperiment</code> object, otherwise this argument can be ignored.</p></dd>
 
 
 <dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
@@ -124,31 +114,90 @@ and can be ignored.</p></dd>
 GEE test statistics. Default is NULL, in which case rows of Y are treated as independent.</p></dd>
 
 
+<dt id="arg-constraint-fn">constraint_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-fn"></a></dt>
+<dd><p>(Optional) User-provided constraint function, if default behavior of comparing log fold-difference
+parameters to smoothed median over all categories is not desired. If a number is provided a single category constraint will be used
+with the provided category as a reference category. This argument can either be a single constraint
+function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.</p></dd>
+
+
+<dt id="arg-constraint-grad-fn">constraint_grad_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-grad-fn"></a></dt>
+<dd><p>(Optional) User-provided derivative of constraint function, if default behavior of comparing log fold-difference
+parameters to smoothed median over all categories is not desired. If <code>constraint_fn</code> is a list of constraint functions, then
+this argument must also be a list. If <code>constraint_fn</code> is a single number, or a list that includes a
+single number, then the corresponding <code>constraint_grad_fn</code> can be set to <code>NULL</code>, and will be appropriately
+set within the function.</p></dd>
+
+
+<dt id="arg-constraint-param">constraint_param<a class="anchor" aria-label="anchor" href="#arg-constraint-param"></a></dt>
+<dd><p>(Optional) If the smoothed median is used as a constraint (this is the default),
+parameter controlling relative weighting of elements closer and further from center.
+(Limit as <code>constraint_param</code> approaches infinity is the mean; as this parameter approaches zero,
+the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not smoothed median
+(implemented in <code><a href="pseudohuber_median.html">radEmu::pseudohuber_median()</a></code>) then this argument will be ignored.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>provide updates as model is being fitted? Defaults to <code>FALSE</code>. If user sets <code>verbose = TRUE</code>,
+then key messages about algorithm progress will be displayed. If user sets <code>verbose = "development"</code>,
+then key messages and technical messages about convergence will be displayed. Most users who want status
+updates should set <code>verbose = TRUE</code>.</p></dd>
+
+
+<dt id="arg-match-row-names">match_row_names<a class="anchor" aria-label="anchor" href="#arg-match-row-names"></a></dt>
+<dd><p>logical: If <code>TRUE</code>, make sure rows on covariate data and response data correspond to
+the same sample by comparing row names and subsetting/reordering if necessary. Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-unobserved-taxon-error">unobserved_taxon_error<a class="anchor" aria-label="anchor" href="#arg-unobserved-taxon-error"></a></dt>
+<dd><p>logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.</p></dd>
+
+
 <dt id="arg-penalize">penalize<a class="anchor" aria-label="anchor" href="#arg-penalize"></a></dt>
-<dd><p>logical: should Firth penalty be used in fitting model? Default is TRUE.</p></dd>
+<dd><p>logical: should Firth penalty be used? Default is <code>TRUE</code>. Used in estimation.</p></dd>
 
 
 <dt id="arg-b">B<a class="anchor" aria-label="anchor" href="#arg-b"></a></dt>
-<dd><p>starting value of coefficient matrix (p x J). If not provided,
-B will be initiated as a zero matrix.</p></dd>
-
-
-<dt id="arg-b-null-list">B_null_list<a class="anchor" aria-label="anchor" href="#arg-b-null-list"></a></dt>
-<dd><p>list of starting values of coefficient matrix (p x J) for null estimation. This should either
-be a list with the same length as <code>test_kj</code>. If you only want to provide starting values for some tests,
-include the other elements of the list as <code>NULL</code>.</p></dd>
+<dd><p>starting value of coefficient matrix (p x J) for estimation. If not provided, B will be initiated as a zero matrix.
+Used in estimation.</p></dd>
 
 
 <dt id="arg-fitted-model">fitted_model<a class="anchor" aria-label="anchor" href="#arg-fitted-model"></a></dt>
-<dd><p>a fitted model produced by a separate call to emuFit; to
-be provided if score tests are to be run without refitting the full unrestricted model.
-Default is NULL.</p></dd>
+<dd><p>a fitted model produced by a separate call to emuFit; to be provided if score tests
+are to be run without refitting the full unrestricted model. Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-refit">refit<a class="anchor" aria-label="anchor" href="#arg-refit"></a></dt>
-<dd><p>logical: if B or fitted_model is provided, should full model be fit (TRUE) or
-should fitting step be skipped (FALSE), e.g., if score tests are to be run on an already
-fitted model. Default is TRUE.</p></dd>
+<dd><p>logical: if <code>B</code> or <code>fitted_model</code> is provided, should full model be fit (<code>TRUE</code>) or
+should fitting step be skipped (<code>FALSE</code>), e.g., if score tests are to be run on an already
+fitted model. Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-tolerance">tolerance<a class="anchor" aria-label="anchor" href="#arg-tolerance"></a></dt>
+<dd><p>tolerance for stopping criterion in estimation; once no element of B is updated by more than this value
+in a single step, we exit optimization. Defaults to <code>1e-3</code>. Used in estimation.</p></dd>
+
+
+<dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
+<dd><p>maximum number of outer iterations to perform before exiting optimization. Default is <code>1000</code>.
+Used in estimation.</p></dd>
+
+
+<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
+<dd><p>nominal type 1 error level to be used to construct confidence intervals. Default is <code>0.05</code>
+(corresponding to 95% confidence intervals)</p></dd>
+
+
+<dt id="arg-return-wald-p">return_wald_p<a class="anchor" aria-label="anchor" href="#arg-return-wald-p"></a></dt>
+<dd><p>logical: return p-values from Wald tests? Default is <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-compute-cis">compute_cis<a class="anchor" aria-label="anchor" href="#arg-compute-cis"></a></dt>
+<dd><p>logical: compute and return Wald CIs? Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-run-score-tests">run_score_tests<a class="anchor" aria-label="anchor" href="#arg-run-score-tests"></a></dt>
+<dd><p>logical: perform robust score testing? Default is TRUE.</p></dd>
 
 
 <dt id="arg-test-kj">test_kj<a class="anchor" aria-label="anchor" href="#arg-test-kj"></a></dt>
@@ -160,157 +209,39 @@ column of the design matrix corresponds to each covariate in your model. This ar
 running score tests.</p></dd>
 
 
-<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
-(corresponding to 95% confidence intervals)</p></dd>
+<dt id="arg-null-fit-alg">null_fit_alg<a class="anchor" aria-label="anchor" href="#arg-null-fit-alg"></a></dt>
+<dd><p>Which null fitting algorithm to use for score tests: <code>"constraint_sandwich"</code> or
+<code>"augmented_lagrangian"</code>. Default and recommended approach is <code>"constraint_sandwich"</code>, unless <code>J &lt; 20</code>.</p></dd>
 
 
-<dt id="arg-return-wald-p">return_wald_p<a class="anchor" aria-label="anchor" href="#arg-return-wald-p"></a></dt>
-<dd><p>logical: return p-values from Wald tests? Default is FALSE.</p></dd>
+<dt id="arg-b-null-list">B_null_list<a class="anchor" aria-label="anchor" href="#arg-b-null-list"></a></dt>
+<dd><p>list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either
+be a list with the same length as <code>test_kj</code>. If you only want to provide starting values for some tests,
+include the other elements of the list as <code>NULL</code>.</p></dd>
 
 
-<dt id="arg-compute-cis">compute_cis<a class="anchor" aria-label="anchor" href="#arg-compute-cis"></a></dt>
-<dd><p>logical: compute and return Wald CIs? Default is TRUE.</p></dd>
+<dt id="arg-maxit-null">maxit_null<a class="anchor" aria-label="anchor" href="#arg-maxit-null"></a></dt>
+<dd><p>maximum number of outer iterations to perform before exiting optimization. Default is <code>1000</code>.
+Used in estimation under null hypothesis for score tests.</p></dd>
 
 
-<dt id="arg-run-score-tests">run_score_tests<a class="anchor" aria-label="anchor" href="#arg-run-score-tests"></a></dt>
-<dd><p>logical: perform robust score testing? Default is TRUE.</p></dd>
+<dt id="arg-tol-lik">tol_lik<a class="anchor" aria-label="anchor" href="#arg-tol-lik"></a></dt>
+<dd><p>tolerance for relative changes in likelihood for stopping criteria. Default is <code>1e-5</code>. Used in
+estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.</p></dd>
 
 
-<dt id="arg-use-fullmodel-info">use_fullmodel_info<a class="anchor" aria-label="anchor" href="#arg-use-fullmodel-info"></a></dt>
-<dd><p>logical: TODO? Default is FALSE.</p></dd>
+<dt id="arg-tol-test-stat">tol_test_stat<a class="anchor" aria-label="anchor" href="#arg-tol-test-stat"></a></dt>
+<dd><p>tolerance for relative changes in test statistic for stopping criteria. Default is <code>0.01</code>. Used in
+estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.</p></dd>
 
 
-<dt id="arg-use-fullmodel-cov">use_fullmodel_cov<a class="anchor" aria-label="anchor" href="#arg-use-fullmodel-cov"></a></dt>
-<dd><p>logical: use information matrix and empirical score covariance
-computed for full model fit? Defaults to FALSE, in which case these quantities are
-recomputed for each null model fit for score testing.</p></dd>
+<dt id="arg-null-window">null_window<a class="anchor" aria-label="anchor" href="#arg-null-window"></a></dt>
+<dd><p>window to use for stopping criteria (this many iterations where stopping criteria is met). Default is <code>5</code>.
+Used in estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.</p></dd>
 
 
-<dt id="arg-use-both-cov">use_both_cov<a class="anchor" aria-label="anchor" href="#arg-use-both-cov"></a></dt>
-<dd><p>logical: should score tests be run using information and
-empirical score covariance evaluated both under the null and full models?
-Used in simulations</p></dd>
-
-
-<dt id="arg-match-row-names">match_row_names<a class="anchor" aria-label="anchor" href="#arg-match-row-names"></a></dt>
-<dd><p>logical: Make sure rows on covariate data and response data correspond to
-the same sample by comparing row names and subsetting/reordering if necessary.</p></dd>
-
-
-<dt id="arg-constraint-fn">constraint_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-fn"></a></dt>
-<dd><p>function g defining a constraint on rows of B; g(B_k) = 0
-for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-pseudohuber loss). If a number is provided a single category constraint will be used
-with the provided category as a reference category. This argument can either be a single constraint
-function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.</p></dd>
-
-
-<dt id="arg-constraint-grad-fn">constraint_grad_fn<a class="anchor" aria-label="anchor" href="#arg-constraint-grad-fn"></a></dt>
-<dd><p>derivative of constraint_fn with respect to its
-arguments (i.e., elements of a row of B). If <code>constraint_fn</code> is a list of constraint functions, then
-this argument must also be a list. If <code>constraint_fn</code> is a single number, or a list that includes a
-single number, then the corresponding <code>constraint_grad_fn</code> can be set to <code>NULL</code>, and will be appropriately
-set within the function.</p></dd>
-
-
-<dt id="arg-constraint-param">constraint_param<a class="anchor" aria-label="anchor" href="#arg-constraint-param"></a></dt>
-<dd><p>If pseudohuber centering is used (this is the default),
-parameter controlling relative weighting of elements closer and further from center.
-(Limit as <code>constraint_param</code> approaches infinity is the mean; as this parameter approaches zero,
-the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
-centering (implemented in <code><a href="pseudohuber_median.html">radEmu::pseudohuber_median()</a></code>) then this argument will be ignored.</p></dd>
-
-
-<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
-<dd><p>provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
-then key messages about algorithm progress will be displayed. If user sets verbose = "development",
-then key messages and technical messages about convergence will be displayed. Most users who want status
-updates should set verbose = TRUE.</p></dd>
-
-
-<dt id="arg-tolerance">tolerance<a class="anchor" aria-label="anchor" href="#arg-tolerance"></a></dt>
-<dd><p>tolerance for stopping criterion in full model fitting; once
-no element of B is updated by more than this value in a single step, we exit
-optimization. Defaults to 1e-3.</p></dd>
-
-
-<dt id="arg-b-null-tol">B_null_tol<a class="anchor" aria-label="anchor" href="#arg-b-null-tol"></a></dt>
-<dd><p>numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
-B across outer iterations is below this threshold, we declare convergence).
-Default is 0.01.</p></dd>
-
-
-<dt id="arg-rho-init">rho_init<a class="anchor" aria-label="anchor" href="#arg-rho-init"></a></dt>
-<dd><p>numeric: value at which to initiate rho parameter in augmented Lagrangian
-algorithm. Default is 1.</p></dd>
-
-
-<dt id="arg-inner-tol">inner_tol<a class="anchor" aria-label="anchor" href="#arg-inner-tol"></a></dt>
-<dd><p>numeric: convergence tolerance for augmented Lagrangian subproblems
-within null model fitting. Default is 1.</p></dd>
-
-
-<dt id="arg-ntries">ntries<a class="anchor" aria-label="anchor" href="#arg-ntries"></a></dt>
-<dd><p>numeric: how many times should optimization be tried in null
-models where at least one optimization attempt fails? Default is 4.</p></dd>
-
-
-<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
-<dd><p>numeric: value to scale rho by in each iteration of augmented Lagrangian
-algorithm that does not move estimate toward zero sufficiently. Default is 2.</p></dd>
-
-
-<dt id="arg-kappa">kappa<a class="anchor" aria-label="anchor" href="#arg-kappa"></a></dt>
-<dd><p>numeric: value between 0 and 1 that determines the cutoff on the ratio
-of current distance from feasibility over distance in last iteration triggering
-scaling of rho. If this ratio is above kappa, rho is scaled by tau to encourage
-estimate to move toward feasibility.</p></dd>
-
-
-<dt id="arg-constraint-tol">constraint_tol<a class="anchor" aria-label="anchor" href="#arg-constraint-tol"></a></dt>
-<dd><p>numeric: constraint tolerance for fits under null hypotheses
-(tested element of B must be equal to constraint function to within this tolerance for
-a fit to be accepted as a solution to constrained optimization problem). Default is 1e-5.</p></dd>
-
-
-<dt id="arg-c-">c1<a class="anchor" aria-label="anchor" href="#arg-c-"></a></dt>
-<dd><p>numeric: parameter for Armijo line search. Default is 1e-4.</p></dd>
-
-
-<dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
-<dd><p>maximum number of outer iterations of augmented lagrangian algorithm to perform before
-exiting optimization. Default is 1000.</p></dd>
-
-
-<dt id="arg-inner-maxit">inner_maxit<a class="anchor" aria-label="anchor" href="#arg-inner-maxit"></a></dt>
-<dd><p>maximum number of coordinate descent passes through columns of B to make within each
-outer iteration of augmented lagrangian algorithm before exiting inner loop</p></dd>
-
-
-<dt id="arg-max-step">max_step<a class="anchor" aria-label="anchor" href="#arg-max-step"></a></dt>
-<dd><p>maximum stepsize; update directions computed during optimization
-will be rescaled if a step in any parameter exceeds this value. Defaults to 0.5.</p></dd>
-
-
-<dt id="arg-trackb">trackB<a class="anchor" aria-label="anchor" href="#arg-trackb"></a></dt>
-<dd><p>logical: should values of B be recorded across optimization
-iterations and be returned? Primarily used for debugging. Default is FALSE.</p></dd>
-
-
-<dt id="arg-return-nullb">return_nullB<a class="anchor" aria-label="anchor" href="#arg-return-nullb"></a></dt>
-<dd><p>logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE.</p></dd>
-
-
-<dt id="arg-return-score-components">return_score_components<a class="anchor" aria-label="anchor" href="#arg-return-score-components"></a></dt>
-<dd><p>logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.</p></dd>
-
-
-<dt id="arg-return-both-score-pvals">return_both_score_pvals<a class="anchor" aria-label="anchor" href="#arg-return-both-score-pvals"></a></dt>
-<dd><p>logical: should score p-values be returned using both
-information matrix computed from full model fit and from null model fits? Default is
-FALSE. This parameter is used for simulations - in any applied analysis, type of
-p-value to be used should be chosen before conducting tests.</p></dd>
+<dt id="arg-null-diagnostic-plots">null_diagnostic_plots<a class="anchor" aria-label="anchor" href="#arg-null-diagnostic-plots"></a></dt>
+<dd><p>logical: should diagnostic plots be made for estimation under the null hypothesis? Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-remove-zero-comparison-pvals">remove_zero_comparison_pvals<a class="anchor" aria-label="anchor" href="#arg-remove-zero-comparison-pvals"></a></dt>
@@ -323,8 +254,13 @@ If a value between 0 and 1, all zero-comparison p-values below the value will be
 Default is <code>0.01</code>.</p></dd>
 
 
-<dt id="arg-unobserved-taxon-error">unobserved_taxon_error<a class="anchor" aria-label="anchor" href="#arg-unobserved-taxon-error"></a></dt>
-<dd><p>logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.</p></dd>
+<dt id="arg-control">control<a class="anchor" aria-label="anchor" href="#arg-control"></a></dt>
+<dd><p>A list of control parameters, to have more control over estimation and hypothesis testing. See <code>control_fn</code> for details.</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Additional arguments. Arguments matching the names of <code><a href="control_fn.html">control_fn()</a></code> options are forwarded to that function and override
+defaults. Unknown arguments are ignored with a warning.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -358,8 +294,7 @@ including whether or not the algorithm converged, which can be helpful for debug
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wirbel_sample_small</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wirbel_otu_small</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">emuRes</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, data <span class="op">=</span> <span class="va">wirbel_sample_small</span>, Y <span class="op">=</span> <span class="va">wirbel_otu_small</span>,</span></span>
-<span class="r-in"><span>                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, tolerance <span class="op">=</span> <span class="fl">0.01</span>, </span></span>
-<span class="r-in"><span>                 constraint_tol <span class="op">=</span> <span class="fl">0.01</span>, B_null_tol <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> </span></span>
+<span class="r-in"><span>                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, tolerance <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> </span></span>
 <span class="r-in"><span> <span class="co"># here we set large tolerances for the example to run quickly, </span></span></span>
 <span class="r-in"><span> <span class="co"># but we recommend smaller tolerances in practice</span></span></span>
 <span class="r-in"><span></span></span>
@@ -369,7 +304,7 @@ including whether or not the algorithm converged, which can be helpful for debug
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/example.html" class="external-link">example</a></span><span class="op">(</span><span class="st">"TreeSummarizedExperiment"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">assayNames</span><span class="op">(</span><span class="va">tse</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"counts"</span></span></span>
 <span class="r-in"><span><span class="va">emuRes</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>Y <span class="op">=</span> <span class="va">tse</span>, formula <span class="op">=</span> <span class="op">~</span> <span class="va">condition</span>, assay_name <span class="op">=</span> <span class="st">"counts"</span>, </span></span>
-<span class="r-in"><span>                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, tolerance <span class="op">=</span> <span class="fl">0.01</span>, constraint_tol <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span>, j <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, tolerance <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></span>
 <span class="r-in"><span> <span class="co"># here we set large tolerances for the example to run quickly, </span></span></span>
 <span class="r-in"><span> <span class="co"># but we recommend smaller tolerances in practice</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>

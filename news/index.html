@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,15 @@
       <small>Source: <a href="https://github.com/statdivlab/radEmu/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.2.0.0" id="rademu-2200">radEmu 2.2.0.0<a class="anchor" aria-label="anchor" href="#rademu-2200"></a></h2>
+<p>This is a minor release that changes the algorithm used to estimate parameters under the null hypothesis in score tests depending on the identifiability constraint that is used. All functions are backwards compatible, but there are major changes in the back-end, which may lead to small changes in results of analyses compared to those that were run before this update.</p>
+<div class="section level3">
+<h3 id="changes-2-2-0-0">Changes<a class="anchor" aria-label="anchor" href="#changes-2-2-0-0"></a></h3>
+<p>A different algorithm is used by default to estimate parameters under the null hypothesis. This algorithm is typically faster and more likely to converge to a solution.</p>
+<p>Additionally, a <code>control</code> argument list is added to <code><a href="../reference/emuFit.html">emuFit()</a></code>, which includes many arguments that relate to algorithms and convergence. This is not a breaking change because using these arguments outside of the <code>control</code> list will not lead to an error. The goal of this is to clarify documentation.</p>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.1.1.0" id="rademu-2110">radEmu 2.1.1.0<a class="anchor" aria-label="anchor" href="#rademu-2110"></a></h2>
 <p>This is a minor release that exports the functions <code><a href="../reference/pseudohuber_median.html">pseudohuber_median()</a></code> and <code><a href="../reference/dpseudohuber_median_dx.html">dpseudohuber_median_dx()</a></code>, which calculate the pseudo-Huber smoothed median and its derivative. These are the default constraint functions used in <code>radEmu</code>.</p>

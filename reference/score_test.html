@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,7 +72,13 @@
 <span>  I_inv <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  Dy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  return_both_score_pvals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  cluster <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  null_fit_constraint <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  null_diagnostic_plots <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  ignore_stop <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  tol_lik <span class="op">=</span> <span class="fl">1e-05</span>,</span>
+<span>  tol_test_stat <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  null_window <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -209,6 +215,34 @@ p-value to be used should be chosen before conducting tests.</p></dd>
 <dd><p>a numeric vector giving cluster membership for each row of Y to
 be used in computing GEE test statistics. Default is NULL, in which case rows of
 Y are treated as independent.</p></dd>
+
+
+<dt id="arg-null-fit-constraint">null_fit_constraint<a class="anchor" aria-label="anchor" href="#arg-null-fit-constraint"></a></dt>
+<dd><p>the type of constraint, which informs which algorithm
+will be used to fit the model under the null hypothesis. NULL by default, in which
+case the standard fitting algorithm will be used. If included, this argument must be either
+<code>scc</code> for single category constraint, <code>symmetric</code> for symmetric functions such
+as mean or pseudo-Huber median, or <code>other</code>.</p></dd>
+
+
+<dt id="arg-null-diagnostic-plots">null_diagnostic_plots<a class="anchor" aria-label="anchor" href="#arg-null-diagnostic-plots"></a></dt>
+<dd><p>logical: should diagnostic plots be made for estimation under the null hypothesis? Default is <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-ignore-stop">ignore_stop<a class="anchor" aria-label="anchor" href="#arg-ignore-stop"></a></dt>
+<dd><p>whether to ignore stopping criteria and run <code>maxit</code> iterations (could be helpful for diagnostic plots).</p></dd>
+
+
+<dt id="arg-tol-lik">tol_lik<a class="anchor" aria-label="anchor" href="#arg-tol-lik"></a></dt>
+<dd><p>tolerance for relative changes in likelihood for stopping criteria. Default is <code>1e-5</code>.</p></dd>
+
+
+<dt id="arg-tol-test-stat">tol_test_stat<a class="anchor" aria-label="anchor" href="#arg-tol-test-stat"></a></dt>
+<dd><p>tolerance for relative changes in test statistic for stopping criteria. Default is <code>0.01</code>.</p></dd>
+
+
+<dt id="arg-null-window">null_window<a class="anchor" aria-label="anchor" href="#arg-null-window"></a></dt>
+<dd><p>window to use for stopping criteria (this many iterations where stopping criteria is met). Default is <code>5</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,18 +57,19 @@
 <span>  <span class="va">j_ref</span>,</span>
 <span>  <span class="va">constraint_fn</span>,</span>
 <span>  <span class="va">constraint_grad_fn</span>,</span>
-<span>  rho_init <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fl">1.2</span>,</span>
-<span>  kappa <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  B_tol <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  inner_tol <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  constraint_tol <span class="op">=</span> <span class="fl">1e-04</span>,</span>
-<span>  max_step <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  c1 <span class="op">=</span> <span class="fl">1e-04</span>,</span>
+<span>  c1 <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  maxit <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  inner_maxit <span class="op">=</span> <span class="fl">25</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  trackB <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  trackB <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  use_optim <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  ignore_stop <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  tol_lik <span class="op">=</span> <span class="fl">1e-05</span>,</span>
+<span>  tol_test_stat <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  null_window <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  max_step <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -112,32 +113,12 @@
 <dd><p>gradient of constraint fn</p></dd>
 
 
-<dt id="arg-rho-init">rho_init<a class="anchor" aria-label="anchor" href="#arg-rho-init"></a></dt>
-<dd><p>where to start quadratic penalty parameter</p></dd>
-
-
-<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
-<dd><p>how much to increment rho by each iteration</p></dd>
-
-
-<dt id="arg-kappa">kappa<a class="anchor" aria-label="anchor" href="#arg-kappa"></a></dt>
-<dd><p>cutoff above which to increment rho. If distance to feasibility doesn't shrink by at least this factor in an iteration, increment rho by tau.</p></dd>
-
-
 <dt id="arg-b-tol">B_tol<a class="anchor" aria-label="anchor" href="#arg-b-tol"></a></dt>
-<dd><p>tolerance for convergence in $max_k,j |B^t_kj - B^(t - 1)_kj|$</p></dd>
+<dd><p>tolerance for convergence in \(max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert\)</p></dd>
 
 
 <dt id="arg-inner-tol">inner_tol<a class="anchor" aria-label="anchor" href="#arg-inner-tol"></a></dt>
 <dd><p>tolerance for inner loop</p></dd>
-
-
-<dt id="arg-constraint-tol">constraint_tol<a class="anchor" aria-label="anchor" href="#arg-constraint-tol"></a></dt>
-<dd><p>tolerance for $|B_kj - g(B_k)|$</p></dd>
-
-
-<dt id="arg-max-step">max_step<a class="anchor" aria-label="anchor" href="#arg-max-step"></a></dt>
-<dd><p>maximum step size</p></dd>
 
 
 <dt id="arg-c-">c1<a class="anchor" aria-label="anchor" href="#arg-c-"></a></dt>
@@ -159,17 +140,39 @@
 <dt id="arg-trackb">trackB<a class="anchor" aria-label="anchor" href="#arg-trackb"></a></dt>
 <dd><p>track value of beta across iterations and return?</p></dd>
 
+
+<dt id="arg-use-optim">use_optim<a class="anchor" aria-label="anchor" href="#arg-use-optim"></a></dt>
+<dd><p>whether to use <code>optim</code> instead of fisher scoring. Default is FALSE.</p></dd>
+
+
+<dt id="arg-ignore-stop">ignore_stop<a class="anchor" aria-label="anchor" href="#arg-ignore-stop"></a></dt>
+<dd><p>whether to ignore stopping criteria and run <code>maxit</code> iterations (could be helpful for diagnostic plots).</p></dd>
+
+
+<dt id="arg-tol-lik">tol_lik<a class="anchor" aria-label="anchor" href="#arg-tol-lik"></a></dt>
+<dd><p>tolerance for relative changes in likelihood for stopping criteria. Default is <code>1e-5</code>.</p></dd>
+
+
+<dt id="arg-tol-test-stat">tol_test_stat<a class="anchor" aria-label="anchor" href="#arg-tol-test-stat"></a></dt>
+<dd><p>tolerance for relative changes in test statistic for stopping criteria. Default is <code>0.01</code>.</p></dd>
+
+
+<dt id="arg-null-window">null_window<a class="anchor" aria-label="anchor" href="#arg-null-window"></a></dt>
+<dd><p>window to use for stopping criteria (this many iterations where stopping criteria is met). Default is <code>5</code>.</p></dd>
+
+
+<dt id="arg-max-step">max_step<a class="anchor" aria-label="anchor" href="#arg-max-step"></a></dt>
+<dd><p>Default is <code>1</code></p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing elements <code>B</code>, <code>k_constr</code>, <code>j_constr</code>, <code>niter</code>
-<code>gap</code>, <code>u</code>, <code>rho</code>, and <code>Bs</code>. <code>B</code> is a matrix containing parameter estimates
+and <code>Bs</code>. <code>B</code> is a matrix containing parameter estimates
 under the null (obtained by maximum likelihood on augmented observations Y),
 <code>k_constr</code>, and <code>j_constr</code> give row and column indexes of the parameter
-fixed to be equal to the constraint function $g()$ under the null. <code>niter</code> is a
-scalar giving total number of outer iterations used to fit the null model,
-<code>gap</code> gives the final value of $g(B_k constr) - B_k constr, j constr$,
-<code>u</code> and <code>rho</code> are final values of augmented Lagrangian parameters, and
+fixed to be equal to the constraint function \(g()\) under the null. <code>niter</code> is a
+scalar giving total number of outer iterations used to fit the null model, and
 <code>Bs</code> is a data frame containing values of B by iteration if <code>trackB</code> was set
 equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm</p>
     </div>
