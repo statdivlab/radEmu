@@ -1,101 +1,71 @@
 #' Fit radEmu model
 #'
 #' @param Y an n x J matrix or dataframe of nonnegative observations, or a phyloseq object containing an otu table and sample data.
-#' @param X an n x p matrix or dataframe of covariates (optional)
-#' @param formula a one-sided formula specifying the form of the mean model to be fit
+#' @param X an n x p design matrix (either provide \code{X} or \code{data} and \code{formula})
+#' @param formula a one-sided formula specifying the form of the mean model to be fit (used with \code{data})
 #' @param data an n x p data frame containing variables given in \code{formula}
 #' @param assay_name a string containing the desired assay name within a `TreeSummarizedExperiment` object.
-#' This is only required if Y is a `TreeSummarizedExperiment` object, otherwise this argument does nothing
-#' and can be ignored.
+#' This is only required if Y is a `TreeSummarizedExperiment` object, otherwise this argument can be ignored.
 #' @param cluster a vector giving cluster membership for each row of Y to be used in computing 
 #' GEE test statistics. Default is NULL, in which case rows of Y are treated as independent.
-#' @param penalize logical: should Firth penalty be used in fitting model? Default is TRUE.
-#' @param B starting value of coefficient matrix (p x J). If not provided,
-#' B will be initiated as a zero matrix.
-#' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation. This should either 
-#' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
-#' include the other elements of the list as \code{NULL}.
-#' @param fitted_model a fitted model produced by a separate call to emuFit; to
-#' be provided if score tests are to be run without refitting the full unrestricted model.
-#' Default is NULL.
-#' @param refit logical: if B or fitted_model is provided, should full model be fit (TRUE) or
-#' should fitting step be skipped (FALSE), e.g., if score tests are to be run on an already
-#' fitted model. Default is TRUE.
+#' @param constraint_fn (Optional) User-provided constraint function, if default behavior of comparing log fold-difference
+#' parameters to smoothed median over all categories is not desired. If a number is provided a single category constraint will be used
+#' with the provided category as a reference category. This argument can either be a single constraint 
+#' function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.
+#' @param constraint_grad_fn (Optional) User-provided derivative of constraint function, if default behavior of comparing log fold-difference
+#' parameters to smoothed median over all categories is not desired. If \code{constraint_fn} is a list of constraint functions, then
+#' this argument must also be a list. If \code{constraint_fn} is a single number, or a list that includes a 
+#' single number, then the corresponding \code{constraint_grad_fn} can be set to \code{NULL}, and will be appropriately 
+#' set within the function. 
+#' @param constraint_param (Optional) If the smoothed median is used as a constraint (this is the default),
+#' parameter controlling relative weighting of elements closer and further from center.
+#' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
+#' the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not smoothed median
+#'  (implemented in \code{radEmu::pseudohuber_median()}) then this argument will be ignored.
+#' @param verbose provide updates as model is being fitted? Defaults to `FALSE`. If user sets `verbose = TRUE`,
+#' then key messages about algorithm progress will be displayed. If user sets `verbose = "development"`,
+#' then key messages and technical messages about convergence will be displayed. Most users who want status
+#' updates should set `verbose = TRUE`.
+#' @param match_row_names logical: If `TRUE`, make sure rows on covariate data and response data correspond to 
+#' the same sample by comparing row names and subsetting/reordering if necessary. Default is `TRUE`.
+#' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
+#' @param penalize logical: should Firth penalty be used? Default is `TRUE`. Used in estimation.
+#' @param B starting value of coefficient matrix (p x J) for estimation. If not provided, B will be initiated as a zero matrix. 
+#' Used in estimation.
+#' @param fitted_model a fitted model produced by a separate call to emuFit; to be provided if score tests 
+#' are to be run without refitting the full unrestricted model. Default is `NULL`.
+#' @param refit logical: if `B` or `fitted_model` is provided, should full model be fit (`TRUE`) or
+#' should fitting step be skipped (`FALSE`), e.g., if score tests are to be run on an already
+#' fitted model. Default is `TRUE`.
+#' @param tolerance tolerance for stopping criterion in estimation; once no element of B is updated by more than this value 
+#' in a single step, we exit optimization. Defaults to `1e-3`. Used in estimation. 
+#' @param maxit maximum number of outer iterations to perform before exiting optimization. Default is `1000`.
+#' Used in estimation.
+#' @param alpha nominal type 1 error level to be used to construct confidence intervals. Default is `0.05`
+#' (corresponding to 95% confidence intervals)
+#' @param return_wald_p logical: return p-values from Wald tests? Default is `FALSE`.
+#' @param compute_cis logical: compute and return Wald CIs? Default is `TRUE`.
+#' @param run_score_tests logical: perform robust score testing? Default is TRUE.
 #' @param test_kj a data frame whose rows give coordinates (in category j and
 #' covariate k) of elements of B to construct hypothesis tests for. If you don't know
 #' which indices k correspond to the covariate(s) that you would like to test, run the function
 #' \code{radEmu::make_design_matrix()} in order to view the design matrix, and identify which
 #' column of the design matrix corresponds to each covariate in your model. This argument is required when
 #' running score tests.
-#' @param alpha nominal type 1 error level to be used to construct confidence intervals. Default is 0.05
-#' (corresponding to 95% confidence intervals)
-#' @param return_wald_p logical: return p-values from Wald tests? Default is FALSE.
-#' @param compute_cis logical: compute and return Wald CIs? Default is TRUE.
-#' @param run_score_tests logical: perform robust score testing? Default is TRUE.
-#' @param use_fullmodel_info logical: TODO? Default is FALSE.
-#' @param use_fullmodel_cov logical: use information matrix and empirical score covariance
-#' computed for full model fit? Defaults to FALSE, in which case these quantities are
-#' recomputed for each null model fit for score testing.
-#' @param use_both_cov logical: should score tests be run using information and
-#' empirical score covariance evaluated both under the null and full models?
-#' Used in simulations
-#' @param match_row_names logical: Make sure rows on covariate data and response data correspond to 
-#' the same sample by comparing row names and subsetting/reordering if necessary. 
-#' @param constraint_fn function g defining a constraint on rows of B; g(B_k) = 0
-#' for rows k = 1, ..., p of B. Default function is a smoothed median (minimizer of
-#' pseudohuber loss). If a number is provided a single category constraint will be used
-#' with the provided category as a reference category. This argument can either be a single constraint 
-#' function to be used for all rows of B, or a list of length p of constraints to be used for each row of B.
-#' @param constraint_grad_fn derivative of constraint_fn with respect to its
-#' arguments (i.e., elements of a row of B). If \code{constraint_fn} is a list of constraint functions, then
-#' this argument must also be a list. If \code{constraint_fn} is a single number, or a list that includes a 
-#' single number, then the corresponding \code{constraint_grad_fn} can be set to \code{NULL}, and will be appropriately 
-#' set within the function. 
-#' @param constraint_param If pseudohuber centering is used (this is the default),
-#' parameter controlling relative weighting of elements closer and further from center.
-#' (Limit as \code{constraint_param} approaches infinity is the mean; as this parameter approaches zero,
-#' the minimizer of the pseudo-Huber loss approaches the median.) If constraint function is not pseudohuber
-#' centering (implemented in \code{radEmu::pseudohuber_median()}) then this argument will be ignored.
-#' @param verbose provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
-#' then key messages about algorithm progress will be displayed. If user sets verbose = "development",
-#' then key messages and technical messages about convergence will be displayed. Most users who want status
-#' updates should set verbose = TRUE.
-#' @param tolerance tolerance for stopping criterion in full model fitting; once
-#' no element of B is updated by more than this value in a single step, we exit
-#' optimization. Defaults to 1e-3.
-#' @param rho_init numeric: value at which to initiate rho parameter in augmented Lagrangian
-#' algorithm. Default is 1.
-#' @param tau numeric: value to scale rho by in each iteration of augmented Lagrangian
-#' algorithm that does not move estimate toward zero sufficiently. Default is 2.
-#' @param kappa numeric: value between 0 and 1 that determines the cutoff on the ratio
-#' of current distance from feasibility over distance in last iteration triggering
-#' scaling of rho. If this ratio is above kappa, rho is scaled by tau to encourage
-#' estimate to move toward feasibility.
-#' @param constraint_tol numeric: constraint tolerance for fits under null hypotheses
-#' (tested element of B must be equal to constraint function to within this tolerance for
-#' a fit to be accepted as a solution to constrained optimization problem). Default is 1e-5.
-#' @param maxit maximum number of outer iterations of augmented lagrangian algorithm to perform before
-#' exiting optimization. Default is 1000.
-#' @param inner_maxit maximum number of coordinate descent passes through columns of B to make within each
-#' outer iteration of augmented lagrangian algorithm before exiting inner loop
-#' @param max_step maximum stepsize; update directions computed during optimization
-#' will be rescaled if a step in any parameter exceeds this value. Defaults to 0.5.
-#' @param B_null_tol numeric: convergence tolerance for null model fits for score testing (if max of absolute difference in
-#' B across outer iterations is below this threshold, we declare convergence).
-#' Default is 0.01.
-#' @param inner_tol numeric: convergence tolerance for augmented Lagrangian subproblems
-#' within null model fitting. Default is 1.
-#' @param ntries numeric: how many times should optimization be tried in null
-#' models where at least one optimization attempt fails? Default is 4.
-#' @param c1 numeric: parameter for Armijo line search. Default is 1e-4.
-#' @param trackB logical: should values of B be recorded across optimization
-#' iterations and be returned? Primarily used for debugging. Default is FALSE.
-#' @param return_nullB logical: should values of B under null hypothesis be returned. Primarily used for debugging. Default is FALSE. 
-#' @param return_score_components logical: should components of score statistic be returned? Primarily used for debugging. Default is FALSE.
-#' @param return_both_score_pvals logical: should score p-values be returned using both
-#' information matrix computed from full model fit and from null model fits? Default is
-#' FALSE. This parameter is used for simulations - in any applied analysis, type of
-#' p-value to be used should be chosen before conducting tests.
+#' @param null_fit_alg Which null fitting algorithm to use for score tests: \code{"constraint_sandwich"} or 
+#' \code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}, unless \code{J < 20}.
+#' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either 
+#' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
+#' include the other elements of the list as \code{NULL}.
+#' @param maxit_null maximum number of outer iterations to perform before exiting optimization. Default is `1000`.
+#' Used in estimation under null hypothesis for score tests.
+#' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`. Used in 
+#' estimation under null hypothesis for score tests with "constraint_sandwich" algorithm. 
+#' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`. Used in
+#' estimation under null hypothesis for score tests with "constraint_sandwich" algorithm. 
+#' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
+#' Used in estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.
+#' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' @param remove_zero_comparison_pvals Should score p-values be replaced with NA for zero-comparison parameters? These parameters occur 
 #' for categorical covariates with three or more levels, and represent parameters that compare a covariate level to the reference level for
 #' a category in which the comparison level and reference level both have 0 counts in all samples. These parameters can have misleadingly 
@@ -103,7 +73,9 @@
 #' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
 #' Default is \code{0.01}. 
-#' @param unobserved_taxon_error logical: should an error be thrown if Y includes taxa that have 0 counts for all samples? Default is TRUE.
+#' @param control A list of control parameters, to have more control over estimation and hypothesis testing. See \code{control_fn} for details.
+#' @param ... Additional arguments. Arguments matching the names of \code{control_fn()} options are forwarded to that function and override
+#' defaults. Unknown arguments are ignored with a warning.
 #' 
 #' @return A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
 #' 'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.  
@@ -136,8 +108,7 @@
 #' data(wirbel_sample_small)
 #' data(wirbel_otu_small)
 #' emuRes <- emuFit(formula = ~ Group, data = wirbel_sample_small, Y = wirbel_otu_small,
-#'                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01, 
-#'                  constraint_tol = 0.01, B_null_tol = 0.01) 
+#'                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01) 
 #'  # here we set large tolerances for the example to run quickly, 
 #'  # but we recommend smaller tolerances in practice
 #'
@@ -147,7 +118,7 @@
 #' example("TreeSummarizedExperiment")
 #' assayNames(tse) <- "counts"
 #' emuRes <- emuFit(Y = tse, formula = ~ condition, assay_name = "counts", 
-#'                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01, constraint_tol = 0.01)
+#'                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01)
 #'  # here we set large tolerances for the example to run quickly, 
 #'  # but we recommend smaller tolerances in practice
 #' }
@@ -160,45 +131,58 @@ emuFit <- function(Y,
                    data = NULL,
                    assay_name = NULL,
                    cluster = NULL,
-                   penalize = TRUE,
-                   B = NULL,
-                   B_null_list = NULL,
-                   fitted_model = NULL,
-                   refit = TRUE,
-                   test_kj = NULL,
-                   alpha = 0.05,
-                   return_wald_p = FALSE,
-                   compute_cis = TRUE,
-                   run_score_tests = TRUE,
-                   use_fullmodel_info = FALSE,
-                   use_fullmodel_cov = FALSE,
-                   use_both_cov = FALSE,
-                   match_row_names = TRUE,
                    constraint_fn = pseudohuber_median,
                    constraint_grad_fn = dpseudohuber_median_dx,
                    constraint_param = 0.1,
                    verbose = FALSE,
+                   match_row_names = TRUE,
+                   unobserved_taxon_error = TRUE,
+                   penalize = TRUE,
+                   B = NULL,
+                   fitted_model = NULL,
+                   refit = TRUE,
                    tolerance = 1e-4,
-                   B_null_tol = 1e-3,
-                   rho_init = 1,
-                   inner_tol = 1,
-                   ntries = 4,
-                   tau = 2,
-                   kappa = 0.8,
-                   constraint_tol = 1e-5,
-                   c1 = 1e-4,
                    maxit = 1000,
-                   inner_maxit = 25,
-                   max_step = 1,
-                   trackB = FALSE,
-                   return_nullB = FALSE,
-                   return_score_components = FALSE,
-                   return_both_score_pvals = FALSE,
+                   alpha = 0.05,
+                   return_wald_p = FALSE,
+                   compute_cis = TRUE,
+                   run_score_tests = TRUE,
+                   test_kj = NULL,
+                   null_fit_alg = "constraint_sandwich",
+                   B_null_list = NULL,
+                   maxit_null = 1000,
+                   tol_lik = 1e-5,
+                   tol_test_stat = 0.01,
+                   null_window = 5,
+                   null_diagnostic_plots = FALSE, 
                    remove_zero_comparison_pvals = 0.01,
-                   unobserved_taxon_error = TRUE) {
+                   control = NULL,
+                   ...) {
   
   # Record call
   call <- match.call(expand.dots = FALSE)
+  
+  # capture ...
+  dots <- list(...)
+  
+  # get possible control args from formals(control_fn)
+  control_args <- names(formals(control_fn))
+  control_args <- setdiff(control_args, "control") 
+  
+  # split into control_dots vs unknown
+  control_dots <- dots[names(dots) %in% control_args]
+  unknown_dots <- dots[!names(dots) %in% control_args]
+  
+  if (length(unknown_dots) > 0) {
+    warning("Unknown arguments in emuFit(...): ", paste(names(unknown_dots), collapse = ", "))
+  }
+  
+  # merge with user-supplied control list
+  if (is.null(control)) {
+    control <- control_fn(control_dots)
+  } else {
+    control <- control_fn(utils::modifyList(control, control_dots))
+  }
   
   # run checks on arguments in function emuFit_check
   check_results <- emuFit_check(Y = Y,
@@ -216,7 +200,8 @@ emuFit <- function(Y,
                                 constraint_fn = constraint_fn,
                                 constraint_grad_fn = constraint_grad_fn,
                                 constraint_param = constraint_param,
-                                run_score_tests = run_score_tests)
+                                run_score_tests = run_score_tests,
+                                null_fit_alg = null_fit_alg)
   
   Y <- check_results$Y
   X <- check_results$X
@@ -229,6 +214,9 @@ emuFit <- function(Y,
   
   n <- nrow(Y)
   J <- ncol(Y)
+  if (J < 20) {
+    null_fit_alg <- "augmented_lagrangian"
+  }
   p <- ncol(X)
   
   # check for zero-comparison parameters
@@ -260,7 +248,7 @@ emuFit <- function(Y,
                                X_cup = X_cup,
                                constraint_fn = constraint_fn,
                                maxit = maxit,
-                               max_step = max_step,
+                               max_step = control$max_step,
                                tolerance = tolerance,
                                verbose = (verbose == "development"),
                                j_ref = j_ref)
@@ -278,7 +266,7 @@ emuFit <- function(Y,
                      B = B,
                      constraint_fn = constraint_fn,
                      maxit = maxit,
-                     max_stepsize = max_step,
+                     max_stepsize = control$max_step,
                      tolerance = tolerance,
                      j_ref = j_ref,
                      verbose = (verbose == "development"))
@@ -355,7 +343,7 @@ emuFit <- function(Y,
                                     cluster = cluster)
     
     coefficients <- just_wald_things$coefficients
-    if (use_fullmodel_cov) {
+    if (control$use_fullmodel_cov) {
       I <- just_wald_things$I
       Dy <- just_wald_things$Dy
     } else {
@@ -382,15 +370,15 @@ emuFit <- function(Y,
   }
   
   #add column for score p value from score stat using full model I, Dy if needed
-  if (use_both_cov) {
+  if (control$use_both_cov) {
     coefficients$score_fullcov_p <- NA
   }
   
-  if (use_fullmodel_info) {
+  if (control$use_fullmodel_info) {
     indexes_to_remove = (j_ref - 1)*p + 1:p
     I_inv <- Matrix::solve(just_wald_things$I[-indexes_to_remove,-indexes_to_remove],  method = "cholmod_solve")
   } else {
-    if(use_both_cov){
+    if(control$use_both_cov){
       I_inv <- Matrix::solve(just_wald_things$I[-indexes_to_remove,-indexes_to_remove],  method = "cholmod_solve")
     } else{
     I_inv <- NULL
@@ -407,11 +395,11 @@ emuFit <- function(Y,
                                          converged = NA,
                                          niter = NA)
     
-    if (return_score_components) {
+    if (control$return_score_components) {
       score_components <- vector(mode = "list", length = nrow(test_kj))
     }
     
-    if (return_both_score_pvals) {
+    if (control$return_both_score_pvals) {
       colnames(coefficients)[colnames(coefficients) == "pval"] <-
         "score_pval_full_info"
       colnames(coefficients)[colnames(coefficients) == "score_stat"] <-
@@ -419,17 +407,61 @@ emuFit <- function(Y,
       coefficients$score_pval_null_info <- NA
       coefficients$score_stat_null_info <- NA
       
-      if (!use_fullmodel_info) {
-        stop("If return_both_score_pvals = TRUE, use_fullmodel_info must be TRUE as well.")
+      if (!control$use_fullmodel_info) {
+        stop("If control$return_both_score_pvals = TRUE, control$use_fullmodel_info must be TRUE as well.")
       }
     }
     
-    if (return_nullB) {
+    if (control$return_nullB) {
       nullB_list <- vector(mode = "list", length = nrow(test_kj))
     }
-    if (trackB) {
+    if (control$trackB) {
       trackB_list <- vector(mode = "list", length = nrow(test_kj))
     }
+    if (null_diagnostic_plots) {
+      null_plots <- vector(mode = "list", length = nrow(test_kj))
+    }
+    
+    if (null_fit_alg == "constraint_sandwich") {
+      k_list <- list()
+      for (k in unique(test_kj$k)) {
+        # set as other by default
+        constraint_type <- "other"
+        
+        # check if it is a single category constraint
+        v1 <- 1:J
+        v2 <- c(J, 1:(J - 1))
+        r <- constraint_fn[[k]](v1)
+        s <- constraint_fn[[k]](v2)
+        r_grad <- constraint_grad_fn[[k]](v1)
+        s_grad <- constraint_grad_fn[[k]](v2)
+        if ((r == 1 && s == J) | r > 1 && s == (r - 1)) {
+          expected_r_grad <- rep(0, J)
+          expected_r_grad[v1 == r] <- 1
+          if (isTRUE(all.equal(r_grad, expected_r_grad)) &&
+              isTRUE(all.equal(r_grad, s_grad))) {
+            constraint_type <- "scc"
+          }
+        } 
+        
+        # check if it is symmetric constraint 
+        # first check mean 
+        v3 <- rnorm(J)
+        if (constraint_fn[[k]](v3) == mean(v3)) {
+          constraint_type <- "symmetric"
+        }
+        # then check pseudo-Huber median 
+        fn_body <- body(constraint_fn[[k]])
+        if (as.character(fn_body[1]) == "pseudohuber_median") {
+          constraint_type <- "symmetric"
+        }
+        
+        k_list[[k]] <- constraint_type
+      }
+    } else {
+      k_list <- as.list(rep("other", max(test_kj$k)))
+    }
+    
     for(test_ind in 1:nrow(test_kj)) {
       
       if (verbose %in% c(TRUE, "development")) {
@@ -457,42 +489,55 @@ emuFit <- function(Y,
                                 j_constr = test_kj$j[test_ind],
                                 constraint_fn = constraint_fn, #constraint function
                                 constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-                                rho_init = rho_init,
-                                tau = tau,
-                                kappa = kappa,
-                                B_tol = B_null_tol,
-                                inner_tol = inner_tol,
-                                constraint_tol = constraint_tol,
+                                rho_init = control$rho_init,
+                                tau = control$tau,
+                                kappa = control$kappa,
+                                B_tol = control$B_null_tol,
+                                inner_tol = control$inner_tol,
+                                constraint_tol = control$constraint_tol,
                                 j_ref = j_ref,
-                                c1 = c1,
-                                maxit = maxit,
-                                inner_maxit = inner_maxit,
-                                ntries = ntries,
+                                c1 = control$c1,
+                                maxit = maxit_null,
+                                inner_maxit = control$inner_maxit,
+                                ntries = control$ntries,
                                 verbose = (verbose == "development"),
-                                trackB = trackB,
+                                trackB = control$trackB,
                                 I_inv = I_inv,
                                 Dy = Dy,
-                                return_both_score_pvals = return_both_score_pvals,
-                                cluster = cluster)
-      
-      if (return_score_components & !(is.null(test_result))) {
-        score_components[[test_ind]] <- test_result$score_pieces
-      }
+                                return_both_score_pvals = control$return_both_score_pvals,
+                                cluster = cluster,
+                                null_fit_constraint = k_list[[test_kj$k[test_ind]]],
+                                null_diagnostic_plots = null_diagnostic_plots,
+                                ignore_stop = control$ignore_stop,
+                                tol_lik = tol_lik,
+                                tol_test_stat = tol_test_stat,
+                                null_window = null_window)
       
       if (is.null(test_result)) {
-        if (return_nullB) {
+        if (control$return_nullB) {
           nullB_list[[test_ind]] <- NA
         }
-        if (trackB) {
+        if (control$trackB) {
           trackB_list[[test_ind]] <- NA
         }
       } else {
         
-        score_test_hyperparams[test_ind, ] <- 
-          c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
-            test_result$gap, test_result$convergence, test_result$niter)
+        if (control$return_score_components) {
+          score_components[[test_ind]] <- test_result$score_pieces
+        }
         
-        if (return_nullB) {
+        if (null_diagnostic_plots) {
+          null_plots[[test_ind]] <- test_result$diagnostics
+        }
+        
+        cols_to_update <- intersect(names(score_test_hyperparams), names(test_result))
+        score_test_hyperparams[test_ind, cols_to_update] <- test_result[cols_to_update]
+        
+        # score_test_hyperparams[test_ind, ] <- 
+        #   c(test_result$u, test_result$rho, test_result$tau, test_result$inner_maxit,
+        #     test_result$gap, test_result$convergence, test_result$niter)
+        
+        if (control$return_nullB) {
           null_B <- test_result$null_B
           for (k in 1:p) {
             null_B[k, ] <- null_B[k, ] - constraint_fn[[k]](null_B[k, ])
@@ -500,14 +545,14 @@ emuFit <- function(Y,
           nullB_list[[test_ind]] <- null_B
         }
         
-        if (trackB) {
+        if (control$trackB) {
           trackB_list[[test_ind]] <- test_result$Bs
         }
         
         which_row <- which((as.numeric(coefficients$k) == as.numeric(test_kj$k[test_ind]))&
                              (as.numeric(coefficients$j) == as.numeric(test_kj$j[test_ind])))
         
-        if (!return_both_score_pvals) {
+        if (!control$return_both_score_pvals) {
           coefficients[which_row ,c("pval","score_stat")] <-
             c(test_result$pval,test_result$score_stat)
         } else {
@@ -517,7 +562,7 @@ emuFit <- function(Y,
               test_result$pval_null_info,test_result$score_stat_null_info)
         }
         
-        if (use_both_cov) {
+        if (control$use_both_cov) {
           
           #adjustment factor from guo GEE paper (https://doi.org/10.1002/sim.2161)
           alt_score_stat <- get_score_stat(Y = Y_test,
@@ -542,7 +587,6 @@ emuFit <- function(Y,
           coefficients[which_row, c("score_fullcov_p")] <- pchisq(alt_score_stat,1,
                                                                   lower.tail = FALSE)
         }
-      
       }
       
       if (verbose %in% c(TRUE, "development")) {
@@ -605,10 +649,10 @@ emuFit <- function(Y,
                        category_num = coefficients$j),
             coefficients[ , c("estimate","se", "lower","upper")])
   }
-  if (use_both_cov) {
+  if (control$use_both_cov) {
     coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval","score_fullcov_p")])
   } else {
-    if (return_both_score_pvals) {
+    if (control$return_both_score_pvals) {
       coef_df <- cbind(coef_df, coefficients[ , c("score_stat_full_info",
                                                   "score_pval_full_info",
                                                   "score_stat_null_info",
@@ -694,10 +738,10 @@ emuFit <- function(Y,
     results$estimation_converged <- converged_estimates
   }
   if (run_score_tests) {
-    if (return_nullB) {
+    if (control$return_nullB) {
       results$null_B <- nullB_list
     }
-    if (trackB) {
+    if (control$trackB) {
       results$trackB_list <- trackB_list
     }
     results$score_test_hyperparams <- score_test_hyperparams
@@ -706,9 +750,14 @@ emuFit <- function(Y,
       results$null_estimation_unconverged <- unconverged_test_kj
       warning("Optimization for estimation under the null for robust score tests failed to converge for some tests. See 'null_estimation_unconverged' within the returned emuFit object for which tests are affected by this.")
     }
-  }
-  if (run_score_tests & return_score_components) {
-    results$score_components <- score_components
+    
+    if (control$return_score_components) {
+      results$score_components <- score_components
+    }
+    
+    if (null_diagnostic_plots) {
+      results$null_diagnostic_plots <- null_plots
+    }
   }
   
   return(structure(results, class = "emuFit"))

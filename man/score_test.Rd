@@ -29,7 +29,13 @@ score_test(
   I_inv = NULL,
   Dy = NULL,
   return_both_score_pvals = FALSE,
-  cluster = NULL
+  cluster = NULL,
+  null_fit_constraint = NULL,
+  null_diagnostic_plots = FALSE,
+  ignore_stop = FALSE,
+  tol_lik = 1e-05,
+  tol_test_stat = 0.01,
+  null_window = 5
 )
 }
 \arguments{
@@ -113,6 +119,22 @@ p-value to be used should be chosen before conducting tests.}
 \item{cluster}{a numeric vector giving cluster membership for each row of Y to
 be used in computing GEE test statistics. Default is NULL, in which case rows of
 Y are treated as independent.}
+
+\item{null_fit_constraint}{the type of constraint, which informs which algorithm
+will be used to fit the model under the null hypothesis. NULL by default, in which
+case the standard fitting algorithm will be used. If included, this argument must be either
+\code{scc} for single category constraint, \code{symmetric} for symmetric functions such
+as mean or pseudo-Huber median, or \code{other}.}
+
+\item{null_diagnostic_plots}{logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.}
+
+\item{ignore_stop}{whether to ignore stopping criteria and run \code{maxit} iterations (could be helpful for diagnostic plots).}
+
+\item{tol_lik}{tolerance for relative changes in likelihood for stopping criteria. Default is \code{1e-5}.}
+
+\item{tol_test_stat}{tolerance for relative changes in test statistic for stopping criteria. Default is \code{0.01}.}
+
+\item{null_window}{window to use for stopping criteria (this many iterations where stopping criteria is met). Default is \code{5}.}
 }
 \value{
 A list containing elements \code{score_stat}, \code{pval}, \code{log_pval},'niter\verb{, }convergence\verb{, }gap\verb{, }u\verb{, }rho\verb{, }tau\verb{, }inner_maxit\verb{, }null_B\verb{, and }Bs\code{. }score_stat\verb{gives the  value of the robust score statistic for $H_0: B_\{k_constr,j_constr\} = g(B_\{k_constr\})$.}pval\code{and}log_pval\verb{are the p-value (on natural and log scales) corresponding to the score statistic (log_pval may be useful when the p-value is very close to zero). }gap\verb{is the final value of $g(B_\{k_constr\}) - B_\{k_constr, j_constr\}$ obtained in  optimization under the null.}u\code{and}rho\verb{are final values of augmented  Lagrangian parameters returned by null fitting algorithm.}tau\verb{is the final value of}tau\verb{that  is used to update the}rho\verb{values and}inner_maxit\verb{is the final maximum number of iterations for  the inner optimization loop in optimization under the null, in which B and z parameter values are maximized for specific}u\code{and}rho\code{parameters.}null_B\verb{is the value of  B returned but the null fitting algorithm.}Bs\verb{is by default}NULL\verb{; if }trackB = TRUE\verb{, }Bs` is a data frame containing values of B by outcome category, covariate, and
