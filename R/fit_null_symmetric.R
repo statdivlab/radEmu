@@ -151,7 +151,7 @@ fit_null_symmetric <- function(
   #to track optimization iterations
   keep_going <- TRUE
   iter <- 1
-  
+
   lik_change <- rep(NA, null_window - 1)
   test_stat_prop_change <- rep(NA, null_window - 1) 
   
