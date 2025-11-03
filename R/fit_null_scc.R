@@ -57,6 +57,8 @@ fit_null_scc <- function(B,
 ) {
   
   ### David to replace - for now redirecting to fit_null so that everything still runs! 
+  ### AW Oct 31 2025: This functions looks redundant, but it's here because (I think)
+  ### David said this could be sped up. So, this is really a placeholder for more complex code. 
   res <- fit_null(B = B,
                   Y = Y, 
                   X = X, 
