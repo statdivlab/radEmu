@@ -201,10 +201,8 @@ under null when Poisson assumption is met", {
                                        J = J,
                                        n = n,
                                        p = p,
-                                       check_influence = FALSE,
                                        I = NULL,
-                                       Dy = NULL,
-                                       model_based = FALSE)$score_stat
+                                       Dy = NULL)$score_stat
 
     x <- seq(-10,5,0.01)
     # hist(log(score_stats[1:sim]),breaks = 20,freq = FALSE)

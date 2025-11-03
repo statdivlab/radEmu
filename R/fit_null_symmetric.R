@@ -151,10 +151,7 @@ fit_null_symmetric <- function(
   #to track optimization iterations
   keep_going <- TRUE
   iter <- 1
-
-  # temporarily set use_optim to `TRUE` always
-  # use_optim <- TRUE
-
+  
   lik_change <- rep(NA, null_window - 1)
   test_stat_prop_change <- rep(NA, null_window - 1) 
   
@@ -332,12 +329,7 @@ fit_null_symmetric <- function(
             repeat {
               if (lambda > 0) {
                 info_reg <- info +
-                  lambda *
-                    #Matrix::Diagonal(
-                    #  n = nrow(info),
-                    #  x = pmax(abs(Matrix::diag(info)), 1)
-                    #)
-                  Matrix::Diagonal(n = nrow(info), x = scale)
+                  lambda * Matrix::Diagonal(n = nrow(info), x = scale)
               } else {
                 info_reg <- info
               }
