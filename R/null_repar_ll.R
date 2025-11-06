@@ -8,7 +8,8 @@ null_repar_ll <- function(
   X,
   j_constr,
   k_constr,
-  constraint_fn
+  constraint_fn,
+  ref_set = NULL
 ) {
   Bjs <- B[, c(js, j_constr), drop = FALSE]
   njs <- length(js)
@@ -16,10 +17,10 @@ null_repar_ll <- function(
     Bjs[, jind] <- Bjs[, jind] + x[1:p + (jind - 1) * p]
   }
   Bjs[-k_constr, njs + 1] <- Bjs[-k_constr, njs + 1] + x[p * njs + 1:(p - 1)]
-  Bjs[k_constr, njs + 1] <- constraint_fn(c(
-    B[k_constr, -c(js, j_constr)],
-    Bjs[k_constr, 1:njs]
-  ))
+  Bk_temp <- B[k_constr, ]
+  Bk_temp[js] <- Bjs[k_constr, 1:njs]
+  Bk_temp[j_constr] <- NA
+  Bjs[k_constr, njs + 1] <- compute_constraint_value(constraint_fn, Bk_temp, j_constr, ref_set)
   #
   log_means_js <- X %*% Bjs
   #

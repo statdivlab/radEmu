@@ -21,7 +21,9 @@
 #' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
-#' @param max_step Default is `1`
+#' @param max_step Default is `1`.
+#' @param reference_set Optional reference set to act as the subset. Default is `NULL` in which case the function will look into 
+#' `constraint_fn` for the reference set.
 #'
 #' @return A list containing elements `B`, `k_constr`, `j_constr`, `niter`
 #' and `Bs`. `B` is a matrix containing parameter estimates
@@ -32,7 +34,7 @@
 #' `Bs` is a data frame containing values of B by iteration if `trackB` was set
 #' equal to TRUE (otherwise it contains a NULL value). - update based on new algorithm
 #'
-fit_null_symmetric <- function(
+fit_null_symmetric_subset <- function(
   B,
   Y,
   X,
@@ -54,27 +56,50 @@ fit_null_symmetric <- function(
   tol_lik = 1e-5,
   tol_test_stat = 0.01,
   null_window = 5,
-  max_step = 1
+  max_step = 1,
+  reference_set = NULL
 ) {
-  if (is.list(constraint_fn)) {
-    constraint_fn <- constraint_fn[[k_constr]]
-    constraint_grad_fn <- constraint_grad_fn[[k_constr]]
-  }
+  
   #useful constants
   p <- ncol(X)
   n <- nrow(Y)
   J <- ncol(Y)
-
+  
+  if (is.list(constraint_fn)) {
+    constraint_fn_list <- constraint_fn
+    constraint_grad_fn_list <- constraint_grad_fn
+    
+    constraint_fn <- constraint_fn[[k_constr]]
+    constraint_grad_fn <- constraint_grad_fn[[k_constr]]
+  }
+  
+  # get subset 
+  if (is.null(reference_set)) {
+    ref_set_k <- attr(constraint_fn, "reference_set")
+    if (is.null(ref_set_k)) {
+      stop("Trying to fit null on a subset, but 'reference_set' isn't included as an attribute of constraint_fn.")
+    }
+  } else {
+    ref_set_k <- reference_set
+  }
+  other_set <- (1:J)[-ref_set_k]
+  
   # data frame to hold results
   it_df <- data.frame(it = 1:maxit,
                       lik = NA,
                       test_stat = NA)
   
+  tol_ll_inc <- 1e-2
+  max_backtracks <- 8
+  
   #reparametrize if convenience constraint taxon is also taxon containing null-constrained param
-  if (j_ref == j_constr) {
+  # or if it isn't in the reference set for row k_constr 
+  if (j_ref == j_constr | !(j_ref %in% ref_set_k)) {
     arch_j_ref <- j_ref
-    new_j_ref <- which.max(colSums(Y > 1)[-j_ref])
-    new_j_ref <- new_j_ref + as.numeric(new_j_ref >= j_ref)
+    
+    j_ref_options <- setdiff(ref_set_k, j_constr)
+    new_j_ref <- j_ref_options[which.max(colSums(Y > 1)[j_ref_options])]
+
     j_ref <- new_j_ref
   } else {
     arch_j_ref <- NULL
@@ -87,7 +112,7 @@ fit_null_symmetric <- function(
 
   #force B to satisfy null constraint
   #(this is the bit where symmetry of g() is important)
-  B[k_constr, j_constr] <- constraint_fn(B[k_constr, -j_constr])
+  B[k_constr, j_constr] <- compute_constraint_value(constraint_fn, B[k_constr, ], j_constr, ref_set_k)
 
   #update z
   z <- update_z(Y, X, B)
@@ -109,14 +134,18 @@ fit_null_symmetric <- function(
   #according to whether they are above or below B[k_constr,j_constr]
   #and order these groups so each set begins with j s.t. B[k_constr,j] is
   #closest to B[k_constr,j_constr]
+  
+  # do this only for taxa in subset 
 
   above_g <- setdiff(
-    which(B[k_constr, ] > constraint_fn(B[k_constr, ])),
+    which(B[k_constr, ] > constraint_fn(B[k_constr, ]) & 
+            (1:J) %in% ref_set_k),
     c(j_ref, j_constr)
   )
   above_g <- above_g[order(B[k_constr, above_g])]
   below_g <- setdiff(
-    which(B[k_constr, ] < constraint_fn(B[k_constr, ])),
+    which(B[k_constr, ] < constraint_fn(B[k_constr, ]) &
+            (1:J) %in% ref_set_k),
     c(j_ref, j_constr)
   )
   below_g <- below_g[order(-B[k_constr, below_g])]
@@ -151,6 +180,9 @@ fit_null_symmetric <- function(
   #to track optimization iterations
   keep_going <- TRUE
   iter <- 1
+
+  # temporarily set use_optim to `TRUE` always
+  # use_optim <- TRUE
 
   lik_change <- rep(NA, null_window - 1)
   test_stat_prop_change <- rep(NA, null_window - 1) 
@@ -187,7 +219,8 @@ fit_null_symmetric <- function(
               X = X,
               j_constr = j_constr,
               k_constr = k_constr,
-              constraint_fn = constraint_fn
+              constraint_fn = constraint_fn,
+              ref_set = ref_set_k
             )
           },
           # gr = function(x) -null_repar_ll_gr(x = x,
@@ -223,7 +256,8 @@ fit_null_symmetric <- function(
               X = X,
               j_constr = j_constr,
               k_constr = k_constr,
-              constraint_fn = constraint_fn
+              constraint_fn = constraint_fn,
+              ref_set = ref_set_k
             )
         ) {
           #update elements of B corresponding to j in js
@@ -234,7 +268,8 @@ fit_null_symmetric <- function(
           B[-k_constr, j_constr] <- B[-k_constr, j_constr] +
             update$par[njs * p + 1:(p - 1)]
           #and update constrained element
-          B[k_constr, j_constr] <- constraint_fn(B[k_constr, -j_constr])
+          B[k_constr, j_constr] <- compute_constraint_value(constraint_fn, B[k_constr, ],
+                                                            j_constr, ref_set_k)
         } else {
           if (verbose) {
             message(
@@ -275,7 +310,8 @@ fit_null_symmetric <- function(
               X = X,
               j_constr = j_constr,
               k_constr = k_constr,
-              constraint_fn = constraint_fn
+              constraint_fn = constraint_fn,
+              ref_set = ref_set_k
             )
           }
 
@@ -294,7 +330,8 @@ fit_null_symmetric <- function(
               constraint_fn = constraint_fn,
               constraint_grad_fn = constraint_grad_fn,
               return_hess = TRUE, # we want info + grad
-              return_info_inv = FALSE # we don't want to invert info in grad fn
+              return_info_inv = FALSE, # we don't want to invert info in grad fn
+              ref_set = ref_set_k
             )
           }
 
@@ -329,7 +366,12 @@ fit_null_symmetric <- function(
             repeat {
               if (lambda > 0) {
                 info_reg <- info +
-                  lambda * Matrix::Diagonal(n = nrow(info), x = scale)
+                  lambda *
+                    #Matrix::Diagonal(
+                    #  n = nrow(info),
+                    #  x = pmax(abs(Matrix::diag(info)), 1)
+                    #)
+                  Matrix::Diagonal(n = nrow(info), x = scale)
               } else {
                 info_reg <- info
               }
@@ -377,16 +419,6 @@ fit_null_symmetric <- function(
 
             # -- update
             theta <- theta_new
-            
-            # if (verbose) {
-            #   cat(sprintf(
-            #     "Iter %2d  f = %-12.6g  abs theta change = %-10.3g  lambda = %g\n",
-            #     iter,
-            #     f_new,
-            #     max(abs(step * step_dir)),
-            #     lambda
-            #   ))
-            # }
 
             # -- convergence?
             if (max(abs(step * step_dir)) < tol) {
@@ -436,7 +468,6 @@ fit_null_symmetric <- function(
           rep(0, p * length(js) + p - 1),
           fn = prob$fn,
           grad_fn = prob$grad_fn,
-          #max_iter = maxit,
           max_iter = inner_maxit,
           c1 = c1, # Armijo constant
           backtrack_max = inner_maxit,
@@ -451,7 +482,8 @@ fit_null_symmetric <- function(
         B[-k_constr, j_constr] <- B[-k_constr, j_constr] +
           update$par[njs * p + 1:(p - 1)]
         #and update constrained element
-        B[k_constr, j_constr] <- constraint_fn(B[k_constr, -j_constr])
+        B[k_constr, j_constr] <- compute_constraint_value(constraint_fn, B[k_constr, ], 
+                                                          j_constr, ref_set_k)
       }
 
       if (trackB) {
@@ -464,8 +496,10 @@ fit_null_symmetric <- function(
           j_constr = j_constr,
           k_constr = k_constr,
           j_ref = j_ref,
+          constraint_fn = constraint_fn,
           constraint_grad_fn = constraint_grad_fn,
-          gr_only = TRUE
+          gr_only = TRUE,
+          ref_set = ref_set_k
         )
 
         df <- rbind(
@@ -481,7 +515,96 @@ fit_null_symmetric <- function(
         )
       }
     }
+    
+    log_means <- X %*% B
+    for (i in 1:n) log_means[i, ] <- log_means[i, ] + z[i]
+    ll <- sum(Y * log_means - exp(log_means))
+    
+    # loop through taxa not in the reference set 
+    for (j_left in other_set) {
+      
+      old_col <- B[, j_left]
+      accepted <- FALSE 
+      
+      if (j_left != j_constr) {
+        
+        # for taxa not in reference set and not constrained taxon, 
+        # update with same approach as in emuFit_micro
+        update <- micro_fisher(
+          X,
+          Yj = Y[, j_left, drop = FALSE],
+          Bj = B[, j_left, drop = FALSE],
+          z,
+          stepsize = max_step,
+          c1 = c1
+        )
+        
+        # --- cap the step direction ---
+        max_update <- max(abs(update), na.rm = TRUE)
+        if(max_update > max_step) {
+          update <- update / max_update * max_step
+        }
+        
+      } else {
+        
+        # for constrained taxon, update with same approach as in emuFit_micro for 
+        # unconstrained parameters
+        update <- micro_fisher(
+          X[, -k_constr],
+          Yj = Y[, j_left, drop = FALSE],
+          Bj = B[-k_constr, j_left, drop = FALSE],
+          z,
+          stepsize = max_step,
+          c1 = c1
+        )
+        
+        # --- cap the step direction ---
+        max_update <- max(abs(update), na.rm = TRUE)
+        if(max_update > max_step) {
+          update <- update / max_update * max_step
+        }
+        
+      }
+      
+      alpha <- 1
+      for (bt in 0:max_backtracks) {
+        if (j_left == j_constr) {
+          prop_col <- old_col
+          prop_col[-k_constr] <- old_col[-k_constr] + alpha * update
+        } else {
+          prop_col <- old_col + alpha * update
+        }
 
+        B[, j_left] <- prop_col
+
+        # compute log-likelihood with the provisional B and z_prop
+        log_means_prop <- X %*% B
+        for (ii in 1:nrow(Y)) log_means_prop[ii, ] <- log_means_prop[ii, ] + z[ii]
+        ll_prop <- sum(Y * log_means_prop - exp(log_means_prop))
+
+        # compare to current ll (use 'll' which is the ll at start of this outer iteration)
+        if (ll_prop >= ll - tol_ll_inc) {
+          # accept the update: keep B and update z to z_prop, and record ll <- ll_prop
+          accepted <- TRUE
+          ll <- ll_prop
+          break
+        } else {
+          # reject this alpha, shrink step and retry
+          alpha <- alpha / 2
+        }
+      }
+
+      if (!accepted) {
+        # nothing worked — revert column and keep previous z, ll
+        B[, j_left] <- old_col
+
+        # optionally record that update was skipped
+        if (verbose) message("Update for j_left = ", j_left, " rejected (no ll improvement).")
+      }
+      
+    }
+    
+    # update z
     z <- update_z(Y = Y, X = X, B = B)
     
     #compute ll again
@@ -500,39 +623,39 @@ fit_null_symmetric <- function(
     } else {
       test_stat <- score_res$score_stat
     }
-
+    
     it_df$lik[iter] <- ll
     it_df$test_stat[iter] <- test_stat
 
     if (iter > 1) {
       test_stat_change <- abs((test_stat - prev_test_stat)/prev_test_stat)
     } 
-    ll_change <- abs(ll - prev_ll) / abs(prev_ll)
+    ll_change <- (ll - prev_ll) / abs(prev_ll)
     
     if (verbose) {
       #compute gradient if we didn't already
-      if (!trackB) {
-        gr <- get_constrained_gr(
-          Y = Y,
-          X = X,
-          B = B,
-          z = z,
-          js = setdiff(1:J, c(j_constr, j_ref)),
-          j_constr = j_constr,
-          k_constr = k_constr,
-          j_ref = j_ref,
-          constraint_grad_fn = constraint_grad_fn,
-          gr_only = TRUE
-        )
-      }
-      #tell you all about the ll, gradient, and how much B has changed this loop
+      # if (!trackB) {
+      #   gr <- get_constrained_gr(
+      #     Y = Y,
+      #     X = X,
+      #     B = B,
+      #     z = z,
+      #     js = setdiff(1:J, c(j_constr, j_ref)),
+      #     j_constr = j_constr,
+      #     k_constr = k_constr,
+      #     j_ref = j_ref,
+      #     constraint_grad_fn = constraint_grad_fn,
+      #     gr_only = TRUE,
+      #     ref_set = ref_set_k
+      #   )
+      # }
+      
+      #tell you all about the ll and test statistic 
       message("ll = ", round(ll, 1))
       message("ll increased by ", round(ll_change * 100, 2), "%")
       if (iter > 1) {
         message("test statistic changed by ", round(test_stat_change * 100, 2), "%")
       }
-      #message("gr_norm = ", round(sum(gr^2), 1))
-      #message("max abs diff in B = ", signif(max(abs(B - prev_B)), 2))
     }
     
     if (iter %in% 2:null_window) {
@@ -547,12 +670,14 @@ fit_null_symmetric <- function(
 
     #recompute above_g and below_g
     above_g <- setdiff(
-      which(B[k_constr, ] > constraint_fn(B[k_constr, ])),
+      which(B[k_constr, ] > constraint_fn(B[k_constr, ]) &
+              (1:J) %in% ref_set_k),
       c(j_ref, j_constr)
     )
     above_g <- above_g[order(B[k_constr, above_g])]
     below_g <- setdiff(
-      which(B[k_constr, ] < constraint_fn(B[k_constr, ])),
+      which(B[k_constr, ] < constraint_fn(B[k_constr, ]) &
+              (1:J) %in% ref_set_k),
       c(j_ref, j_constr)
     )
     below_g <- below_g[order(-B[k_constr, below_g])]
@@ -578,11 +703,6 @@ fit_null_symmetric <- function(
       converged <- FALSE
     }
 
-    # update stopping criteria
-    # if (max(abs(B - prev_B)) < B_tol) {
-    #   keep_going <- FALSE
-    #   converged <- TRUE
-    # }
     if (!(ignore_stop) & (iter - 1) >= null_window) {
       if (max(lik_change) < tol_lik & max(test_stat_prop_change) < tol_test_stat) {
         keep_going <- FALSE
