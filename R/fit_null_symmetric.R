@@ -480,11 +480,10 @@ fit_null_symmetric <- function(
           )
         )
       }
-
-      #update z
-      z <- update_z(Y = Y, X = X, B = B)
     }
 
+    z <- update_z(Y = Y, X = X, B = B)
+    
     #compute ll again
     log_means <- X %*% B
     for (i in 1:nrow(Y)) {

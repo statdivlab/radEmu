@@ -336,7 +336,7 @@ test_that("unpenalized fit converges quicker if optimize_rows is set to TRUE wit
             rnorm(J), rnorm(J), rnorm(J), rnorm(J),
             rnorm(J), rnorm(J))
   for (k in 1:ncol(X)) {
-    B[k, ] <- B[k, ] - radEmu:::pseudohuber_center(B[k, ], 0.1)
+    B[k, ] <- B[k, ] - radEmu:::pseudohuber_median(B[k, ], 0.1)
   }
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
