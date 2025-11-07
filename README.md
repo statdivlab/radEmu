@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/github/statdivlab/radEmu/coverage.svg?branch=main)](https://app.codecov.io/github/statdivlab/radEmu)
 <!-- badges: end -->
 
-`radEmu` is an `R` package for estimating changes in the abundance of microbial taxa using amplicon or shotgun sequencing technologies. 
+`radEmu` is an `R` package for estimating changes in the abundance of microbial taxa using amplicon or shotgun sequencing technologies. Online documentation is available [here](https://statdivlab.github.io/radEmu/).
 
 If you are a **microbial ecologist** or **bioinformatician**, some of the things that you may like about `radEmu` include
 
