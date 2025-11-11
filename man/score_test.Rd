@@ -30,7 +30,6 @@ score_test(
   Dy = NULL,
   return_both_score_pvals = FALSE,
   cluster = NULL,
-  null_fit_constraint = NULL,
   null_diagnostic_plots = FALSE,
   ignore_stop = FALSE,
   tol_lik = 1e-05,
@@ -119,12 +118,6 @@ p-value to be used should be chosen before conducting tests.}
 \item{cluster}{a numeric vector giving cluster membership for each row of Y to
 be used in computing GEE test statistics. Default is NULL, in which case rows of
 Y are treated as independent.}
-
-\item{null_fit_constraint}{the type of constraint, which informs which algorithm
-will be used to fit the model under the null hypothesis. NULL by default, in which
-case the standard fitting algorithm will be used. If included, this argument must be either
-\code{scc} for single category constraint, \code{symmetric} for symmetric functions such
-as mean or pseudo-Huber median, or \code{other}.}
 
 \item{null_diagnostic_plots}{logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.}
 

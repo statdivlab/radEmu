@@ -69,11 +69,6 @@
 #' @param cluster a numeric vector giving cluster membership for each row of Y to 
 #' be used in computing GEE test statistics. Default is NULL, in which case rows of 
 #' Y are treated as independent.
-#' @param null_fit_constraint the type of constraint, which informs which algorithm
-#' will be used to fit the model under the null hypothesis. NULL by default, in which
-#' case the standard fitting algorithm will be used. If included, this argument must be either
-#' `scc` for single category constraint, `symmetric` for symmetric functions such
-#' as mean or pseudo-Huber median, or `other`.
 #' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
 #' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
 #' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
@@ -126,7 +121,6 @@ score_test <- function(
   Dy = NULL,
   return_both_score_pvals = FALSE,
   cluster = NULL,
-  null_fit_constraint = NULL,
   null_diagnostic_plots = FALSE,
   ignore_stop = FALSE, 
   tol_lik = 1e-5,
@@ -139,16 +133,16 @@ score_test <- function(
   p <- ncol(X)
 
   # identify if constraint function is symmetric or a single category constraint
-  if (is.null(null_fit_constraint)) {
-    constraint_type <- "other"
-  } else {
-    constraint_type <- null_fit_constraint
-  }
-  if (!(constraint_type %in% c("other", "symmetric", "scc"))) {
+  if (is.null(attr(constraint_fn[[k_constr]], "constraint_type"))) {
+    attr(constraint_fn[[k_constr]], "constraint_type") <- "other"
+  } 
+  constraint_type <- attr(constraint_fn[[k_constr]], "constraint_type")
+  if (!(constraint_type %in% c("other", "symmetric:mean", "symmetric_subset:mean", "scc",
+                               "symmetric:pseudohuber", "symmetric_subset:pseudohuber"))) {
     stop(
-      "The argument `null_fit_constraint` must either be omitted, or must be either
-         `scc` for single category constraint, `symmetric` for symmetric functions such
-         as mean or pseudo-Huber median, or `other`."
+      "The attribute 'constraint_type' for `constraint_fn[[k_constr]]` must either be omitted, or must be either
+         `scc` for single category constraint, `symmetric:mean` or `symmetric:pseudohuber` for symmetric functions such
+         as mean or pseudo-Huber median, `symmetric_subset:mean` or `symmetric_subset:pseudohuber` for symmetric functions over a subset, or `other`."
     )
   }
   
@@ -157,10 +151,47 @@ score_test <- function(
   accept_try <- FALSE
   good_enough_fit <- FALSE
   
-  if (constraint_type == "symmetric") {
+  if (constraint_type %in% c("symmetric:mean", "symmetric:pseudohuber")) {
 
     # try to fit with constraint sandwich algorithm
     constrained_fit <- try(fit_null_symmetric(
+      B = B, #B (MPLE)
+      Y = Y, #Y (with augmentations)
+      X = X, #design matrix
+      X_cup = X_cup,
+      k_constr = k_constr, #row index of B to constrain
+      j_constr = j_constr, #col index of B to constrain
+      constraint_fn = constraint_fn, #constraint function
+      constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
+      B_tol = B_tol,
+      j_ref = j_ref,
+      c1 = c1,
+      maxit = maxit,
+      inner_maxit = inner_maxit,
+      verbose = verbose,
+      trackB = trackB,
+      ignore_stop = ignore_stop, 
+      tol_lik = tol_lik,
+      tol_test_stat = tol_test_stat,
+      null_window = null_window
+    ))
+    
+    if (!inherits(constrained_fit, "try-error")) {
+      if (constrained_fit$converged) {
+        accept_try <- TRUE
+        good_enough_fit <- TRUE
+      } else {
+        message("Constraint sandwich algorithm for estimation under the null hypothesis did not converge. Trying again with augmented Lagrangian algorithm.")
+      }
+    } else {
+      message("Constraint sandwich algorithm for estimation under the null hypothesis failed. Trying again with augmented Lagrangian algorithm.")
+    }
+  }
+  
+  if (constraint_type %in% c("symmetric_subset:mean", "symmetric_subset:pseudohuber")) {
+    
+    # try to fit with constraint sandwich algorithm
+    constrained_fit <- try(fit_null_symmetric_subset(
       B = B, #B (MPLE)
       Y = Y, #Y (with augmentations)
       X = X, #design matrix
@@ -330,7 +361,6 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       "converged" = converged,
       "inner_maxit" = inner_maxit,
       "null_B" = constrained_fit$B,
-      # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
     )
@@ -415,7 +445,6 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       "converged" = converged,
       "inner_maxit" = inner_maxit,
       "null_B" = constrained_fit$B,
-      # "score_stats" = constrained_fit$score_stats,
       "Bs" = constrained_fit$Bs,
       "niter" = constrained_fit$niter
     )

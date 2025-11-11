@@ -11,7 +11,8 @@ null_repar_ll_gr <- function(
   constraint_fn,
   constraint_grad_fn,
   return_hess = FALSE,
-  return_info_inv = TRUE
+  return_info_inv = TRUE,
+  ref_set = NULL
 ) {
   Bjs <- B[, c(js, j_constr), drop = FALSE]
   njs <- length(js)
@@ -19,10 +20,10 @@ null_repar_ll_gr <- function(
     Bjs[, jind] <- Bjs[, jind] + x[1:p + (jind - 1) * p]
   }
   Bjs[-k_constr, njs + 1] <- Bjs[-k_constr, njs + 1] + x[p * njs + 1:(p - 1)]
-  Bjs[k_constr, njs + 1] <- constraint_fn(c(
-    B[k_constr, -c(js, j_constr)],
-    Bjs[k_constr, 1:njs]
-  ))
+  Bk_temp <- B[k_constr, ]
+  Bk_temp[js] <- Bjs[k_constr, 1:njs]
+  Bk_temp[j_constr] <- NA
+  Bjs[k_constr, njs + 1] <- compute_constraint_value(constraint_fn, Bk_temp, j_constr, ref_set)
   #
   log_means_js <- X %*% Bjs
   #
@@ -40,11 +41,13 @@ null_repar_ll_gr <- function(
     )
   })
   cg <- constraint_grad_vec(
+    constraint_fn, 
     constraint_grad_fn,
     js_used = js,
     Bk_constr = B[k_constr, ],
     j_constr = j_constr,
-    p = ncol(X)
+    p = ncol(X),
+    ref_set = ref_set
   )
 
   cg_gr_multiplier <- gr[[length(gr)]][k_constr]
