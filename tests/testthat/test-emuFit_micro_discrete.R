@@ -19,10 +19,18 @@ test_that("debug first implementation", {
                          maxit = 200,
                          tolerance = 1e-3,
                          verbose = FALSE)
+  ml_fit_fisher <- emuFit_micro(X = X,
+                                Y = Y,
+                                constraint_fn = rep(list(function(x) mean(x)), 2), 
+                                maxit = 200,
+                                tolerance = 1e-3,
+                                verbose = FALSE,
+                                use_discrete = FALSE)
   
   
-  amys_disaster <- emuFit_micro_discrete(xx = X,
-                                         yy = Y)
+  amys_disaster <- emuFit_micro_discrete(X = X,
+                                         Y = Y,
+                                         j_ref = 1)
   
   
   testthat::expect_lte(  max(abs(ml_fit -  
@@ -30,6 +38,6 @@ test_that("debug first implementation", {
                                           amys_disaster[2,] - mean(amys_disaster[2,])))),
                           5e-3)
   
-  
+  testthat::expect_lte(max(abs(ml_fit - ml_fit_fisher)), 5e-3)
   
 })
