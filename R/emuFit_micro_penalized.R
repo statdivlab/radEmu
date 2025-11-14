@@ -1,4 +1,3 @@
-
 #' Fit radEmu model with Firth penalty
 #'
 #' @param X a p x J design matrix
@@ -20,38 +19,34 @@
 #' most cases this is not needed as Firth penalty will prevent infinite estimates
 #' under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
 #' nearly collinear regressors). Default is 50.
-#' @param use_legacy_augmentation logical: should an older (slower) implementation of
-#' data augmentation be used? Only used for testing - there is no advantage to using
-#' the older implementation in applied settings.
 #' @param j_ref which column of B to set to zero as a convenience identifiability
 #' during optimization. Default is NULL, in which case this column is chosen based
 #' on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 #' Y_j_ref greater than zero).
+#' @param use_discrete If discrete design matrix, use fast discrete implementation.
+#' 
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
 emuFit_micro_penalized <-
-  function(X,
-           Y,
-           B = NULL,
-           X_cup = NULL,
-           constraint_fn = NULL,
-           maxit = 500,
-           ml_maxit = 5,
-           tolerance = 1e-3,
-           max_step = 5,
-           verbose = TRUE,
-           max_abs_B = 250,
-           use_legacy_augmentation = FALSE,
-           j_ref = NULL
-  ){
-
+  function(
+    X,
+    Y,
+    B = NULL,
+    X_cup = NULL,
+    constraint_fn = NULL,
+    maxit = 500,
+    ml_maxit = 5,
+    tolerance = 1e-3,
+    max_step = 5,
+    verbose = TRUE,
+    max_abs_B = 250,
+    j_ref = NULL,
+    use_discrete = TRUE
+  ) {
     J <- ncol(Y)
     p <- ncol(X)
     n <- nrow(Y)
-    if(use_legacy_augmentation){
-      X_tilde <- X_cup_from_X(X,J)
-    }
     Y_augmented <- Y
     if (is.null(B)) {
       fitted_model <- NULL
@@ -61,88 +56,82 @@ emuFit_micro_penalized <-
     converged <- FALSE
     counter <- 0
     #get design matrix we'll use for computing augmentations
-    if(!use_legacy_augmentation){
-      if(verbose){
-        message("Constructing expanded design matrix. For larger datasets this
-may take a moment.")
-      }
-      if(is.null(X_cup)){
-        X_cup <- X_cup_from_X(X,J)
-      }
-      G <- get_G_for_augmentations(X,J,n,X_cup)
+
+    if (verbose) {
+      message(
+        "Constructing expanded design matrix. For larger datasets this
+may take a moment."
+      )
     }
-    while(!converged){
+    if (is.null(X_cup)) {
+      X_cup <- X_cup_from_X(X, J)
+    }
+    G <- get_G_for_augmentations(X, J, n, X_cup)
+
+    while (!converged) {
       # print(counter)
 
-      if(counter ==0 & is.null(B)){
-        Y_augmented <- Y + 1e-3*mean(Y) #ensures we don't diverge to 
-                                        #infinity in first iteration 
-                                        #after which point we use 
-                                        #data augmentations based on B
-                                        #is there a smarter way to start?
-                                        #probably.
-      } else{
-        if(verbose){
-          message("Computing data augmentations for Firth penalty. For larger models, this may take some time.")
+      if (counter == 0 & is.null(B)) {
+        Y_augmented <- Y + 1e-3 * mean(Y) #ensures we don't diverge to
+        #infinity in first iteration
+        #after which point we use
+        #data augmentations based on B
+        #is there a smarter way to start?
+        #probably.
+      } else {
+        if (verbose) {
+          message(
+            "Computing data augmentations for Firth penalty. For larger models, this may take some time."
+          )
         }
 
-        if(use_legacy_augmentation){
-          message("Using legacy implementation of data augmentation. This is less
-computationally efficient than the default implementation and is
-maintained only for testing purposes.")
-          Y_augmented <-
-            update_data(Y = Y,
-                        X_tilde = X_tilde,
-                        B = fitted_model,
-                        p = p,
-                        n = n,
-                        J = J,
-                        verbose = verbose)
-        } else{
-          augmentations <- get_augmentations(X = X,
-                                             G = G,
-                                             Y = Y,
-                                             B = fitted_model)
-          Y_augmented <- Y + augmentations
-        }
+        augmentations <- get_augmentations(
+          X = X,
+          G = G,
+          Y = Y,
+          B = fitted_model
+        )
+        Y_augmented <- Y + augmentations
       }
-      if(!is.null(fitted_model)){
+      if (!is.null(fitted_model)) {
         old_B <- fitted_model
-      } else{
+      } else {
         old_B <- Inf
       }
       #fit model by ML to data with augmentations
-      fitted_model <- emuFit_micro(X,
-                                   Y_augmented,
-                                   B = fitted_model,
-                                   constraint_fn = constraint_fn,
-                                   # maxit = maxit,
-                                   maxit = ml_maxit,
-                                   warm_start = TRUE,
-                                   max_abs_B = max_abs_B,
-                                   use_working_constraint = TRUE,
-                                   max_stepsize = max_step,
-                                   tolerance = tolerance,
-                                   verbose = verbose,
-                                   j_ref = j_ref)
+      fitted_model <- emuFit_micro(
+        X,
+        Y_augmented,
+        B = fitted_model,
+        constraint_fn = constraint_fn,
+        maxit = ml_maxit,
+        warm_start = TRUE,
+        max_abs_B = max_abs_B,
+        use_working_constraint = TRUE,
+        max_stepsize = max_step,
+        tolerance = tolerance,
+        verbose = verbose,
+        j_ref = j_ref,
+        use_discrete = use_discrete
+      )
 
-  
-      B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model)<max_abs_B])
+      B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model) < max_abs_B])
 
-      if(B_diff < tolerance){
+      if (B_diff < tolerance) {
         converged <- TRUE
         actually_converged <- TRUE
       }
 
-      if(counter>maxit){
+      if (counter > maxit) {
         converged <- TRUE
         actually_converged <- FALSE
       }
       counter <- counter + 1
     }
 
-    return(list("Y_augmented" = Y_augmented,
-                "B" = fitted_model,
-                "convergence" = actually_converged))
-
+    return(list(
+      "Y_augmented" = Y_augmented,
+      "B" = fitted_model,
+      "convergence" = actually_converged
+    ))
   }
