@@ -16,7 +16,8 @@ emuFit_micro_penalized(
   max_step = 5,
   verbose = TRUE,
   max_abs_B = 250,
-  j_ref = NULL
+  j_ref = NULL,
+  use_discrete = TRUE
 )
 }
 \arguments{
@@ -54,6 +55,8 @@ nearly collinear regressors). Default is 50.}
 during optimization. Default is NULL, in which case this column is chosen based
 on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 Y_j_ref greater than zero).}
+
+\item{use_discrete}{If discrete design matrix, use fast discrete implementation.}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint
