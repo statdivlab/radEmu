@@ -23,6 +23,8 @@
 #' during optimization. Default is NULL, in which case this column is chosen based
 #' on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 #' Y_j_ref greater than zero).
+#' @param use_discrete If discrete design matrix, use fast discrete implementation.
+#' 
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
@@ -39,7 +41,8 @@ emuFit_micro_penalized <-
     max_step = 5,
     verbose = TRUE,
     max_abs_B = 250,
-    j_ref = NULL
+    j_ref = NULL,
+    use_discrete = TRUE
   ) {
     J <- ncol(Y)
     p <- ncol(X)
@@ -108,7 +111,8 @@ may take a moment."
         max_stepsize = max_step,
         tolerance = tolerance,
         verbose = verbose,
-        j_ref = j_ref
+        j_ref = j_ref,
+        use_discrete = use_discrete
       )
 
       B_diff <- max(abs(fitted_model - old_B)[abs(fitted_model) < max_abs_B])

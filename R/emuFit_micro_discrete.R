@@ -22,6 +22,7 @@ emuFit_micro_discrete <- function(
     apply(X, 1, function(r)
       paste(r, collapse = "_"))               # grouping key by row contents
   )
+  groups <- groups[order(sapply(groups, min))]
   
   for (the_cat in 1:length(groups)) {
     the_xs <- groups[[the_cat]]
