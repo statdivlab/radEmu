@@ -175,7 +175,7 @@ fit_null <- function(
         verbose = verbose,
         c1 = 1e-4
       )
-      print(update)
+
       B <- B + update$update
       gap <- update$gap
       z <- update_z(Y, X, B)
