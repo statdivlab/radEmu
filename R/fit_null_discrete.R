@@ -1,51 +1,69 @@
-# fit_null_discrete <- function(
-#     B,
-#     Y,
-#     X,
-#     k_constr,
-#     j_constr,
-#     j_ref,
-#     constraint_fn,
-#     constraint_grad_fn
-# ) {
-#   
-#   if (is.null(j_ref)) {
-#     j_ref <- ifelse(j_constr == 1, 2, 1)
-#   }
-#   
-#   n <- nrow(Y)
-#   J <- ncol(Y)
-#   p <- ncol(X)
-#   
-#   distinct_xx <- unique(X)
-#   
-#   # fitted values eta = X %*% beta
-#   pihats <- matrix(NA, nrow = p, ncol = J) # p x J
-#   etahats <- matrix(NA, nrow = p, ncol = J) # p x J
-#   etahats[, j_ref] <- 0
-#   
-#   groups <- split(
-#     seq_len(nrow(X)),                        # row indices of original data
-#     apply(X, 1, function(r)
-#       paste(r, collapse = "_"))               # grouping key by row contents
-#   )
-#   groups <- groups[order(sapply(groups, min))]
-#   
-#   for (the_cat in 1:length(groups)) {
-#     the_xs <- groups[[the_cat]]
-#     totals <- apply(Y[the_xs, , drop = FALSE], 2, sum)
-#     pihats[the_cat, ] <- totals / sum(totals)
-#     etahats[the_cat, setdiff(1:J, j_ref)] <- log(pihats[-j_ref] / pihats[j_ref])
-#   }
-#   
-#   
-#   
-#   
-#   # beta = X^{-1} %*% eta
-#   betahats <- round(MASS::ginv(distinct_xx), 8) %*% etahats
-#   betahats
-#   
-# }
+fit_null_discrete_pseudohuber <- function(
+    B,
+    Y,
+    X,
+    k_constr,
+    j_constr,
+    j_ref
+) {
+  
+  if (is.null(j_ref)) {
+    j_ref <- ifelse(j_constr == 1, 2, 1)
+  }
+  
+  n <- nrow(Y)
+  J <- ncol(Y)
+  p <- ncol(X)
+  
+  distinct_xx <- unique(X)
+  
+  ## Currently this works for 
+  #### two groups with X's (1, 0) and (1, 1)
+  #### testing the first column, last column also constrained
+  
+  #### it is equivalent to fit_null with k_constr=2, j_constr=1, j_ref=J,
+  
+  ## It needs to be generalized to consider 
+  #### multiple categories (can we assume identity-like then back transform? is this constraint and likelihood-preserving?) 
+  #### different columns for testing
+  #### the same inputs as fit_null and comparable convergence statistics
+  
+  out <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums, 
+                                       n1 = Y[which(X[,2] == 1), ] %>% colSums, 
+                                       g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
+                                       g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
+                                       maxit = 1e8,
+                                       tol = 1e-10)
+  
+  
+  
+  B <- cbind(rbind(out$alpha, out$beta), 0)
+  z <- update_z(Y, X, B)
+  log_means <- X %*% B + matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
+  ll_new <- sum(Y * log_means - exp(log_means))
+  
+  # beta = X^{-1} %*% eta
+  betahats <- round(MASS::ginv(distinct_xx), 8) %*% etahats
+  betahats
+  
+  
+  it_df <- it_df[1:iter, ]
+  
+  
+  return(list(
+    "B" = B,
+    "k_constr" = k_constr,
+    "j_constr" = j_constr,
+    "niter" = iter,
+    "gap" = gap,
+    "u" = u,
+    "rho" = rho,
+    "Bs" = Bs,
+    "it_df" = it_df,
+    "converged" = converged
+  ))
+  
+}
 # 
 # 
 # 

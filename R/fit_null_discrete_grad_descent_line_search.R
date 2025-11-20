@@ -178,71 +178,47 @@ my_gd_ls  <- function(n0, n1,
   )
 }
 
-fn3_1_J <- fit_null(B=fit3$B, Y=Y, X = X, k_constr=2, j_constr=1, j_ref=J,
-                    constraint_fn=list(pseudohuber_median, pseudohuber_median),
-                    constraint_grad_fn=list(radEmu::dpseudohuber_median_dx, radEmu::dpseudohuber_median_dx),
-                    B_tol=1e-8, constraint_tol=1e-8)
-
-out_test2 <- my_gd_ls(n0=Y[which(X[,2] == 0), ] %>% colSums, 
-                     n1 = Y[which(X[,2] == 1), ] %>% colSums, 
-                     g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
-                     g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
-                     eta_alpha = 1e-3,
-                     eta_beta  = 1e-3,
-                     maxit = 1000,
-                     tol = 1e-6)
-
-out_test$alpha
-out_test$beta
-fn3_1_J$B # j_constr=1, j_ref=J
-
-n0s <- Y[which(X[,2] == 0), ] %>% colSums
-n1s <- Y[which(X[,2] == 1), ] %>% colSums
-n0s_mod <- n0s; n0s_mod[1] <- n0s[1] + n1s[1]
-
-
-Y
-logit <- function(x) log(x/(1-x))
-lg <- logit(n0s/sum(n0s))
-lg
-lg - lg[J]
-
-logit(n0s_mod/sum(n0s_mod)) - logit(n0s_mod/sum(n0s_mod))[J]
-
-
-pseudohuber_median_mod(out_test$alpha[-1])
-pseudohuber_median_mod(out_test$beta[-1])
-
-
-out_test
-fn3_1_J$B
-
-pseudohuber_median_mod(out_test$alpha[-1])
-pseudohuber_median_mod(out_test$beta[-1])
-
-
-
-
+# fn3_1_J <- fit_null(B=fit3$B, Y=Y, X = X, k_constr=2, j_constr=1, j_ref=J,
+#                     constraint_fn=list(pseudohuber_median, pseudohuber_median),
+#                     constraint_grad_fn=list(radEmu::dpseudohuber_median_dx, radEmu::dpseudohuber_median_dx),
+#                     B_tol=1e-8, constraint_tol=1e-8)
+# 
+# out_test2 <- my_gd_ls(n0=Y[which(X[,2] == 0), ] %>% colSums, 
+#                      n1 = Y[which(X[,2] == 1), ] %>% colSums, 
+#                      g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
+#                      g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
+#                      eta_alpha = 1e-3,
+#                      eta_beta  = 1e-3,
+#                      maxit = 1000,
+#                      tol = 1e-6)
+# 
+# out_test$alpha
+# out_test$beta
+# fn3_1_J$B # j_constr=1, j_ref=J
+# 
+# n0s <- Y[which(X[,2] == 0), ] %>% colSums
+# n1s <- Y[which(X[,2] == 1), ] %>% colSums
+# n0s_mod <- n0s; n0s_mod[1] <- n0s[1] + n1s[1]
+# 
+# 
+# Y
+# logit <- function(x) log(x/(1-x))
+# lg <- logit(n0s/sum(n0s))
+# lg
+# lg - lg[J]
+# 
+# logit(n0s_mod/sum(n0s_mod)) - logit(n0s_mod/sum(n0s_mod))[J]
+# 
+# 
+# pseudohuber_median_mod(out_test$alpha[-1])
+# pseudohuber_median_mod(out_test$beta[-1])
+# 
+# 
+# out_test
 # fn3_1_J$B
 # 
-# fn3_1_J$B[fn3_1_J$k_constr, setdiff(1:J, fn3_1_J$j_constr)] %>% psuedohuber_median
-# fn3_1_J$B[fn3_1_J$k_constr, fn3_1_J$j_constr] 
-# 
-# fn3_1_J$B[1, ] %>% psuedohuber_median
-# fn3_1_J$B[1, ] %>% dput
-# fn3_1_J$B[1, setdiff(1:J, c(1, J))] %>% psuedohuber_median
-# fn3_1_J$B[1, setdiff(1:J, J)] %>% psuedohuber_median
-# fn3_1_J$B[1, setdiff(1:J, 1)] %>% psuedohuber_median
-# fn3_1_J$B[1, c(1, J)] %>% psuedohuber_median
-# 
-# fn3_1_J$B[1, 1:5] %>% psuedohuber_median
-# fn3_1_J$B[1, c(2,3,4)] %>% psuedohuber_median
-# 
-# 
-# fn3_1_J$B[1, c(1,5)] %>% psuedohuber_median
-# 
-# 
-# fn3_1_J$B[1, fn3_1_J$j_constr] 
-# fn3_1_J$B
-# 
-# fn3_1_J$B[1, ] %>% psuedohuber_median
+# pseudohuber_median_mod(out_test$alpha[-1])
+# pseudohuber_median_mod(out_test$beta[-1])
+
+
+
