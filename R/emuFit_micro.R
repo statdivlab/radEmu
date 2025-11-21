@@ -24,6 +24,7 @@
 #' @param optimize_rows If use_working_constraint is TRUE, update overall location of
 #' rows of B relative to column constrained to equal zero under working constraint before
 #' iterating through updates to columns of B individually. Default is TRUE.
+#' @param use_discrete If discrete design matrix, use fast discrete implementation.
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
@@ -42,9 +43,11 @@ emuFit_micro <- function(
   max_abs_B = 50,
   use_working_constraint = TRUE,
   j_ref = NULL,
-  optimize_rows = TRUE
+  optimize_rows = TRUE,
+  use_discrete = TRUE
 ) {
-  #extract dimensions
+  
+  # extract dimensions
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
@@ -58,7 +61,7 @@ emuFit_micro <- function(
     )
   }
 
-  #populate B if not provided
+  # populate B if not provided
   if (is.null(B)) {
     if (!warm_start) {
       B <- matrix(0, nrow = p, ncol = J)
@@ -70,7 +73,7 @@ emuFit_micro <- function(
       }
       B <- matrix(nrow = p, ncol = J)
 
-      ##Checking if design matrix is rank-deficient and soln_mat can be found
+      # Checking if design matrix is rank-deficient and soln_mat can be found
       if (qr(t(X) %*% X)$rank < ncol(X)) {
         stop(
           "Design matrix X inputted for the model is rank-deficient, preventing proper model fitting.
@@ -112,120 +115,143 @@ emuFit_micro <- function(
       B[k, ] <- B[k, ] - constraint_fn[[k]](B[k, ])
     }
   }
-
-  #create object to store log likelihoods at each iteration in
-  lls <- numeric(maxit)
-
-  #initiate z
-  z <- update_z(Y, X, B)
-
-  #compute initial mean
-  log_mean <- X %*% B + matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
-
-  lls[1] <- sum(Y * log_mean - exp(log_mean))
-
-  converged <- FALSE
-
-  if (optimize_rows & use_working_constraint) {
-    eps_outcome <- rowSums(Y[, -which_to_omit, drop = FALSE])
-  }
-
-  iter <- 1
-  deriv_norm <- Inf
-  B_diff <- Inf
-  iter <- 1
-  while (!converged) {
-    old_B <- B
-    if (optimize_rows & use_working_constraint) {
-      epsilon_step <- rep(10, p)
-      while (max(abs(epsilon_step)) > 0.01) {
-        log_mean <- X %*%
-          B +
-          matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
-        eps_offset = log(rowSums(exp(log_mean[,
-          -which_to_omit,
-          drop = FALSE
-        ])))
-        epsilon_step <- suppressWarnings(
-          stats::glm(
-            eps_outcome ~ X - 1,
-            family = "poisson",
-            offset = eps_offset,
-            control = list(maxit = 3)
-          )$coef
-        )
-
-        for (k in 1:p) {
-          B[k, -which_to_omit] <- B[k, -which_to_omit] + epsilon_step[k]
-        }
-        z <- update_z(Y, X, B)
-      }
+  
+  # if we have zeros, don't use discrete implementation 
+  # if we are being routed from emuFit_micro_penalized, we don't expect to ever have zeros
+  if (min(Y) == 0) {
+    use_discrete <- FALSE
     }
+  
+  # check if X is discrete
+  distinct_X <- unique(X)
 
-    for (j in loop_js) {
-      update <- micro_fisher(
-        X,
-        Yj = Y[, j, drop = FALSE],
-        Bj = B[, j, drop = FALSE],
-        z,
-        stepsize = max_stepsize,
-        c1 = c1
-      )
-
-      B[, j] <- B[, j] + update
-
-      if (!use_working_constraint) {
-        for (k in 1:p) {
-          B[k, ] <- B[k, ] - constraint_fn[[k]](B[k, ])
-        }
-      }
-    }
-
-    # keep any elements of B from flying off to infinity
+  if (ncol(X) == nrow(distinct_X) & use_discrete) {
+    
+    B <- emuFit_micro_discrete(X = X, Y = Y, j_ref = j_ref)
     B[B < -max_abs_B] <- -max_abs_B
     B[B > max_abs_B] <- max_abs_B
-    z <- update_z(Y = Y, X = X, B = B)
-
-    log_mean <- X %*%
-      B +
-      matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
-    lls[iter + 1] <- sum(Y * log_mean - exp(log_mean))
-
-    deriv <- do.call(
-      c,
-      lapply(1:J, function(j) {
-        crossprod(X, Y[, j, drop = FALSE] - exp(log_mean[, j, drop = FALSE]))
-      })
-    )
-
-    deriv_norm = sqrt(sum(deriv^2))
-
-    B_diff <- max(abs(B - old_B)[abs(B) < (0.5 * max_abs_B)])
-
-    if (verbose) {
-      message(
-        "Scaled norm of derivative ",
-        signif(sqrt((1 / (n * J)) * deriv_norm), 4)
-      )
-      if (iter > 1) {
-        message(
-          "Max absolute difference in elements of B since last iteration: ",
-          signif(B_diff, 3)
+    
+    if (!use_working_constraint) {
+      for (k in 1:p) {
+        B[k, ] <- B[k, ] - constraint_fn[[k]](B[k, ])
+      }
+    }
+    
+  } else {
+    #create object to store log likelihoods at each iteration in
+    lls <- numeric(maxit)
+    
+    #initiate z
+    z <- update_z(Y, X, B)
+    
+    #compute initial mean
+    log_mean <- X %*% B + matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
+    
+    lls[1] <- sum(Y * log_mean - exp(log_mean))
+    
+    converged <- FALSE
+    
+    if (optimize_rows & use_working_constraint) {
+      eps_outcome <- rowSums(Y[, -which_to_omit, drop = FALSE])
+    }
+    
+    iter <- 1
+    deriv_norm <- Inf
+    B_diff <- Inf
+    iter <- 1
+    while (!converged) {
+      old_B <- B
+      if (optimize_rows & use_working_constraint) {
+        epsilon_step <- rep(10, p)
+        while (max(abs(epsilon_step)) > 0.01) {
+          log_mean <- X %*%
+            B +
+            matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
+          eps_offset = log(rowSums(exp(log_mean[,
+                                                -which_to_omit,
+                                                drop = FALSE
+          ])))
+          epsilon_step <- suppressWarnings(
+            stats::glm(
+              eps_outcome ~ X - 1,
+              family = "poisson",
+              offset = eps_offset,
+              control = list(maxit = 3)
+            )$coef
+          )
+          
+          for (k in 1:p) {
+            B[k, -which_to_omit] <- B[k, -which_to_omit] + epsilon_step[k]
+          }
+          z <- update_z(Y, X, B)
+        }
+      }
+      
+      for (j in loop_js) {
+        update <- micro_fisher(
+          X,
+          Yj = Y[, j, drop = FALSE],
+          Bj = B[, j, drop = FALSE],
+          z,
+          stepsize = max_stepsize,
+          c1 = c1
         )
+        
+        B[, j] <- B[, j] + update
+        
+        if (!use_working_constraint) {
+          for (k in 1:p) {
+            B[k, ] <- B[k, ] - constraint_fn[[k]](B[k, ])
+          }
+        }
       }
-    }
-
-    if (B_diff < tolerance) {
-      converged <- TRUE
-    }
-
-    if (iter > maxit) {
-      converged <- TRUE
+      
+      # keep any elements of B from flying off to infinity
+      B[B < -max_abs_B] <- -max_abs_B
+      B[B > max_abs_B] <- max_abs_B
+      z <- update_z(Y = Y, X = X, B = B)
+      
+      log_mean <- X %*%
+        B +
+        matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
+      lls[iter + 1] <- sum(Y * log_mean - exp(log_mean))
+      
+      deriv <- do.call(
+        c,
+        lapply(1:J, function(j) {
+          crossprod(X, Y[, j, drop = FALSE] - exp(log_mean[, j, drop = FALSE]))
+        })
+      )
+      
+      deriv_norm = sqrt(sum(deriv^2))
+      
+      B_diff <- max(abs(B - old_B)[abs(B) < (0.5 * max_abs_B)])
+      
       if (verbose) {
-        message("Iteration limit reached; exiting optimization.")
+        message(
+          "Scaled norm of derivative ",
+          signif(sqrt((1 / (n * J)) * deriv_norm), 4)
+        )
+        if (iter > 1) {
+          message(
+            "Max absolute difference in elements of B since last iteration: ",
+            signif(B_diff, 3)
+          )
+        }
       }
+      
+      if (B_diff < tolerance) {
+        converged <- TRUE
+      }
+      
+      if (iter > maxit) {
+        converged <- TRUE
+        if (verbose) {
+          message("Iteration limit reached; exiting optimization.")
+        }
+      }
+      iter <- iter + 1
     }
-    iter <- iter + 1
   }
 
   if (use_working_constraint) {

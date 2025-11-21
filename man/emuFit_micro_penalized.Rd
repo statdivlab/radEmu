@@ -16,8 +16,8 @@ emuFit_micro_penalized(
   max_step = 5,
   verbose = TRUE,
   max_abs_B = 250,
-  use_legacy_augmentation = FALSE,
-  j_ref = NULL
+  j_ref = NULL,
+  use_discrete = TRUE
 )
 }
 \arguments{
@@ -51,14 +51,12 @@ most cases this is not needed as Firth penalty will prevent infinite estimates
 under separation. However, such a threshold may be helpful in very poorly conditioned problems (e.g., with many
 nearly collinear regressors). Default is 50.}
 
-\item{use_legacy_augmentation}{logical: should an older (slower) implementation of
-data augmentation be used? Only used for testing - there is no advantage to using
-the older implementation in applied settings.}
-
 \item{j_ref}{which column of B to set to zero as a convenience identifiability
 during optimization. Default is NULL, in which case this column is chosen based
 on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 Y_j_ref greater than zero).}
+
+\item{use_discrete}{If discrete design matrix, use fast discrete implementation.}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint
