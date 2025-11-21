@@ -2,7 +2,6 @@
 test_that("sim with single binary covariate", {
   set.seed(4323)
   X <- cbind(1,rep(c(0,1),each = 20))
-  X_reorder <- X[sample(1:40, 40), ]
   J <- 10
   n <- 40
   b1 <- 1:J - mean(1:J)
@@ -41,40 +40,33 @@ test_that("sim with single binary covariate", {
   
   testthat::expect_lte(max(abs(ml_fit - ml_fit_fisher)), 5e-3)
   
-  Y_reorder <- radEmu:::simulate_data(n = n,
-                              J = J,
-                              X = X_reorder,
-                              b0 = rnorm(J),
-                              b1 = b1,
-                              distn = "Poisson",
-                              mean_z = 10)
+  ord <- sample(1:40, 40, replace = FALSE)
+  X_reorder <- X[ord, ]
+  Y_reorder <- Y[ord, ]
   
-  ml_fit <- emuFit_micro(X = X_reorder,
-                         Y = Y_reorder,
-                         constraint_fn = rep(list(function(x) mean(x)), 2), 
-                         maxit = 200,
-                         tolerance = 1e-3,
-                         verbose = FALSE)
-  ml_fit_fisher <- emuFit_micro(X = X_reorder,
-                                Y = Y_reorder,
-                                constraint_fn = rep(list(function(x) mean(x)), 2), 
-                                maxit = 200,
-                                tolerance = 1e-3,
-                                verbose = FALSE,
-                                use_discrete = FALSE)
+  ml_fit_reord <- emuFit_micro(X = X_reorder,
+                               Y = Y_reorder,
+                               constraint_fn = rep(list(function(x) mean(x)), 2), 
+                               maxit = 200,
+                               tolerance = 1e-3,
+                               verbose = FALSE)
+  ml_fit_fisher_reord <- emuFit_micro(X = X_reorder,
+                                      Y = Y_reorder,
+                                      constraint_fn = rep(list(function(x) mean(x)), 2), 
+                                      maxit = 200,
+                                      tolerance = 1e-3,
+                                      verbose = FALSE,
+                                      use_discrete = FALSE)
   
   
-  fit_discrete <- emuFit_micro_discrete(X = X_reorder,
-                                        Y = Y_reorder,
-                                        j_ref = 1)
+  fit_discrete_reord <- emuFit_micro_discrete(X = X_reorder,
+                                              Y = Y_reorder,
+                                              j_ref = 1)
   
   
-  testthat::expect_lte(  max(abs(ml_fit -  
-                                   rbind(fit_discrete[1,] - mean(fit_discrete[1,]), 
-                                         fit_discrete[2,] - mean(fit_discrete[2,])))),
-                         5e-3)
-  
-  testthat::expect_lte(max(abs(ml_fit - ml_fit_fisher)), 5e-3)
+  testthat::expect_lte(max(abs(fit_discrete - fit_discrete_reord)), 1e-8)
+  testthat::expect_lte(max(abs(ml_fit - ml_fit_reord)), 1e-8)
+  testthat::expect_lte(max(abs(ml_fit_reord - ml_fit_fisher_reord)), 5e-3)
   
 })
 
@@ -120,41 +112,33 @@ test_that("sim with multiple-level covariate covariate", {
   
   testthat::expect_lte(max(abs(ml_fit - ml_fit_fisher)), 5e-3)
   
-
-  Y_reorder <- radEmu:::simulate_data(n = n,
-                                      J = J,
-                                      X = X_reorder,
-                                      B = rbind(rnorm(J, 0, 2), rnorm(J, 0, 2), rnorm(J, 0, 2)),
-                                      distn = "Poisson",
-                                      mean_z = 10)
+  ord <- sample(1:60, 60, replace = FALSE)
+  X_reorder <- X[ord, ]
+  Y_reorder <- Y[ord, ]
   
-  ml_fit <- emuFit_micro(X = X_reorder,
-                         Y = Y_reorder,
-                         constraint_fn = rep(list(function(x) mean(x)), 3), 
-                         maxit = 200,
-                         tolerance = 1e-3,
-                         verbose = FALSE)
-  ml_fit_fisher <- emuFit_micro(X = X_reorder,
-                                Y = Y_reorder,
-                                constraint_fn = rep(list(function(x) mean(x)), 3), 
-                                maxit = 200,
-                                tolerance = 1e-3,
-                                verbose = FALSE,
-                                use_discrete = FALSE)
+  ml_fit_reord <- emuFit_micro(X = X_reorder,
+                               Y = Y_reorder,
+                               constraint_fn = rep(list(function(x) mean(x)), 3), 
+                               maxit = 200,
+                               tolerance = 1e-3,
+                               verbose = FALSE)
+  ml_fit_fisher_reord <- emuFit_micro(X = X_reorder,
+                                      Y = Y_reorder,
+                                      constraint_fn = rep(list(function(x) mean(x)), 3), 
+                                      maxit = 200,
+                                      tolerance = 1e-3,
+                                      verbose = FALSE,
+                                      use_discrete = FALSE)
   
   
-  fit_discrete <- emuFit_micro_discrete(X = X_reorder,
-                                        Y = Y_reorder,
-                                        j_ref = 1)
+  fit_discrete_reord <- emuFit_micro_discrete(X = X_reorder,
+                                              Y = Y_reorder,
+                                              j_ref = 1)
   
   
-  testthat::expect_lte(  max(abs(ml_fit -  
-                                   rbind(fit_discrete[1,] - mean(fit_discrete[1,]), 
-                                         fit_discrete[2,] - mean(fit_discrete[2,]),
-                                         fit_discrete[3,] - mean(fit_discrete[3,])))),
-                         5e-3)
-  
-  testthat::expect_lte(max(abs(ml_fit - ml_fit_fisher)), 5e-3)
+  testthat::expect_lte(max(abs(fit_discrete - fit_discrete_reord)), 1e-8)
+  testthat::expect_lte(max(abs(ml_fit - ml_fit_reord)), 1e-8)
+  testthat::expect_lte(max(abs(ml_fit_reord - ml_fit_fisher_reord)), 5e-3)
   
 })
 
@@ -213,5 +197,12 @@ test_that("discrete works with wirbel data, more categories", {
                                    use_discrete = TRUE)
   
   expect_true(all.equal(ch_fit_old$B, ch_fit$B, tol = 0.001))
+  
+  ord <- sample(1:nrow(design), nrow(design), replace = FALSE)
+  ch_fit_reord <- emuFit_micro_penalized(X = design[ord, ], Y = Y[ord, ], 
+                                   constraint_fn = rep(list(pseudohuber_median), 6), 
+                                   use_discrete = TRUE)
+  
+  expect_true(all.equal(ch_fit_reord$B, ch_fit$B, tol = 0.001))
   
 })
