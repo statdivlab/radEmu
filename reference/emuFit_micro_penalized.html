@@ -59,8 +59,8 @@
 <span>  max_step <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  max_abs_B <span class="op">=</span> <span class="fl">250</span>,</span>
-<span>  use_legacy_augmentation <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  j_ref <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  j_ref <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  use_discrete <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -120,17 +120,15 @@ under separation. However, such a threshold may be helpful in very poorly condit
 nearly collinear regressors). Default is 50.</p></dd>
 
 
-<dt id="arg-use-legacy-augmentation">use_legacy_augmentation<a class="anchor" aria-label="anchor" href="#arg-use-legacy-augmentation"></a></dt>
-<dd><p>logical: should an older (slower) implementation of
-data augmentation be used? Only used for testing - there is no advantage to using
-the older implementation in applied settings.</p></dd>
-
-
 <dt id="arg-j-ref">j_ref<a class="anchor" aria-label="anchor" href="#arg-j-ref"></a></dt>
 <dd><p>which column of B to set to zero as a convenience identifiability
 during optimization. Default is NULL, in which case this column is chosen based
 on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 Y_j_ref greater than zero).</p></dd>
+
+
+<dt id="arg-use-discrete">use_discrete<a class="anchor" aria-label="anchor" href="#arg-use-discrete"></a></dt>
+<dd><p>If discrete design matrix, use fast discrete implementation.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -148,7 +146,7 @@ g(B_k) = 0)</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

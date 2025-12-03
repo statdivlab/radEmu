@@ -69,7 +69,7 @@
                         <h4 data-toc-skip class="author">Sarah Teichman
 and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2025-11-07</h4>
+            <h4 data-toc-skip class="date">2025-12-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/radEmu_with_reference_taxon.Rmd" class="external-link"><code>vignettes/radEmu_with_reference_taxon.Rmd</code></a></small>
       <div class="d-none name"><code>radEmu_with_reference_taxon.Rmd</code></div>
@@ -170,12 +170,12 @@ constraint.</p>
 <span><span class="co">#&gt; 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]</span></span>
 <span><span class="co">#&gt; 6  GroupCRC                      Eubacterium sp. [ref_mOTU_v2_1395]</span></span>
 <span><span class="co">#&gt;   category_num    estimate        se      lower     upper score_stat pval</span></span>
-<span><span class="co">#&gt; 1            1  1.48637593 0.8965269 -0.2707846 3.2435364         NA   NA</span></span>
-<span><span class="co">#&gt; 2            2  2.31316834 0.8270260  0.6922272 3.9341095         NA   NA</span></span>
-<span><span class="co">#&gt; 3            3  3.08640201 1.0274037  1.0727278 5.1000763         NA   NA</span></span>
-<span><span class="co">#&gt; 4            4 -0.34307844 0.3520048 -1.0329952 0.3468384         NA   NA</span></span>
-<span><span class="co">#&gt; 5            5  0.03891827 0.4779880 -0.8979210 0.9757575         NA   NA</span></span>
-<span><span class="co">#&gt; 6            6  1.12952082 0.9562351 -0.7446656 3.0037072         NA   NA</span></span></code></pre></div>
+<span><span class="co">#&gt; 1            1  1.48637866 0.8965589 -0.2708446 3.2436019         NA   NA</span></span>
+<span><span class="co">#&gt; 2            2  2.31317107 0.8270519  0.6921791 3.9341630         NA   NA</span></span>
+<span><span class="co">#&gt; 3            3  3.08640474 1.0274354  1.0726684 5.1001410         NA   NA</span></span>
+<span><span class="co">#&gt; 4            4 -0.34307572 0.3520117 -1.0330060 0.3468546         NA   NA</span></span>
+<span><span class="co">#&gt; 5            5  0.03892099 0.4779975 -0.8979369 0.9757789         NA   NA</span></span>
+<span><span class="co">#&gt; 6            6  1.12952355 0.9562677 -0.7447267 3.0037738         NA   NA</span></span></code></pre></div>
 <p>The first taxon reported is <em>F. nucleatum s. vincentii</em>, and
 it has an “estimate” of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1.49</mn><annotation encoding="application/x-tex">1.49</annotation></semantics></math>.
@@ -188,7 +188,7 @@ controls.</p>
 <p>Let’s look at the distribution of log fold-difference estimates.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_fit_default</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" width="700"></p>
 <p>We can see that the log fold-difference estimates in this analysis
 range from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mo>−</mo><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\approx -2.5</annotation></semantics></math>
@@ -262,13 +262,13 @@ to create a list of constraint functions to pass on to
 <span><span class="co">#&gt; 4  GroupCRC         Faecalibacterium prausnitzii [ref_mOTU_v2_1379]</span></span>
 <span><span class="co">#&gt; 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]</span></span>
 <span><span class="co">#&gt; 6  GroupCRC                      Eubacterium sp. [ref_mOTU_v2_1395]</span></span>
-<span><span class="co">#&gt;   category_num   estimate        se      lower       upper score_stat pval</span></span>
-<span><span class="co">#&gt; 1            1 -0.8267924 0.4581539 -1.7247576  0.07117277         NA   NA</span></span>
-<span><span class="co">#&gt; 2            2  0.0000000 0.0000000  0.0000000  0.00000000         NA   NA</span></span>
-<span><span class="co">#&gt; 3            3  0.7732337 0.6760004 -0.5517028  2.09817017         NA   NA</span></span>
-<span><span class="co">#&gt; 4            4 -2.6562468 0.8742719 -4.3697882 -0.94270535         NA   NA</span></span>
-<span><span class="co">#&gt; 5            5 -2.2742501 1.0329916 -4.2988764 -0.24962375         NA   NA</span></span>
-<span><span class="co">#&gt; 6            6 -1.1836475 1.1804619 -3.4973103  1.13001527         NA   NA</span></span></code></pre></div>
+<span><span class="co">#&gt;   category_num   estimate        se     lower       upper score_stat pval</span></span>
+<span><span class="co">#&gt; 1            1 -0.8267924 0.4581605 -1.724771  0.07118572         NA   NA</span></span>
+<span><span class="co">#&gt; 2            2  0.0000000 0.0000000  0.000000  0.00000000         NA   NA</span></span>
+<span><span class="co">#&gt; 3            3  0.7732337 0.6760066 -0.551715  2.09818234         NA   NA</span></span>
+<span><span class="co">#&gt; 4            4 -2.6562468 0.8742978 -4.369839 -0.94265452         NA   NA</span></span>
+<span><span class="co">#&gt; 5            5 -2.2742501 1.0330192 -4.298930 -0.24956972         NA   NA</span></span>
+<span><span class="co">#&gt; 6            6 -1.1836475 1.1804984 -3.497382  1.13008683         NA   NA</span></span></code></pre></div>
 <p>First, note that the estimate for <em>F. nucleatum s. animalis</em>
 is now
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>,
@@ -296,7 +296,7 @@ animalis</em> in cases compared to controls.</p>
 <p>Let’s look at the distribution of log fold-difference estimates.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_fit_ref</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" width="700"></p>
 <p>Here, we can see a distribution that has the same shape as the
 distribution of estimates when using the default constraint. This is
 because the result of changing the identifiability constraint is to
@@ -342,12 +342,12 @@ the default constraint. We will run a robust score test.</p>
 <span><span class="co">#&gt; 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]</span></span>
 <span><span class="co">#&gt; 6  GroupCRC                      Eubacterium sp. [ref_mOTU_v2_1395]</span></span>
 <span><span class="co">#&gt;   category_num    estimate        se      lower     upper score_stat       pval</span></span>
-<span><span class="co">#&gt; 1            1  1.48637593 0.8965269 -0.2707846 3.2435364   4.244855 0.03936942</span></span>
-<span><span class="co">#&gt; 2            2  2.31316834 0.8270260  0.6922272 3.9341095         NA         NA</span></span>
-<span><span class="co">#&gt; 3            3  3.08640201 1.0274037  1.0727278 5.1000763         NA         NA</span></span>
-<span><span class="co">#&gt; 4            4 -0.34307844 0.3520048 -1.0329952 0.3468384         NA         NA</span></span>
-<span><span class="co">#&gt; 5            5  0.03891827 0.4779880 -0.8979210 0.9757575         NA         NA</span></span>
-<span><span class="co">#&gt; 6            6  1.12952082 0.9562351 -0.7446656 3.0037072         NA         NA</span></span></code></pre></div>
+<span><span class="co">#&gt; 1            1  1.48637866 0.8965589 -0.2708446 3.2436019   4.244871 0.03936905</span></span>
+<span><span class="co">#&gt; 2            2  2.31317107 0.8270519  0.6921791 3.9341630         NA         NA</span></span>
+<span><span class="co">#&gt; 3            3  3.08640474 1.0274354  1.0726684 5.1001410         NA         NA</span></span>
+<span><span class="co">#&gt; 4            4 -0.34307572 0.3520117 -1.0330060 0.3468546         NA         NA</span></span>
+<span><span class="co">#&gt; 5            5  0.03892099 0.4779975 -0.8979369 0.9757789         NA         NA</span></span>
+<span><span class="co">#&gt; 6            6  1.12952355 0.9562677 -0.7447267 3.0037738         NA         NA</span></span></code></pre></div>
 <p>We have a p-value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.039</mn><annotation encoding="application/x-tex">0.039</annotation></semantics></math>.
 This means that with an alpha level of
@@ -384,13 +384,13 @@ constraint.</p>
 <span><span class="co">#&gt; 4  GroupCRC         Faecalibacterium prausnitzii [ref_mOTU_v2_1379]</span></span>
 <span><span class="co">#&gt; 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]</span></span>
 <span><span class="co">#&gt; 6  GroupCRC                      Eubacterium sp. [ref_mOTU_v2_1395]</span></span>
-<span><span class="co">#&gt;   category_num   estimate        se      lower       upper score_stat     pval</span></span>
-<span><span class="co">#&gt; 1            1 -0.8267924 0.4581539 -1.7247576  0.07117277   1.109802 0.292125</span></span>
-<span><span class="co">#&gt; 2            2  0.0000000 0.0000000  0.0000000  0.00000000         NA       NA</span></span>
-<span><span class="co">#&gt; 3            3  0.7732337 0.6760004 -0.5517028  2.09817017         NA       NA</span></span>
-<span><span class="co">#&gt; 4            4 -2.6562468 0.8742719 -4.3697882 -0.94270535         NA       NA</span></span>
-<span><span class="co">#&gt; 5            5 -2.2742501 1.0329916 -4.2988764 -0.24962375         NA       NA</span></span>
-<span><span class="co">#&gt; 6            6 -1.1836475 1.1804619 -3.4973103  1.13001527         NA       NA</span></span></code></pre></div>
+<span><span class="co">#&gt;   category_num   estimate        se     lower       upper score_stat      pval</span></span>
+<span><span class="co">#&gt; 1            1 -0.8267924 0.4581605 -1.724771  0.07118572   1.109809 0.2921234</span></span>
+<span><span class="co">#&gt; 2            2  0.0000000 0.0000000  0.000000  0.00000000         NA        NA</span></span>
+<span><span class="co">#&gt; 3            3  0.7732337 0.6760066 -0.551715  2.09818234         NA        NA</span></span>
+<span><span class="co">#&gt; 4            4 -2.6562468 0.8742978 -4.369839 -0.94265452         NA        NA</span></span>
+<span><span class="co">#&gt; 5            5 -2.2742501 1.0330192 -4.298930 -0.24956972         NA        NA</span></span>
+<span><span class="co">#&gt; 6            6 -1.1836475 1.1804984 -3.497382  1.13008683         NA        NA</span></span></code></pre></div>
 <p>Here, the p-value is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.292</mn><annotation encoding="application/x-tex">0.292</annotation></semantics></math>.
 Therefore, we fail to reject the null hypothesis that the expected log
@@ -424,7 +424,7 @@ know!</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
