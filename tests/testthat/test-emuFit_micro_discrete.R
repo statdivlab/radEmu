@@ -18,7 +18,8 @@ test_that("sim with single binary covariate", {
                          constraint_fn = rep(list(function(x) mean(x)), 2), 
                          maxit = 200,
                          tolerance = 1e-3,
-                         verbose = FALSE)
+                         verbose = FALSE, 
+                         use_discrete = TRUE)
   ml_fit_fisher <- emuFit_micro(X = X,
                                 Y = Y,
                                 constraint_fn = rep(list(function(x) mean(x)), 2), 
@@ -34,9 +35,9 @@ test_that("sim with single binary covariate", {
   
   
   testthat::expect_lte(  max(abs(ml_fit -  
-                                    rbind(fit_discrete[1,] - mean(fit_discrete[1,]), 
-                                          fit_discrete[2,] - mean(fit_discrete[2,])))),
-                          5e-3)
+                                   rbind(fit_discrete[1,] - mean(fit_discrete[1,]), 
+                                         fit_discrete[2,] - mean(fit_discrete[2,])))),
+                         5e-3)
   
   testthat::expect_lte(max(abs(ml_fit - ml_fit_fisher)), 5e-3)
   
@@ -49,7 +50,8 @@ test_that("sim with single binary covariate", {
                                constraint_fn = rep(list(function(x) mean(x)), 2), 
                                maxit = 200,
                                tolerance = 1e-3,
-                               verbose = FALSE)
+                               verbose = FALSE,  
+                               use_discrete = TRUE)
   ml_fit_fisher_reord <- emuFit_micro(X = X_reorder,
                                       Y = Y_reorder,
                                       constraint_fn = rep(list(function(x) mean(x)), 2), 
@@ -161,11 +163,11 @@ test_that("discrete works with wirbel data, binary design", {
   Y <- as.matrix(phyloseq::otu_table(wirbel_genus))
   
   ch_fit_old <- emuFit_micro_penalized(X = design, Y = Y,
-                             constraint_fn = rep(list(pseudohuber_median), 6), 
-                             use_discrete = FALSE)
+                                       constraint_fn = rep(list(pseudohuber_median), 6), 
+                                       use_discrete = FALSE)
   ch_fit <- emuFit_micro_penalized(X = design, Y = Y, 
-                         constraint_fn = rep(list(pseudohuber_median), 6), 
-                         use_discrete = TRUE)
+                                   constraint_fn = rep(list(pseudohuber_median), 6), 
+                                   use_discrete = TRUE)
   
   expect_true(all.equal(ch_fit_old$B, ch_fit$B, tol = 0.001))
   
@@ -200,8 +202,8 @@ test_that("discrete works with wirbel data, more categories", {
   
   ord <- sample(1:nrow(design), nrow(design), replace = FALSE)
   ch_fit_reord <- emuFit_micro_penalized(X = design[ord, ], Y = Y[ord, ], 
-                                   constraint_fn = rep(list(pseudohuber_median), 6), 
-                                   use_discrete = TRUE)
+                                         constraint_fn = rep(list(pseudohuber_median), 6), 
+                                         use_discrete = TRUE)
   
   expect_true(all.equal(ch_fit_reord$B, ch_fit$B, tol = 0.001))
   
