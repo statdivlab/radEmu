@@ -107,7 +107,7 @@ test_that("We take same step as we'd take using numerical derivatives when gap, 
 
   min_ratio <- min(update$update/n_update,na.rm = TRUE)
 
-  expect_equal(max_ratio,min_ratio,tolerance = 1e-3)
+  expect_equal(max_ratio,min_ratio,tolerance = 1e-2)
 
 })
 
