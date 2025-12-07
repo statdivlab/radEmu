@@ -43,7 +43,7 @@ for (jj in js) {
   #                         B_tol = 1e-5)
   # })[3]
   df_timing$new[ii] <- system.time({
-    out_test4 <- my_fs_stable(n0=Y[which(X[,2] == 0), ] %>% colSums, 
+    out_test4 <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums, 
                               n1 = Y[which(X[,2] == 1), ] %>% colSums, 
                               g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
                               g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
@@ -153,12 +153,10 @@ system.time({
 }) 
 
 system.time({
-  out_test5 <- my_fs_stable(n0=Y[which(X[,2] == 0), ] %>% colSums,
+  out_test5 <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums,
                             n1 = Y[which(X[,2] == 1), ] %>% colSums,
                             g_beta=function(x) {  pseudohuber_median(c(x, 0)) },
                             g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]},
-                            eta_alpha = 1e-3,
-                            eta_beta  = 1e-3,
                             maxit = 1000,
                             tol = 1e-8)
 }) 
@@ -187,3 +185,25 @@ sum(Y * log_means - exp(log_means))
 
 ll_orig < ll_new ### new is better
 
+
+##### try g-dim version
+
+set.seed(1)
+n <- 20
+J <- 30
+p <- 3
+beta <- matrix(rnorm(p*J, mean = 2, sd=1), ncol = J)
+X <- cbind(1, c(rep(0, n/2), rep(1, n/2)), c(rep(0, 3*n/4), rep(1, n/4)))
+Y <- matrix(rpois(n=n*J, lambda=exp(2 + X %*% beta)), ncol = J)
+Y <- pmax(Y, 1)
+Y
+
+load_all()
+system.time({
+  out_test5 <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums,
+                                       n1 = Y[which(X[,2] == 1), ] %>% colSums,
+                                       g_beta=function(x) {  pseudohuber_median(c(x, 0)) },
+                                       g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]},
+                                       maxit = 1000,
+                                       tol = 1e-8)
+}) 
