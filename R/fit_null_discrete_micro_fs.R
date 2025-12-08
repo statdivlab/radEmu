@@ -1,6 +1,7 @@
 ## this is equivalent to fit_null with j_ref=J
 fit_null_discrete_micro_fs <- function(Y, X,
-                                       k_constr, j_constr,          # indices: row k* in 1..(p-1), column j* in 1..(J-1)
+                                       k_constr, 
+                                       j_constr,          # indices: row k* in 1..(p-1), column j* in 1..(J-1)
                                        constraint_fn, constraint_grad_fn,       # g: R^{m-1}->R on the constrained row; grad: R^{m-1}->R^{m-1}
                                        maxit = 1000, 
                                        tol = 1e-8,
@@ -8,12 +9,16 @@ fit_null_discrete_micro_fs <- function(Y, X,
                                        ls_rho = 0.5,
                                        ridge_base = 1e-4,
                                        max_step_norm = 5,
-                                       clip_logit_max = 15) {
+                                       max_step = 1) {
+  
+  ## using `alpha + beta*X` parametrisation, so decrease k_constr_non_intercept accordingly
+  k_constr_non_intercept <- k_constr - 1
+  
   Y <- as.matrix(Y); X <- as.matrix(X)
   p <- nrow(Y); J <- ncol(Y); m <- J - 1L
   if (nrow(X) != p || ncol(X) != p - 1L) stop("X must be p x (p-1).")
   if (J < 3) stop("Need J >= 3 (one baseline).")
-  if (k_constr < 1L || k_constr > (p - 1L)) stop("k_constr must be in 1..(p-1).")
+  if (k_constr_non_intercept < 1L || k_constr_non_intercept > (p - 1L)) stop("k_constr_non_intercept must be in 1..(p-1).")
   if (j_constr < 1L || j_constr > m) stop("j_constr must be in 1..(J-1).")
   
   n <- rowSums(Y)
@@ -23,17 +28,18 @@ fit_null_discrete_micro_fs <- function(Y, X,
   beta  <- matrix(0, nrow = p - 1L, ncol = m)
   # initialize constrained element coherently (assume g excludes j_constr)
   free_idx <- setdiff(seq_len(m), j_constr)
-  beta[k_constr, j_constr] <- constraint_fn(beta[k_constr, free_idx])
+  beta[k_constr_non_intercept, j_constr] <- constraint_fn(beta[k_constr_non_intercept, free_idx])
   
   softmax_nb <- function(eta) { e <- exp(eta); e / (1 + sum(e)) }
   
   # Log-likelihood
   loglik_fun <- function(alpha, beta) {
-    ll <- 0; eps <- 1e-12
+    ll <- 0; #eps <- 1e-12
     for (i in 1:p) {
       eta <- alpha + drop(X[i, , drop = FALSE] %*% beta) # length m
       pnb <- softmax_nb(eta)
-      pfull <- pmin(pmax(c(pnb, 1 - sum(pnb)), eps), 1 - eps)
+      pfull <- c(pnb, 1 - sum(pnb))
+      # pfull <- pmin(pmax(c(pnb, 1 - sum(pnb)), eps), 1 - eps)
       ll <- ll + sum(Y[i, ] * log(pfull))
     }
     ll
@@ -76,11 +82,11 @@ fit_null_discrete_micro_fs <- function(Y, X,
     # reduced score: theta = (alpha, rows k != k*, full m; row k* free indices only)
     s_theta <- c(
       s_alpha,
-      as.vector(t(s_beta[setdiff(seq_len(p - 1L), k_constr), , drop = FALSE])),
+      as.vector(t(s_beta[setdiff(seq_len(p - 1L), k_constr_non_intercept), , drop = FALSE])),
       # constrained row (chain rule)
       {
-        grad_g <- constraint_grad_fn(beta[k_constr, free_idx])
-        s_beta[k_constr, free_idx] + s_beta[k_constr, j_constr] * grad_g
+        grad_g <- constraint_grad_fn(beta[k_constr_non_intercept, free_idx])
+        s_beta[k_constr_non_intercept, free_idx] + s_beta[k_constr_non_intercept, j_constr] * grad_g
       }
     )
     
@@ -124,13 +130,13 @@ fit_null_discrete_micro_fs <- function(Y, X,
     T[alpha_idx, 1:m] <- diag(m)
     col_ptr <- m + 1L
     # rows k != k*
-    for (k in setdiff(seq_len(p - 1L), k_constr)) {
+    for (k in setdiff(seq_len(p - 1L), k_constr_non_intercept)) {
       rb <- row_block_idx(k)
       T[rb, col_ptr:(col_ptr + m - 1L)] <- diag(m)
       col_ptr <- col_ptr + m
     }
     # row k* mapping B (m x (m-1))
-    grad_g <- constraint_grad_fn(beta[k_constr, free_idx])
+    grad_g <- constraint_grad_fn(beta[k_constr_non_intercept, free_idx])
     Bmap <- matrix(0, nrow = m, ncol = m - 1L)
     # identity on free indices
     for (pos in seq_along(free_idx)) {
@@ -138,7 +144,7 @@ fit_null_discrete_micro_fs <- function(Y, X,
     }
     # constrained element row = grad_g^T
     Bmap[j_constr, ] <- grad_g
-    T[row_block_idx(k_constr), col_ptr:(col_ptr + (m - 2L))] <- Bmap
+    T[row_block_idx(k_constr_non_intercept), col_ptr:(col_ptr + (m - 2L))] <- Bmap
     
     I_theta <- crossprod(T, Jmat %*% T)
     
@@ -161,8 +167,8 @@ fit_null_discrete_micro_fs <- function(Y, X,
     pack_theta <- function(alpha, beta) {
       c(
         alpha,
-        as.vector(t(beta[setdiff(seq_len(p - 1L), k_constr), , drop = FALSE])),
-        beta[k_constr, free_idx]
+        as.vector(t(beta[setdiff(seq_len(p - 1L), k_constr_non_intercept), , drop = FALSE])),
+        beta[k_constr_non_intercept, free_idx]
       )
     }
     unpack_theta <- function(vec) {
@@ -170,13 +176,13 @@ fit_null_discrete_micro_fs <- function(Y, X,
       a_new <- vec[wp:(wp + m - 1L)]; wp <- wp + m
       beta_new <- beta
       # rows k != k*
-      for (k in setdiff(seq_len(p - 1L), k_constr)) {
+      for (k in setdiff(seq_len(p - 1L), k_constr_non_intercept)) {
         beta_new[k, ] <- vec[wp:(wp + m - 1L)]; wp <- wp + m
       }
       # row k* free
       bfree <- vec[wp:(wp + (m - 2L))]
-      beta_new[k_constr, free_idx] <- bfree
-      beta_new[k_constr, j_constr]   <- constraint_fn(bfree)
+      beta_new[k_constr_non_intercept, free_idx] <- bfree
+      beta_new[k_constr_non_intercept, j_constr]   <- constraint_fn(bfree)
       list(alpha = a_new, beta = beta_new)
     }
     
@@ -187,9 +193,6 @@ fit_null_discrete_micro_fs <- function(Y, X,
       prop <- unpack_theta(theta_old + step_scale * step_theta)
       alpha_new <- prop$alpha
       beta_new  <- prop$beta
-      # clip logits (keep numerics sane)
-      alpha_new <- pmax(pmin(alpha_new,  clip_logit_max), -clip_logit_max)
-      beta_new  <- pmax(pmin(beta_new,   clip_logit_max), -clip_logit_max)
       ll_cand <- loglik_fun(alpha_new, beta_new)
       if (is.finite(ll_cand) && ll_cand >= ll_old) {
         alpha <- alpha_new; beta <- beta_new; ll_new <- ll_cand; accepted <- TRUE; break
@@ -205,8 +208,12 @@ fit_null_discrete_micro_fs <- function(Y, X,
   }
   
   B <- cbind(rbind(alpha, beta), 0)
+  rownames(B) <- NULL
   
   history <- do.call(rbind, param_hist)
+  history$k <- ifelse(is.na(history$row), 0, history$row) + 1
+  history$j <- history$col
+  
   list(B = B,                 
        logLik = ll_old,
        iter   = final_iter,
