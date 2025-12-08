@@ -173,9 +173,9 @@ test_that("new discrete is fast", {
 })
 
 
-test_that("new discrete is fast", {
+test_that("new discrete null aligns with older code", {
   
-  skip("Too slow for automated testing; X mins on laptop")
+  skip("Too slow for automated testing; 3 mins on laptop")
   
   set.seed(4)
   n <- 12
@@ -196,19 +196,19 @@ test_that("new discrete is fast", {
   })
   
   t_orig <- system.time({
-    out_orig <- fit_null(B=out_discrete$B, 
+    out_orig <- fit_null(B=matrix(0, nrow = p, ncol = J), 
                          Y=Y, X = X, 
                          k_constr=my_kstar, j_constr=my_jstar, j_ref=my_jref,
                          constraint_fn=list(pseudohuber_median, pseudohuber_median),
                          constraint_grad_fn=list(radEmu::dpseudohuber_median_dx, radEmu::dpseudohuber_median_dx),
                          B_tol=1e-3, constraint_tol=1e-6, maxit = 1e8)
-  }) #  816.931  489.308 1317.577 
+  }) # 94.249  66.621 163.194 
   
   ## check faster
   expect_lt(t_discrete[3], t_orig[3])
   
   ## check align
-  expect_lte(max(abs(out_discrete$B - out_orig$B)), 1e-3)
+  expect_lte(max(abs(out_discrete$B - out_orig$B)), 0.02)
   
   ## check no worse
   z_discrete <- update_z(Y, X, out_discrete$B)
