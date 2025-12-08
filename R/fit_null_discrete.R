@@ -4,18 +4,51 @@ fit_null_discrete_pseudohuber <- function(
     X,
     k_constr,
     j_constr,
-    j_ref
+    j_ref,
+    maxit = 1000
 ) {
   
-  if (is.null(j_ref)) {
-    j_ref <- ifelse(j_constr == 1, 2, 1)
-  }
+  # if (is.null(j_ref)) {
+  #   j_ref <- ifelse(j_constr == 1, 2, 1)
+  # }
   
   n <- nrow(Y)
   J <- ncol(Y)
   p <- ncol(X)
   
+  ## TODO generalise
+  stopifnot(j_ref == J)
+  
   distinct_xx <- unique(X)
+  
+  stopifnot(ncol(X) == nrow(distinct_xx))
+  stopifnot(all(X[,1] == 1)) ### need a baseline category to simplify the parametrization
+  X_wo_1s <- distinct_xx[, 1]
+  
+  groups <- split(
+    seq_len(nrow(X)),                        # row indices of original data
+    apply(X, 1, function(r)
+      paste(r, collapse = "_"))               # grouping key by row contents
+  )
+  
+  groups <- groups[order(sapply(groups, min))]
+  
+  totals <- lapply(groups, function(x) { 
+    apply(Y[x, , drop = FALSE], 2, sum)
+  })
+  
+  Y_sum <- do.call(rbind, totals)
+  
+  ## this should be equivalent to fit_null with j_ref=J
+  out <- fit_null_discrete_micro_fs(
+    Y = Y_sum, 
+    X = X_wo_1s, 
+    k_constr=k_constr, 
+    j_constr=j_constr,
+    constraint_fn=function(x) {  pseudohuber_median(c(x, 0)) },       
+    constraint_grad_fn= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}
+    maxit = maxit,
+  )
   
   ## Currently this works for 
   #### two groups with X's (1, 0) and (1, 1)
@@ -28,16 +61,18 @@ fit_null_discrete_pseudohuber <- function(
   #### different columns for testing
   #### the same inputs as fit_null and comparable convergence statistics
   
-  out <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums, 
-                                       n1 = Y[which(X[,2] == 1), ] %>% colSums, 
-                                       g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
-                                       g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
-                                       maxit = 1e8,
-                                       tol = 1e-10)
+  # out <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums, 
+  #                                n1 = Y[which(X[,2] == 1), ] %>% colSums, 
+  #                                g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
+  #                                g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
+  #                                maxit = 1000, tol = 1e-8,
+  #                                ls_max = 20, ls_rho = 0.5,
+  #                                ridge_base = 1e-4,
+  #                                max_step_norm = 5,
+  #                                clip_logit_max = 15)
   
+  B <- out$B
   
-  
-  B <- cbind(rbind(out$alpha, out$beta), 0)
   z <- update_z(Y, X, B)
   log_means <- X %*% B + matrix(z, ncol = 1) %*% matrix(1, ncol = J, nrow = 1)
   ll_new <- sum(Y * log_means - exp(log_means))
@@ -48,7 +83,6 @@ fit_null_discrete_pseudohuber <- function(
   
   
   it_df <- it_df[1:iter, ]
-  
   
   return(list(
     "B" = B,

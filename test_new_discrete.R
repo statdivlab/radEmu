@@ -44,13 +44,13 @@ for (jj in js) {
   # })[3]
   df_timing$new[ii] <- system.time({
     out_test4 <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums, 
-                              n1 = Y[which(X[,2] == 1), ] %>% colSums, 
-                              g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
-                              g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
-                              eta_alpha = 1e-3,
-                              eta_beta  = 1e-3,
-                              maxit = 1e8,
-                              tol = 1e-10)
+                                         n1 = Y[which(X[,2] == 1), ] %>% colSums, 
+                                         g_beta=function(x) {  pseudohuber_median(c(x, 0)) },  
+                                         g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}, 
+                                         eta_alpha = 1e-3,
+                                         eta_beta  = 1e-3,
+                                         maxit = 1e8,
+                                         tol = 1e-10)
   })[3]
   ii <- ii + 1
   print(df_timing)
@@ -154,11 +154,11 @@ system.time({
 
 system.time({
   out_test5 <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums,
-                            n1 = Y[which(X[,2] == 1), ] %>% colSums,
-                            g_beta=function(x) {  pseudohuber_median(c(x, 0)) },
-                            g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]},
-                            maxit = 1000,
-                            tol = 1e-8)
+                                       n1 = Y[which(X[,2] == 1), ] %>% colSums,
+                                       g_beta=function(x) {  pseudohuber_median(c(x, 0)) },
+                                       g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]},
+                                       maxit = 1000,
+                                       tol = 1e-8)
 }) 
 
 orig <- fn3_1_J$B
@@ -198,12 +198,46 @@ Y <- matrix(rpois(n=n*J, lambda=exp(2 + X %*% beta)), ncol = J)
 Y <- pmax(Y, 1)
 Y
 
+# radEmu:::emuFit_micro_discrete(X, Y)
+# radEmu:::emuFit_micro_discrete(X[n:1, ], Y[n:1, ])
+
+unique(X)
+
+my_n_list <- list(Y[apply(X, 1, function(x) all(x == unique(X)[1,])), ] %>% colSums, 
+                  Y[apply(X, 1, function(x) all(x == unique(X)[2,])), ] %>% colSums, 
+                  Y[apply(X, 1, function(x) all(x == unique(X)[3,])), ] %>% colSums)
+
+
 load_all()
+my_jstar = 9
 system.time({
-  out_test5 <- my_fs_stable_two_groups(n0=Y[which(X[,2] == 0), ] %>% colSums,
-                                       n1 = Y[which(X[,2] == 1), ] %>% colSums,
-                                       g_beta=function(x) {  pseudohuber_median(c(x, 0)) },
-                                       g_beta_grad= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]},
-                                       maxit = 1000,
-                                       tol = 1e-8)
+  out_test6 <- fs_direct_beta_constraint(
+    Y = do.call(rbind, my_n_list), 
+    X = unique(X)[, -1], k_constr=2, j_constr=my_jstar,
+    constraint_fn=function(x) {  pseudohuber_median(c(x, 0)) },       # f(z2..zm)
+    constraint_grad_fn= function(x) {  x <- radEmu::dpseudohuber_median_dx(c(x, 0)); x[-length(x)]}
+  )
 }) 
+out_test6
+
+out_test6$iter
+out_test6$alpha %>% c(0) %>% pseudohuber_median
+
+(out_test6$beta[,-my_jstar] %>% apply(1, function(x) {  pseudohuber_median(c(x, 0)) }))[2]
+out_test6$beta[2,my_jstar] 
+### ok, promising
+
+
+
+system.time({
+  out_test6_orig <- fit_null(B=matrix(0, nrow = p, ncol = J), 
+                             Y=Y, X = X, 
+                             k_constr=2, j_constr=my_jstar, j_ref=J,
+                             constraint_fn=list(pseudohuber_median, pseudohuber_median),
+                             constraint_grad_fn=list(radEmu::dpseudohuber_median_dx, radEmu::dpseudohuber_median_dx),
+                             B_tol=1e-8, constraint_tol=1e-8)
+}) # 246.458   0.906 247.997
+out_test6_orig$B
+cbind(rbind(out_test6$alpha, out_test6$beta), 0)
+## excellent 
+## now check constraints
