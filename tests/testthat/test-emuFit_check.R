@@ -20,7 +20,9 @@ Y <- radEmu:::simulate_data(n = n,
 rownames(X) <- paste0("Sample_",1:12)
 rownames(Y) <- paste0("Sample_",1:12)
 
-covariates <- data.frame(group = X[,2])
+covariates <- data.frame(group = X[,2],
+                         cat = rep(c("A", "B", "C"), each = 4))
+other_covariates <- model.matrix(~cat, covariates)
 
 test_that("when X has a missing value, appropriate error hit", {
   X[2, 2] <- NA
@@ -37,3 +39,19 @@ test_that("when X has a missing value, appropriate error hit", {
     fixed = TRUE
   ))
 })
+
+test_that("when k in test_kj is a string it works", {
+  expect_silent(emuFit(Y = Y, formula = ~ group, data = covariates, 
+                       test_kj = data.frame(j = 2, k = "group")))
+  res1 <- emuFit(Y = Y, formula = ~ cat, data = covariates, 
+                       test_kj = data.frame(j = 2, k = "cat"))
+  expect_true(sum(!(is.na(res1$coef$score_stat))) == 2)
+  res2 <- emuFit(Y = Y, formula = ~ cat, data = covariates, 
+                test_kj = data.frame(j = 2, k = "catB"))
+  expect_true(all.equal(res1$coef[2, ], res2$coef[2, ]))
+  res3 <- emuFit(Y = Y, formula = ~ group + cat, data = covariates, 
+                 test_kj = data.frame(j = 2, k = c(2, "cat")))
+  expect_true(sum(!(is.na(res3$coef$score_stat))) == 3)
+})
+
+  

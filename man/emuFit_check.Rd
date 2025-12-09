@@ -45,8 +45,11 @@ be a list with the same length as \code{test_kj}. If you only want to provide st
 include the other elements of the list as \code{NULL}.}
 
 \item{test_kj}{a data frame whose rows give coordinates (in category j and
-covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
-is not provided, all elements of B save the intercept row will be tested.}
+covariate k) of elements of B to construct hypothesis tests for. \code{k} could also be the name of a covariate
+included in \code{X} or \code{data}. If you don't know which coordinates k correspond to the covariate(s) that you
+would like to test, run the function \code{radEmu::make_design_matrix()} in order to view the design matrix,
+and identify which column of the design matrix corresponds to each covariate in your model. This argument
+is required when running score tests.}
 
 \item{match_row_names}{logical: Make sure rows on covariate data and response data correspond to
 the same sample by comparing row names and subsetting/reordering if necessary.}
