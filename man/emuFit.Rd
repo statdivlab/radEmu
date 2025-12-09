@@ -110,11 +110,11 @@ Used in estimation.}
 \item{run_score_tests}{logical: perform robust score testing? Default is TRUE.}
 
 \item{test_kj}{a data frame whose rows give coordinates (in category j and
-covariate k) of elements of B to construct hypothesis tests for. If you don't know
-which indices k correspond to the covariate(s) that you would like to test, run the function
-\code{radEmu::make_design_matrix()} in order to view the design matrix, and identify which
-column of the design matrix corresponds to each covariate in your model. This argument is required when
-running score tests.}
+covariate k) of elements of B to construct hypothesis tests for. \code{k} could also be the name of a covariate
+included in \code{X} or \code{data}. If you don't know which coordinates k correspond to the covariate(s) that you
+would like to test, run the function \code{radEmu::make_design_matrix()} in order to view the design matrix,
+and identify which column of the design matrix corresponds to each covariate in your model. This argument
+is required when running score tests.}
 
 \item{null_fit_alg}{Which null fitting algorithm to use for score tests: \code{"constraint_sandwich"} or
 \code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}, unless \code{J < 20}.}
