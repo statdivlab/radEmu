@@ -1,7 +1,7 @@
 #' @note
 #' Needs higher tolerance than macro_fisher_null to get superior LL
 
-fit_null_discrete_pseudohuber <- function(
+fit_null_discrete <- function(
     Y,
     X,
     k_constr,

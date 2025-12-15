@@ -163,7 +163,6 @@ score_test <- function(
       j_constr = j_constr, #col index of B to constrain
       constraint_fn = constraint_fn, #constraint function
       constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-      B_tol = B_tol,
       j_ref = j_ref,
       c1 = c1,
       maxit = maxit,
@@ -200,7 +199,6 @@ score_test <- function(
       j_constr = j_constr, #col index of B to constrain
       constraint_fn = constraint_fn, #constraint function
       constraint_grad_fn = constraint_grad_fn, #gradient of constraint fn
-      B_tol = B_tol,
       j_ref = j_ref,
       c1 = c1,
       maxit = maxit,

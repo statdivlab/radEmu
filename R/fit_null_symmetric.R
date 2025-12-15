@@ -9,7 +9,6 @@
 #' @param j_ref column index of convenience constraint
 #' @param constraint_fn constraint function
 #' @param constraint_grad_fn gradient of constraint fn
-#' @param B_tol tolerance for convergence in \eqn{max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert}
 #' @param inner_tol tolerance for inner loop
 #' @param c1 constant for armijo rule
 #' @param maxit maximum iterations
@@ -42,7 +41,6 @@ fit_null_symmetric <- function(
   j_ref,
   constraint_fn,
   constraint_grad_fn,
-  B_tol = 1e-2,
   inner_tol = 0.01,
   c1 = 1e-2,
   maxit = 1000,
@@ -579,10 +577,6 @@ fit_null_symmetric <- function(
     }
 
     # update stopping criteria
-    # if (max(abs(B - prev_B)) < B_tol) {
-    #   keep_going <- FALSE
-    #   converged <- TRUE
-    # }
     if (!(ignore_stop) & (iter - 1) >= null_window) {
       if (max(lik_change) < tol_lik & max(test_stat_prop_change) < tol_test_stat) {
         keep_going <- FALSE

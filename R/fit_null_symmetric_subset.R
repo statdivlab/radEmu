@@ -9,7 +9,6 @@
 #' @param j_ref column index of convenience constraint
 #' @param constraint_fn constraint function
 #' @param constraint_grad_fn gradient of constraint fn
-#' @param B_tol tolerance for convergence in \eqn{max_{k,j} \lvert B^t_{kj} - B^{(t - 1)}_{kj}\rvert}
 #' @param inner_tol tolerance for inner loop
 #' @param c1 constant for armijo rule
 #' @param maxit maximum iterations
@@ -44,7 +43,6 @@ fit_null_symmetric_subset <- function(
   j_ref,
   constraint_fn,
   constraint_grad_fn,
-  B_tol = 1e-2,
   inner_tol = 0.01,
   c1 = 1e-2,
   maxit = 1000,
