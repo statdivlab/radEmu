@@ -3,13 +3,15 @@ fit_null_discrete_micro_fs <- function(Y, X,
                                        k_constr, 
                                        j_constr,          # indices: row k* in 1..(p-1), column j* in 1..(J-1)
                                        constraint_fn, constraint_grad_fn,       # g: R^{m-1}->R on the constrained row; grad: R^{m-1}->R^{m-1}
-                                       maxit = 1000, 
-                                       tol = 1e-8,
+                                       maxit = 5000, 
+                                       tol = 0.1,
                                        ls_max = 20, 
                                        ls_rho = 0.5,
                                        ridge_base = 1e-4,
                                        max_step_norm = 5,
-                                       max_step = 1) {
+                                       max_step = 1,
+                                       trackB = FALSE,
+                                       verbose = FALSE) {
   
   ## using `alpha + beta*X` parametrisation, so decrease k_constr_non_intercept accordingly
   k_constr_non_intercept <- k_constr - 1
@@ -22,6 +24,11 @@ fit_null_discrete_micro_fs <- function(Y, X,
   if (j_constr < 1L || j_constr > m) stop("j_constr must be in 1..(J-1).")
   
   n <- rowSums(Y)
+  
+  # data frame to hold results
+  it_df <- data.frame(it = 1:maxit,
+                      lik = NA,
+                      score_norm = NA)
   
   # Parameters
   alpha <- rep(0, m)
@@ -54,11 +61,14 @@ fit_null_discrete_micro_fs <- function(Y, X,
                  col = rep(seq_len(m), times = p - 1L), value = as.vector(beta))
     )
   }
-  param_hist[[1]] <- record(0L)
+  if (trackB) {
+    param_hist[[1]] <- record(0L)
+  }
   
   ll_old <- loglik_fun(alpha, beta); final_iter <- 0L
   
   for (iter in 1:maxit) {
+    
     # probs and M_i
     p_list <- vector("list", p)
     M_list <- vector("list", p)
@@ -90,7 +100,17 @@ fit_null_discrete_micro_fs <- function(Y, X,
       }
     )
     
-    if (sqrt(sum(s_theta^2)) < tol) { final_iter <- iter - 1L; break }
+    score_rms <- sqrt(mean(s_theta^2))
+    
+    it_df$score_norm[iter - 1] <- score_rms
+    it_df$lik[iter - 1] <- ll_old
+    
+    if (verbose) {
+      message("ll = ", round(ll_old, 1))
+      message("root mean score norm = ", round(score_rms, 3))
+    }
+    
+    if (score_rms < tol) { final_iter <- iter - 1L; break }
     
     # Fisher J in full phi = (alpha, vec(beta rows 1..p-1 each length m))
     q_dim <- m + (p - 1L) * m
@@ -201,11 +221,16 @@ fit_null_discrete_micro_fs <- function(Y, X,
     }
     if (!accepted) { final_iter <- iter - 1L; break }
     
-    # record and check convergence
-    param_hist[[length(param_hist) + 1L]] <- record(iter)
-    if (abs(ll_new - ll_old) < tol) { ll_old <- ll_new; final_iter <- iter; break }
+    
+    
+    if (trackB) {
+      param_hist[[length(param_hist) + 1L]] <- record(iter)
+    }
+    #if (abs(ll_new - ll_old) < tol_lik) { ll_old <- ll_new; final_iter <- iter; break }
     ll_old <- ll_new; final_iter <- iter
   }
+  
+  it_df <- it_df[1:iter, ]
   
   B <- cbind(rbind(alpha, beta), 0)
   rownames(B) <- NULL
@@ -217,5 +242,6 @@ fit_null_discrete_micro_fs <- function(Y, X,
   list(B = B,                 
        logLik = ll_old,
        iter   = final_iter,
-       history = history)
+       history = history,
+       it_df = it_df)
 }

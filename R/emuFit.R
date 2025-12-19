@@ -53,7 +53,9 @@
 #' column of the design matrix corresponds to each covariate in your model. This argument is required when
 #' running score tests.
 #' @param null_fit_alg Which null fitting algorithm to use for score tests: \code{"constraint_sandwich"} or 
-#' \code{"augmented_lagrangian"}. Default and recommended approach is \code{"constraint_sandwich"}, unless \code{J < 20}.
+#' \code{"augmented_lagrangian"}, or \code{"discrete"} when design matrix only includes categorical covariates. 
+#' Default and recommended approach is \code{"constraint_sandwich"}, or \code{"discrete"} for a design matrix with
+#' only categorical covariates and \code{J < 150}. Augmented lagrangian is used when \code{J < 20}. 
 #' @param B_null_list list of starting values of coefficient matrix (p x J) for null estimation for score testing. This should either 
 #' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
 #' include the other elements of the list as \code{NULL}.
@@ -63,6 +65,8 @@
 #' estimation under null hypothesis for score tests with "constraint_sandwich" algorithm. 
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`. Used in
 #' estimation under null hypothesis for score tests with "constraint_sandwich" algorithm. 
+#' @param tol_discrete tolerance for the root mean norm of the score vector, for stopping criteria. Default is `0.01`. Used in
+#' estimation under null hypothesis for score tests with "discrete" algorithm (for discrete designs).
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #' Used in estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.
 #' @param null_diagnostic_plots logical: should diagnostic plots be made for estimation under the null hypothesis? Default is \code{FALSE}.
@@ -148,11 +152,12 @@ emuFit <- function(Y,
                    compute_cis = TRUE,
                    run_score_tests = TRUE,
                    test_kj = NULL,
-                   null_fit_alg = "constraint_sandwich",
+                   null_fit_alg = NULL,
                    B_null_list = NULL,
                    maxit_null = 1000,
                    tol_lik = 1e-5,
                    tol_test_stat = 0.01,
+                   tol_discrete = 0.01,
                    null_window = 5,
                    null_diagnostic_plots = FALSE, 
                    remove_zero_comparison_pvals = 0.01,
@@ -423,6 +428,33 @@ emuFit <- function(Y,
     }
     
     # only check if using constraint_sandwich algorithm 
+    if (is.null(null_fit_alg)) {
+      distinct_xx <- unique(X)
+      if ((J < 150) & all(X[, 1] == 1) & ncol(X) == nrow(distinct_xx)) {
+        null_fit_alg = "discrete"
+      } else {
+        null_fit_alg = "constraint_sandwich"
+      }
+    }
+    if (null_fit_alg == "discrete") {
+      distinct_xx <- unique(X)
+      if (all(X[, 1] == 1) & ncol(X) == nrow(distinct_xx)) {
+        for (k in unique(test_kj$k)) {
+          # check if symmetric or symmetric subset
+          v3 <- rnorm(J)
+          if (isTRUE(all.equal(constraint_fn[[k]](v3), mean(v3)))) {
+              constraint_type <- "discrete:mean"
+          } else if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
+              constraint_type <- "discrete:pseudohuber"
+          } else {
+            constraint_type <- "other"
+          }
+          attr(constraint_fn[[k]], "constraint_type") <- constraint_type
+        }
+      } else {
+        null_fit_alg = "constraint_sandwich"
+      } 
+    }
     if (null_fit_alg == "constraint_sandwich") {
       for (k in unique(test_kj$k)) {
         if (is.null(attr(constraint_fn[[k]], "constraint_type"))) {
@@ -478,7 +510,8 @@ emuFit <- function(Y,
           attr(constraint_fn[[k]], "constraint_type") <- constraint_type
         } 
       }
-    } else {
+    } 
+    if (null_fit_alg == "augmented_lagrangian") {
       # using augmented lagrangian algorithm, so we don't care about constraint_type
       for (k in unique(test_kj$k)) {
         attr(constraint_fn[[k]], "constraint_type") <- "other"
@@ -533,6 +566,7 @@ emuFit <- function(Y,
                                 ignore_stop = control$ignore_stop,
                                 tol_lik = tol_lik,
                                 tol_test_stat = tol_test_stat,
+                                tol_discrete = tol_discrete,
                                 null_window = null_window)
       
       if (is.null(test_result)) {

@@ -34,6 +34,7 @@ score_test(
   ignore_stop = FALSE,
   tol_lik = 1e-05,
   tol_test_stat = 0.01,
+  tol_discrete = 0.01,
   null_window = 5
 )
 }
@@ -126,6 +127,8 @@ Y are treated as independent.}
 \item{tol_lik}{tolerance for relative changes in likelihood for stopping criteria. Default is \code{1e-5}.}
 
 \item{tol_test_stat}{tolerance for relative changes in test statistic for stopping criteria. Default is \code{0.01}.}
+
+\item{tol_discrete}{tolerance for root mean norm of score vector for stopping criteria. Default is \code{0.01}.}
 
 \item{null_window}{window to use for stopping criteria (this many iterations where stopping criteria is met). Default is \code{5}.}
 }

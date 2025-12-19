@@ -73,6 +73,7 @@
 #' @param ignore_stop whether to ignore stopping criteria and run `maxit` iterations (could be helpful for diagnostic plots).
 #' @param tol_lik tolerance for relative changes in likelihood for stopping criteria. Default is `1e-5`.
 #' @param tol_test_stat tolerance for relative changes in test statistic for stopping criteria. Default is `0.01`.
+#' @param tol_discrete tolerance for root mean norm of score vector for stopping criteria. Default is `0.01`.
 #' @param null_window window to use for stopping criteria (this many iterations where stopping criteria is met). Default is `5`.
 #'
 #' @return A list containing elements `score_stat`, `pval`, `log_pval`,'niter`,
@@ -125,6 +126,7 @@ score_test <- function(
   ignore_stop = FALSE, 
   tol_lik = 1e-5,
   tol_test_stat = 0.01,
+  tol_discrete = 0.01, 
   null_window = 5
 ) {
   # get hyperparameters
@@ -138,7 +140,8 @@ score_test <- function(
   } 
   constraint_type <- attr(constraint_fn[[k_constr]], "constraint_type")
   if (!(constraint_type %in% c("other", "symmetric:mean", "symmetric_subset:mean", "scc",
-                               "symmetric:pseudohuber", "symmetric_subset:pseudohuber"))) {
+                               "symmetric:pseudohuber", "symmetric_subset:pseudohuber",
+                               "discrete:mean", "discrete:pseudohuber"))) {
     stop(
       "The attribute 'constraint_type' for `constraint_fn[[k_constr]]` must either be omitted, or must be either
          `scc` for single category constraint, `symmetric:mean` or `symmetric:pseudohuber` for symmetric functions such
@@ -210,6 +213,48 @@ score_test <- function(
       tol_test_stat = tol_test_stat,
       null_window = null_window
     ))
+    
+    if (!inherits(constrained_fit, "try-error")) {
+      if (constrained_fit$converged) {
+        accept_try <- TRUE
+        good_enough_fit <- TRUE
+      } else {
+        message("Constraint sandwich algorithm for estimation under the null hypothesis did not converge. Trying again with augmented Lagrangian algorithm.")
+      }
+    } else {
+      message("Constraint sandwich algorithm for estimation under the null hypothesis failed. Trying again with augmented Lagrangian algorithm.")
+    }
+  }
+  
+  if (constraint_type %in% c("discrete:mean", "discrete:pseudohuber")) {
+    
+    if (constraint_type == "discrete:mean") {
+      constrained_fit <- try(fit_null_discrete(
+        Y = Y, #Y (with augmentations)
+        X = X, #design matrix
+        k_constr = k_constr, #row index of B to constrain
+        j_constr = j_constr, #col index of B to constrain
+        j_ref = j_ref,
+        maxit = maxit,
+        verbose = verbose,
+        trackB = trackB,
+        constraint = "mean",
+        tol = tol_discrete
+      ))
+    } else {
+      constrained_fit <- try(fit_null_discrete(
+        Y = Y, #Y (with augmentations)
+        X = X, #design matrix
+        k_constr = k_constr, #row index of B to constrain
+        j_constr = j_constr, #col index of B to constrain
+        j_ref = j_ref,
+        maxit = maxit,
+        verbose = verbose,
+        trackB = trackB,
+        constraint = "pseudohuber",
+        tol = tol_discrete
+      ))
+    }
     
     if (!inherits(constrained_fit, "try-error")) {
       if (constrained_fit$converged) {
@@ -457,6 +502,9 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
     }
     if ("tau" %in% names(constrained_fit)) {
       res$tau <- constrained_fit$tau
+    }
+    if ("loglik" %in% names(constrained_fit)) {
+      res$loglik <- constrained_fit$loglik
     }
   }
   
