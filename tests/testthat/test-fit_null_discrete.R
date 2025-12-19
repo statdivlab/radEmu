@@ -616,7 +616,7 @@ test_that("test wirbel data, n = 126, J = 430, p = 2", {
                           test_kj = data.frame(k = 2, j = 1:10), null_fit_alg = "constraint_sandwich",
                           verbose = TRUE, null_diagnostic_plots = T)
   end_sand <- proc.time() - start_sand
-  # 7, 30, 11, 12, 21, 11, 8, 13, 17, 13
+  # 7, 30, 11, 12, 21, 11, 8, 13, 17, 13, ~140 total
   start_discrete <- proc.time()
   wirb_discrete <- emuFit(formula = ~ Group, 
                           Y = wirbel_ch_clost,
@@ -626,7 +626,9 @@ test_that("test wirbel data, n = 126, J = 430, p = 2", {
                           test_kj = data.frame(k = 2, j = 1:10), null_fit_alg = "discrete",
                           verbose = TRUE, null_diagnostic_plots = T)
   end_discrete <- proc.time() - start_discrete
-  # 30, 92, 46, 27, 81, 33, 26, 28, 26, 33
+  # 30, 92, 46, 27, 81, 33, 26, 28, 26, 33, 421 total (tol = 0.01, default)
+  # 23, 68, 34, 22, 57, 26, 17, 22, 18, 26, 314 total (tol = 0.1)
+  # 17, 40, 17, 17, 29, 17, 17, 17, 17, 17, 202 total (tol = 1)
   end_sand[3]; end_discrete[3]
   # sandwich takes 143 seconds, discrete takes 421
   
