@@ -251,7 +251,7 @@ ignoring argument 'cluster'.")
   # check that test_kj is not null if running score tests
   if (run_score_tests) {
     if (is.null(test_kj)) {
-      stop("When `run_score_tests = TRUE`, you must provide a matrix `test_kj` to determine which parameters you want to test. If you don't know which indices k correspond to the covariate(s) that you would like to test, run the function `radEmu::make_design_matrix()` in order to view the design matrix, and identify which column of the design matrix corresponds to each covariate in your model. If you don't know which indices j correspond to categories (taxa) that you want to test, you can look at the columns and column names of your `Y` matrix.")
+      stop("When `run_score_tests = TRUE`, you must provide a data frame `test_kj` to determine which parameters you want to test. If you don't know which indices k correspond to the covariate(s) that you would like to test, run the function `radEmu::make_design_matrix()` in order to view the design matrix, and identify which column of the design matrix corresponds to each covariate in your model. If you don't know which indices j correspond to categories (taxa) that you want to test, you can look at the columns and column names of your `Y` matrix.")
     }
   }
   
@@ -299,7 +299,7 @@ ignoring argument 'cluster'.")
     
     if (is.logical(all.equal(constraint_fn[[k]], pseudohuber_median))) {
       if (all.equal(constraint_fn[[k]], pseudohuber_median)) {
-        if (verbose %in% c(TRUE, "development")) message("Centering row ", k, " of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
+        if (verbose %in% c("development")) message("Centering row ", k, " of B with pseudo-Huber smoothed median with smoothing parameter ", constraint_param, ".")
         
         stopifnot(!is.na(constraint_param))
         

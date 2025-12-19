@@ -248,6 +248,10 @@ emuFit <- function(Y,
   
   if (refit) {
     
+    if (verbose %in% c(TRUE, "development")) {
+      message("Estimating parameters")
+    }
+    
     if (!is.null(fitted_model)) {
       B <- fitted_model$B
     }
