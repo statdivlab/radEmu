@@ -1,0 +1,67 @@
+---
+title: "Quick start with `radEmu`"
+author: "Sarah Teichman and Amy Willis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{quickstart}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Setup
+
+First, we will install `radEmu`, if we haven't already. 
+
+```{r, eval = FALSE}
+# if (!require("remotes", quietly = TRUE))
+#     install.packages("remotes")
+# 
+# remotes::install_github("statdivlab/radEmu")
+```
+
+Next, we can load `radEmu`.
+
+```{r setup, message = FALSE}
+library(radEmu)
+```
+
+In this vignette we'll explore a [dataset published by Wirbel et al. (2019)](https://www.nature.com/articles/s41591-019-0406-6). This is a meta-analysis of case-control studies of colorectal cancer, meaning that Wirbel et al. collected raw sequencing data from studies other researchers conducted and re-analyzed it.
+
+Wirbel et al. published two pieces of data we'll focus on:
+
+* metadata giving demographics and other information about participants
+* a mOTU (metagenomic OTU) table
+
+```{r}
+data("wirbel_sample")
+dim(wirbel_sample)
+data("wirbel_otu")
+dim(wirbel_otu)
+```
+
+We can see that we have $566$ samples and $845$ mOTUs. We will subset to samples from the Chinese study.
+
+```{r}
+wirbel_sample_ch <- wirbel_sample[wirbel_sample$Country == "CHI", ]
+wirbel_otu_ch <- wirbel_otu[rownames(wirbel_sample_ch), ]
+to_rm <- which(colSums(wirbel_otu_ch) == 0)
+wirbel_otu_ch <- wirbel_otu_ch[, -to_rm]
+```
+
+## Differential abundance analysis with radEmu
+
+```{r}
+tmp <- emuFit(Y = wirbel_otu_ch, formula = ~ Group + Gender, data = wirbel_sample_ch,
+              run_score_tests = FALSE, tolerance = 1e-3)
+tmp1 <- emuFit(Y = wirbel_otu_ch, formula = ~ Group + Gender, data = wirbel_sample_ch,
+              refit = FALSE, fitted_model = tmp, compute_cis = FALSE, verbose = "development", test_kj = data.frame(k = 2, j = 3))
+```
+
