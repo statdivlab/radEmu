@@ -69,9 +69,9 @@ We additionally have a `pkgdown` [website](https://statdivlab.github.io/radEmu/)
 
 ## Citation
 
-If you use `radEmu` for your analysis, please cite our open-access preprint, available on arXiv. 
+If you use `radEmu` for your analysis, please cite our manuscript. As of Dec 2025, it's been accepted to Biometrika, and we'll update this when we have a final DOI. In the meantime: 
 
-David S Clausen and Amy D Willis. 2024+. "Estimating Fold Changes from Partially Observed Outcomes with Applications in Microbial Metagenomics." [arxiv.org/abs/2402.05231](https://arxiv.org/abs/2402.05231)
+David S Clausen, Sarah V Teichman, and Amy D Willis. 2025+. "Estimating Ratios of Means of Multicategory Data Observed with Sample and Category Perturbations." *Biometrika*, In Press. [arxiv.org/abs/2402.05231](https://arxiv.org/abs/2402.05231). 
 
 Huge thanks to the NIGMS for funding this work through Amy's R35! 
 

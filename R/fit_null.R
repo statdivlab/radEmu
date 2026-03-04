@@ -97,7 +97,7 @@ fit_null <- function(
 
   #get X_cup for later use
   if (is.null(X_cup)) {
-    X_cup = X_cup_from_X(X, J)
+    X_cup = X_cup_from_X_fast(X,J)
   }
 
   #set iteration to zero

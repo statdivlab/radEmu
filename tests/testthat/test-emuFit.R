@@ -404,7 +404,7 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
   expect_false(fitted_model$estimation_converged)
   
   # check that warning is returned when estimation under the null doesn't converge
-  suppressWarnings({
+  suppressMessages({suppressWarnings({
     fitted_model2 <- emuFit(Y = Y,
                            X = cbind(X, rnorm(nrow(X))),
                            verbose = FALSE,
@@ -416,7 +416,7 @@ test_that("emuFit has 'score_test_hyperparams' object and throws warnings when c
                            test_kj = data.frame(k = 1, j = 1:2),
                            maxit_null = 5,
                            inner_maxit = 1)
-  })
+  })})
   
   # check that fitted model contains score_test_hyperparams object
   expect_true("score_test_hyperparams" %in% names(fitted_model2))
@@ -635,6 +635,9 @@ test_that("giving test_kj as valid strings works", {
   colnames(X) <- c("int", "group")
   res <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = "group", j = "taxon3"),
                 penalize = FALSE, tolerance = 0.1)
+  res1 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = "taxon3"),
+                 penalize = FALSE, tolerance = 0.1)
+  expect_true(all.equal(res$coef, res1$coef))
   expect_true(!is.na(res$coef$pval[3]))
   expect_error(emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = "group", j = "taxa3"),
                       penalize = FALSE, tolerance = 0.1))
