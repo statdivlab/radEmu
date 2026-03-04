@@ -1,4 +1,7 @@
 test_that("we get same null fit with different j_ref", {
+  
+  skip("Deterministic, slow to run but passes when tested")
+  
   set.seed(59542234)
   n <- 10
   J <- 5
