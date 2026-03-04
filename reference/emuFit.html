@@ -211,11 +211,11 @@ nearly collinear regressors). Default is <code>250</code>.</p></dd>
 
 <dt id="arg-test-kj">test_kj<a class="anchor" aria-label="anchor" href="#arg-test-kj"></a></dt>
 <dd><p>a data frame whose rows give coordinates (in category j and
-covariate k) of elements of B to construct hypothesis tests for. If you don't know
-which indices k correspond to the covariate(s) that you would like to test, run the function
-<code><a href="make_design_matrix.html">radEmu::make_design_matrix()</a></code> in order to view the design matrix, and identify which
-column of the design matrix corresponds to each covariate in your model. This argument is required when
-running score tests.</p></dd>
+covariate k) of elements of B to construct hypothesis tests for. <code>k</code> could also be the name of a covariate
+included in <code>X</code> or <code>data</code>. If you don't know which coordinates k correspond to the covariate(s) that you
+would like to test, run the function <code><a href="make_design_matrix.html">radEmu::make_design_matrix()</a></code> in order to view the design matrix,
+and identify which column of the design matrix corresponds to each covariate in your model. This argument
+is required when running score tests.</p></dd>
 
 
 <dt id="arg-null-fit-alg">null_fit_alg<a class="anchor" aria-label="anchor" href="#arg-null-fit-alg"></a></dt>

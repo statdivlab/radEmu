@@ -189,9 +189,10 @@ emuFit(
 - test_kj:
 
   a data frame whose rows give coordinates (in category j and
-  covariate k) of elements of B to construct hypothesis tests for. If
-  you don't know which indices k correspond to the covariate(s) that you
-  would like to test, run the function
+  covariate k) of elements of B to construct hypothesis tests for. `k`
+  could also be the name of a covariate included in `X` or `data`. If
+  you don't know which coordinates k correspond to the covariate(s) that
+  you would like to test, run the function
   [`radEmu::make_design_matrix()`](https://statdivlab.github.io/radEmu/reference/make_design_matrix.md)
   in order to view the design matrix, and identify which column of the
   design matrix corresponds to each covariate in your model. This
