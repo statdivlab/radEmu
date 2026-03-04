@@ -13,8 +13,11 @@
 #' be a list with the same length as \code{test_kj}. If you only want to provide starting values for some tests,
 #' include the other elements of the list as \code{NULL}.
 #' @param test_kj a data frame whose rows give coordinates (in category j and
-#' covariate k) of elements of B to construct hypothesis tests for. If \code{test_kj}
-#' is not provided, all elements of B save the intercept row will be tested.
+#' covariate k) of elements of B to construct hypothesis tests for. `k` could also be the name of a covariate 
+#' included in `X` or `data`. If you don't know which coordinates k correspond to the covariate(s) that you 
+#' would like to test, run the function \code{radEmu::make_design_matrix()} in order to view the design matrix,
+#' and identify which column of the design matrix corresponds to each covariate in your model. This argument 
+#' is required when running score tests.
 #' @param match_row_names logical: Make sure rows on covariate data and response data correspond to 
 #' the same sample by comparing row names and subsetting/reordering if necessary. 
 #' @param verbose provide updates as model is being fitted? Defaults to FALSE. If user sets verbose = TRUE,
@@ -232,13 +235,55 @@ ignoring argument 'cluster'.")
   
   # check that test kj values are numbers, if they are strings that convert if possible to numbers
   if (!is.null(test_kj)) {
-    if (!(is.numeric(test_kj$k))) {
-      if (sum(!(test_kj$k %in% colnames(X))) == 0) {
-        test_kj$k <- as.vector(sapply(test_kj$k, function(x) {which(colnames(X) == x)}))
-      } else {
+    
+    if (!is.numeric(test_kj$k)) {
+      cn <- colnames(X)
+      unique_k <- unique(test_kj$k)
+      
+      k_map <- lapply(unique_k, function(k_j) {
+        
+        num <- suppressWarnings(as.numeric(k_j))
+        if (!is.na(num)) return(num)
+        
+        exact_idx <- which(cn == k_j)
+        if (length(exact_idx) == 1) return(exact_idx)
+        
+        partial_idx <- which(startsWith(cn, k_j))
+        if (length(partial_idx) > 0) return(partial_idx)
+        
         stop("Make sure that the values of `k` in `test_kj` are numeric or correspond to column names of the `X` matrix.")
+        
+      })
+      
+      names(k_map) <- unique_k
+      expanded_list <- vector("list", length = nrow(test_kj) * ncol(X))
+      idx <- 1
+      
+      for (row in seq_len(nrow(test_kj))) {
+        k_j <- test_kj$k[row]
+        matches <- k_map[[as.character(k_j)]]
+        test_kj$k[row] <- matches[1]
+        if (length(matches) > 1) {
+          for (m in 2:length(matches)) {
+            tmp <- test_kj[row, ]
+            tmp$k <- matches[m]
+            expanded_list[[idx]] <- tmp
+            idx <- idx + 1
+          }
+        }
       }
+      
+      test_kj_expanded <- do.call(rbind, expanded_list[seq_len(idx - 1)])
+      test_kj <- rbind(test_kj, test_kj_expanded)
+      test_kj$k <- as.numeric(test_kj$k)
     }
+    # if (!(is.numeric(test_kj$k))) {
+    #   if (sum(!(test_kj$k %in% colnames(X))) == 0) {
+    #     test_kj$k <- as.vector(sapply(test_kj$k, function(x) {which(colnames(X) == x)}))
+    #   } else {
+    #     stop("Make sure that the values of `k` in `test_kj` are numeric or correspond to column names of the `X` matrix.")
+    #   }
+    # }
     if (!(is.numeric(test_kj$j))) {
       if (sum(!(test_kj$j %in% colnames(Y))) == 0) {
         test_kj$j <- as.vector(sapply(test_kj$j, function(x) {which(colnames(Y) == x)}))
