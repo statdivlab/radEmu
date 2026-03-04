@@ -1,6 +1,10 @@
+# radEmu 2.3.0.0
+
+This is a minor release that updates the algorithms to estimate parameters under the alternate and null hypotheses for designs with only discrete covariates. These new algorithms are faster and more stable in most cases. Initial code was developed with assistance from ChatGPT, although final code and responsibility remain with the package owners.
+
 # radEmu 2.2.0.0
 
-This is a minor release that changes the algorithm used to estimate parameters under the null hypothesis in score tests depending on the identifiability constraint that is used. All functions are backwards compatible, but there are major changes in the back-end, which may lead to small changes in results of analyses compared to those that were run before this update. 
+This is a minor release that changes the algorithm used to estimate parameters under the null hypothesis in score tests depending on the identifiability constraint that is used. All functions are backwards compatible, but there are major changes in the back-end, which may lead to small changes in results of analyses compared to those that were run before this update. Initial code was developed with assistance from ChatGPT, although final code and responsibility remain with the package owners. 
 
 ## Changes
 
