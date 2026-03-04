@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
     <li><a class="dropdown-item" href="../articles/intro_radEmu_with_tse.html">Introduction to radEmu with TreeSummarizedExperiment</a></li>
     <li><a class="dropdown-item" href="../articles/intro_radEmu.html">Introduction to radEmu</a></li>
     <li><a class="dropdown-item" href="../articles/parallel_radEmu.html">Parallelizing computation for score tests with radEmu</a></li>
+    <li><a class="dropdown-item" href="../articles/quick_start.html">Quick start with `radEmu`</a></li>
     <li><a class="dropdown-item" href="../articles/radEmu_clustered_data.html">Using radEmu on clustered data</a></li>
     <li><a class="dropdown-item" href="../articles/radEmu_with_reference_taxon.html">Using radEmu with a reference taxon</a></li>
   </ul>
@@ -69,7 +70,7 @@
                         <h4 data-toc-skip class="author">David Clausen,
 Sarah Teichman and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2025-12-16</h4>
+            <h4 data-toc-skip class="date">2026-03-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/intro_radEmu.Rmd" class="external-link"><code>vignettes/intro_radEmu.Rmd</code></a></small>
       <div class="d-none name"><code>intro_radEmu.Rmd</code></div>
@@ -177,8 +178,12 @@ well.</p>
 <code class="sourceCode R"><span><span class="va">wirbel_sample</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Country</span>, <span class="va">Group</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'Country'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">Country</span> and <span style="color: #0000BB;">Group</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">Country</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(Country, Group))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 3</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   Country [5]</span></span></span>
 <span><span class="co">#&gt;    Country Group     n</span></span>
@@ -366,7 +371,7 @@ to produce the plots, we will explicitly extract the plots using the
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ch_fit</span><span class="op">)</span><span class="op">$</span><span class="va">plots</span></span>
 <span><span class="co">#&gt; $p1</span></span></code></pre></div>
-<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" width="576"></p>
+<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="576"></p>
 <p>In the plot above, it is a bit difficult to read the taxa names on
 the y-axis. We can create a data frame that maps the full taxa names in
 our data to simplified labels and plot using those instead, as shown
@@ -382,7 +387,7 @@ below.</p>
 <span><span class="co">#produce plot with cleaner taxa labels</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ch_fit</span>, taxon_names <span class="op">=</span> <span class="va">taxa_names</span><span class="op">)</span><span class="op">$</span><span class="va">plots</span></span>
 <span><span class="co">#&gt; $p1</span></span></code></pre></div>
-<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" width="576"></p>
+<p><img src="intro_radEmu_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="" width="576"></p>
 <p>Interestingly, we estimate a meta-mOTU “unknown Eubacterium
 [meta_mOTU_v2_7116]” assigned to Eubacteria to have a much higher ratio
 of abundance (comparing CRC group to control) than is typical across the

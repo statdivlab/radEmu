@@ -27,6 +27,7 @@ emuFit(
   alpha = 0.05,
   return_wald_p = FALSE,
   compute_cis = TRUE,
+  max_abs_B = 250,
   run_score_tests = TRUE,
   test_kj = NULL,
   null_fit_alg = "constraint_sandwich",
@@ -173,6 +174,14 @@ emuFit(
 
   logical: compute and return Wald CIs? Default is `TRUE`.
 
+- max_abs_B:
+
+  maximum allowed value for elements of B (in absolute value) in full
+  model fitting. In most cases this is not needed as Firth penalty will
+  prevent infinite estimates under separation. However, such a threshold
+  may be helpful in very poorly conditioned problems (e.g., with many
+  nearly collinear regressors). Default is `250`.
+
 - run_score_tests:
 
   logical: perform robust score testing? Default is TRUE.
@@ -259,28 +268,42 @@ emuFit(
 
 ## Value
 
-A list containing elements 'coef', 'B', 'penalized', 'Y_augmented',
-'z_hat', 'I', 'Dy', and 'score_test_hyperparams' if score tests are run.
-Parameter estimates by covariate and outcome category (e.g., taxon for
-microbiome data), as well as optionally confidence intervals and
-p-values, are contained in 'coef'. Any robust score statistics and score
-test p-values are also included in 'coef'. If there are any
-zero-comparison parameters in the model, a column 'zero_comparison' is
-also included, which is TRUE for any parameters that compare the level
-of a categorical covariate to a reference level for a category with only
-zero counts for both the comparison level and the reference level. This
-check is currently implemented for an arbitrary design matrix generated
-using the `formula` and `data` arguments, and for a design matrix with
-no more than one categorical covariate if the design matrix `X` is input
-directly. 'B' contains parameter estimates in matrix format (rows
-indexing covariates and columns indexing outcome category / taxon).
-'penalized' is equal to TRUE f Firth penalty is used in estimation
-(default) and FALSE otherwise. 'z_hat' returns the nuisance parameters
-calculated in Equation 7 of the radEmu manuscript, corresponding to
-either 'Y_augmented' or 'Y' if the 'penalized' is equal to TRUE or
-FALSE, respectively. I' and 'Dy' contain an information matrix and
+`emuFit` returns a list containing elements `coef`, `B`, `penalized`,
+`Y_augmented`, `z_hat`, `I`, `Dy`, and `score_test_hyperparams` if score
+tests are run.
+
+The `coef` table contains log fold-difference parameter estimates by
+covariate and outcome category (e.g., taxon for microbiome data). A log
+fold-difference estimate of `1` for a treatment (versus control) and
+taxon X can be interpreted to say that we expect taxon X is
+`exp(1) = 2.72` times more abundant in someone who has received the
+treatment compared to someone who has received the control (holding all
+other covariates equal), when compared to typical fold-differences in
+abundances of taxa in this analysis.
+
+`coef` also includes optionally-computed confidence intervals and robust
+Wald p-values. Robust score statistics and score test p-values are also
+included in `coef`. As explained in the associated manuscript, we
+recommend use of the robust score test values instead of the robust Wald
+test p-values, due to better error rate control (i.e. fewer false
+positives).
+
+If there are any zero-comparison parameters in the model, a column
+"zero_comparison" is also included, which is `TRUE` for any parameters
+that compare the level of a categorical covariate to a reference level
+for a category with only zero counts for both the comparison level and
+the reference level. This check is currently implemented for an
+arbitrary design matrix generated using the `formula` and `data`
+arguments, and for a design matrix with no more than one categorical
+covariate if the design matrix `X` is input directly.
+
+`B` contains parameter estimates in matrix format (rows indexing
+covariates and columns indexing outcome category / taxon). `penalized`
+is `TRUE` if Firth penalty is used in estimation (default) and `FALSE`
+otherwise. `z_hat` returns the nuisance parameters (sample-specific
+sequencing effects). `I` and `Dy` contain an information matrix and
 empirical score covariance matrix computed under the full model.
-'score_test_hyperparams' contains parameters and hyperparameters related
+`score_test_hyperparams` contains parameters and hyperparameters related
 to estimation under the null, including whether or not the algorithm
 converged, which can be helpful for debugging.
 

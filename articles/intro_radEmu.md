@@ -110,8 +110,12 @@ well.
 wirbel_sample %>%
   group_by(Country, Group) %>%
   summarize(n = n())
-#> `summarise()` has grouped output by 'Country'. You can override using the
-#> `.groups` argument.
+#> `summarise()` has regrouped the output.
+#> ℹ Summaries were computed grouped by Country and Group.
+#> ℹ Output is grouped by Country.
+#> ℹ Use `summarise(.groups = "drop_last")` to silence this message.
+#> ℹ Use `summarise(.by = c(Country, Group))` for per-operation grouping
+#>   (`?dplyr::dplyr_by`) instead.
 #> # A tibble: 10 × 3
 #> # Groups:   Country [5]
 #>    Country Group     n

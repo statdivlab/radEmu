@@ -10,6 +10,8 @@
   radEmu](https://statdivlab.github.io/radEmu/articles/intro_radEmu.md):
 - [Parallelizing computation for score tests with
   radEmu](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.md):
+- [Quick start with
+  \`radEmu\`](https://statdivlab.github.io/radEmu/articles/quick_start.md):
 - [Using radEmu on clustered
   data](https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.md):
 - [Using radEmu with a reference

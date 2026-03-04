@@ -14,15 +14,15 @@
 Source:
 [`DESCRIPTION`](https://github.com/statdivlab/radEmu/blob/main/DESCRIPTION)
 
-Clausen D, Willis A, Teichman S (2025). *radEmu: Using Relative
+Clausen D, Willis A, Teichman S (2026). *radEmu: Using Relative
 Abundance Data to Estimate of Multiplicative Differences in Mean
-Absolute Abundance*. R package version 2.2.1.0,
+Absolute Abundance*. R package version 2.3.1.0,
 <https://github.com/statdivlab/radEmu>.
 
     @Manual{,
       title = {radEmu: Using Relative Abundance Data to Estimate of Multiplicative Differences in Mean Absolute Abundance},
       author = {David Clausen and Amy D Willis and Sarah Teichman},
-      year = {2025},
-      note = {R package version 2.2.1.0},
+      year = {2026},
+      note = {R package version 2.3.1.0},
       url = {https://github.com/statdivlab/radEmu},
     }
