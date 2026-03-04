@@ -35,6 +35,7 @@ score_test(
   ignore_stop = FALSE,
   tol_lik = 1e-05,
   tol_test_stat = 0.01,
+  tol_discrete = 0.01,
   null_window = 5
 )
 ```
@@ -198,6 +199,11 @@ score_test(
 
   tolerance for relative changes in test statistic for stopping
   criteria. Default is `0.01`.
+
+- tol_discrete:
+
+  tolerance for root mean norm of score vector for stopping criteria.
+  Default is `0.01`.
 
 - null_window:
 

@@ -142,9 +142,11 @@ emuFit_check(
 
 - null_fit_alg:
 
-  Which null fitting algorithm to use `"fisher_scoring"` or
-  `"augmented_lagrangian"`. Default and recommended approach is
-  `"fisher_scoring"`.
+  Which null fitting algorithm to use for score tests:
+  `"constraint_sandwich"` or `"augmented_lagrangian"`, or `"discrete"`
+  when design matrix only includes categorical covariates. Default and
+  recommended approach is `"constraint_sandwich"` or `"discrete"` when
+  approach, unless `J < 20`.
 
 ## Value
 

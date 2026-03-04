@@ -16,7 +16,6 @@ fit_null_symmetric_subset(
   j_ref,
   constraint_fn,
   constraint_grad_fn,
-  B_tol = 0.01,
   inner_tol = 0.01,
   c1 = 0.01,
   maxit = 1000,
@@ -71,11 +70,6 @@ fit_null_symmetric_subset(
 - constraint_grad_fn:
 
   gradient of constraint fn
-
-- B_tol:
-
-  tolerance for convergence in \\max\_{k,j} \lvert B^t\_{kj} - B^{(t -
-  1)}\_{kj}\rvert\\
 
 - inner_tol:
 

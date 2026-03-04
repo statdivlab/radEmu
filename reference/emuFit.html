@@ -73,11 +73,12 @@
 <span>  max_abs_B <span class="op">=</span> <span class="fl">250</span>,</span>
 <span>  run_score_tests <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  test_kj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  null_fit_alg <span class="op">=</span> <span class="st">"constraint_sandwich"</span>,</span>
+<span>  null_fit_alg <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  B_null_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  maxit_null <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  tol_lik <span class="op">=</span> <span class="fl">1e-05</span>,</span>
 <span>  tol_test_stat <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  tol_discrete <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  null_window <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  null_diagnostic_plots <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  remove_zero_comparison_pvals <span class="op">=</span> <span class="fl">0.01</span>,</span>
@@ -220,7 +221,9 @@ is required when running score tests.</p></dd>
 
 <dt id="arg-null-fit-alg">null_fit_alg<a class="anchor" aria-label="anchor" href="#arg-null-fit-alg"></a></dt>
 <dd><p>Which null fitting algorithm to use for score tests: <code>"constraint_sandwich"</code> or
-<code>"augmented_lagrangian"</code>. Default and recommended approach is <code>"constraint_sandwich"</code>, unless <code>J &lt; 20</code>.</p></dd>
+<code>"augmented_lagrangian"</code>, or <code>"discrete"</code> when design matrix only includes categorical covariates.
+Default and recommended approach is <code>"constraint_sandwich"</code>, or <code>"discrete"</code> for a design matrix with
+only categorical covariates and <code>J &lt; 150</code>. Augmented lagrangian is used when <code>J &lt; 20</code>.</p></dd>
 
 
 <dt id="arg-b-null-list">B_null_list<a class="anchor" aria-label="anchor" href="#arg-b-null-list"></a></dt>
@@ -242,6 +245,11 @@ estimation under null hypothesis for score tests with "constraint_sandwich" algo
 <dt id="arg-tol-test-stat">tol_test_stat<a class="anchor" aria-label="anchor" href="#arg-tol-test-stat"></a></dt>
 <dd><p>tolerance for relative changes in test statistic for stopping criteria. Default is <code>0.01</code>. Used in
 estimation under null hypothesis for score tests with "constraint_sandwich" algorithm.</p></dd>
+
+
+<dt id="arg-tol-discrete">tol_discrete<a class="anchor" aria-label="anchor" href="#arg-tol-discrete"></a></dt>
+<dd><p>tolerance for the root mean norm of the score vector, for stopping criteria. Default is <code>0.01</code>. Used in
+estimation under null hypothesis for score tests with "discrete" algorithm (for discrete designs).</p></dd>
 
 
 <dt id="arg-null-window">null_window<a class="anchor" aria-label="anchor" href="#arg-null-window"></a></dt>

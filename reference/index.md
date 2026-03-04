@@ -30,6 +30,10 @@
 - [`fit_null()`](https://statdivlab.github.io/radEmu/reference/fit_null.md)
   : fits model with B_kj constrained to equal g(B_k) for constraint fn g
 
+- [`fit_null_discrete()`](https://statdivlab.github.io/radEmu/reference/fit_null_discrete.md)
+  : fits model with B_kj constrained to equal g(B_k) for constraint fn
+  g, for a symmetric constraint with a discrete design
+
 - [`fit_null_scc()`](https://statdivlab.github.io/radEmu/reference/fit_null_scc.md)
   : fits model with B_kj constrained to equal g(B_k) for constraint fn
   g, for a single category constraint

@@ -167,8 +167,10 @@ the minimizer of the pseudo-Huber loss approaches the median.)</p></dd>
 
 
 <dt id="arg-null-fit-alg">null_fit_alg<a class="anchor" aria-label="anchor" href="#arg-null-fit-alg"></a></dt>
-<dd><p>Which null fitting algorithm to use <code>"fisher_scoring"</code> or <code>"augmented_lagrangian"</code>.
-Default and recommended approach is <code>"fisher_scoring"</code>.</p></dd>
+<dd><p>Which null fitting algorithm to use for score tests: <code>"constraint_sandwich"</code> or
+<code>"augmented_lagrangian"</code>, or <code>"discrete"</code> when design matrix only includes categorical covariates.
+Default and recommended approach is <code>"constraint_sandwich"</code> or <code>"discrete"</code> when approach,
+unless <code>J &lt; 20</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

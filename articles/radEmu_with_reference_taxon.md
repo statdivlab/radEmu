@@ -286,7 +286,7 @@ head(ch_test_default$coef)
 #> 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]
 #> 6  GroupCRC                      Eubacterium sp. [ref_mOTU_v2_1395]
 #>   category_num    estimate        se      lower     upper score_stat       pval
-#> 1            1  1.48637866 0.8965589 -0.2708446 3.2436019   4.244871 0.03936905
+#> 1            1  1.48637866 0.8965589 -0.2708446 3.2436019   4.244893 0.03936854
 #> 2            2  2.31317107 0.8270519  0.6921791 3.9341630         NA         NA
 #> 3            3  3.08640474 1.0274354  1.0726684 5.1001410         NA         NA
 #> 4            4 -0.34307572 0.3520117 -1.0330060 0.3468546         NA         NA

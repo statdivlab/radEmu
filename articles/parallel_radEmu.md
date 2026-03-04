@@ -129,7 +129,7 @@ robust_score <- emuFit(formula = ~ Group,
                                             j = mOTU_to_test), 
                        Y = small_Y)
 robust_score$coef$pval[mOTU_to_test]
-#> [1] 0.3017219
+#> [1] 0.3017228
 ```
 
 Now, we can see that it took a little while to run our robust score

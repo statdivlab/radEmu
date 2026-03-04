@@ -30,11 +30,12 @@ emuFit(
   max_abs_B = 250,
   run_score_tests = TRUE,
   test_kj = NULL,
-  null_fit_alg = "constraint_sandwich",
+  null_fit_alg = NULL,
   B_null_list = NULL,
   maxit_null = 1000,
   tol_lik = 1e-05,
   tol_test_stat = 0.01,
+  tol_discrete = 0.01,
   null_window = 5,
   null_diagnostic_plots = FALSE,
   remove_zero_comparison_pvals = 0.01,
@@ -201,8 +202,11 @@ emuFit(
 - null_fit_alg:
 
   Which null fitting algorithm to use for score tests:
-  `"constraint_sandwich"` or `"augmented_lagrangian"`. Default and
-  recommended approach is `"constraint_sandwich"`, unless `J < 20`.
+  `"constraint_sandwich"` or `"augmented_lagrangian"`, or `"discrete"`
+  when design matrix only includes categorical covariates. Default and
+  recommended approach is `"constraint_sandwich"`, or `"discrete"` for a
+  design matrix with only categorical covariates and `J < 150`.
+  Augmented lagrangian is used when `J < 20`.
 
 - B_null_list:
 
@@ -228,6 +232,12 @@ emuFit(
   tolerance for relative changes in test statistic for stopping
   criteria. Default is `0.01`. Used in estimation under null hypothesis
   for score tests with "constraint_sandwich" algorithm.
+
+- tol_discrete:
+
+  tolerance for the root mean norm of the score vector, for stopping
+  criteria. Default is `0.01`. Used in estimation under null hypothesis
+  for score tests with "discrete" algorithm (for discrete designs).
 
 - null_window:
 

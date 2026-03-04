@@ -394,8 +394,8 @@ two_robust_score_tests$coef[taxa_to_test, c("covariate", "category", "estimate",
 #> 3   GroupCRC Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777] 3.086405
 #> 36  GroupCRC                 unknown Eubacterium [meta_mOTU_v2_7116] 1.692993
 #>          pval
-#> 3  0.07433294
-#> 36 0.30172188
+#> 3  0.07432482
+#> 36 0.30172281
 ```
 
 The *Fusobacterium nucleatum* mOTU has a robust score test p-value of
