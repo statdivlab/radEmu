@@ -62,7 +62,7 @@ mod <- emuFit(Y = wirbel_otu_ch, formula = ~ Group + Gender, data = wirbel_sampl
 #> Estimating parameters
 #> Performing Wald tests and constructing CIs.
 #> Running score test 1 of 1 (row of B k = 2; column of B j = 1).
-#> Score test 1 of 1 (row of B k = 2; column of B j = 1) has completed in approximately 69 seconds.
+#> Score test 1 of 1 (row of B k = 2; column of B j = 1) has completed in approximately 67 seconds.
 ```
 
 Some of the important arguments for

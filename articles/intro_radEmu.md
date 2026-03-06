@@ -452,9 +452,11 @@ the vignette, but feel free to run it on your own.
 ``` r
 test_all <- emuFit(formula = ~ Group, 
                    data = wirbel_sample[ch_study_obs, ],
-                   B = ch_fit,
+                   B = ch_fit$B,
                    Y = small_Y,
-                   run_score_tests = TRUE)
+                   run_score_tests = TRUE,
+                   test_kj = data.frame(k = covariate_to_test,
+                                        j = 1:ncol(small_Y)))
 ```
 
 ## A more reasonable model

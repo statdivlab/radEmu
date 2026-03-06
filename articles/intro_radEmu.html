@@ -70,7 +70,7 @@
                         <h4 data-toc-skip class="author">David Clausen,
 Sarah Teichman and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2026-03-04</h4>
+            <h4 data-toc-skip class="date">2026-03-06</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/intro_radEmu.Rmd" class="external-link"><code>vignettes/intro_radEmu.Rmd</code></a></small>
       <div class="d-none name"><code>intro_radEmu.Rmd</code></div>
@@ -490,9 +490,11 @@ in the vignette, but feel free to run it on your own.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">test_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span>, </span>
 <span>                   data <span class="op">=</span> <span class="va">wirbel_sample</span><span class="op">[</span><span class="va">ch_study_obs</span>, <span class="op">]</span>,</span>
-<span>                   B <span class="op">=</span> <span class="va">ch_fit</span>,</span>
+<span>                   B <span class="op">=</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">B</span>,</span>
 <span>                   Y <span class="op">=</span> <span class="va">small_Y</span>,</span>
-<span>                   run_score_tests <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>                   run_score_tests <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                   test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>,</span>
+<span>                                        j <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">small_Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="a-more-reasonable-model">A more reasonable model<a class="anchor" aria-label="anchor" href="#a-more-reasonable-model"></a>

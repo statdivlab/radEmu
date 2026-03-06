@@ -23,8 +23,9 @@ library(radEmu)
 
 This vignette provides an introduction to using `radEmu` for
 differential abundance analysis using a `phyloseq` data object. For more
-in-depth explanations of how this software works and details on this
-analysis, see the vignette “intro_radEmu.Rmd”.
+in-depth explanations of how this software works, an example of running
+hypothesis tests, and details on this analysis, see the vignette
+“intro_radEmu.Rmd”.
 
 In this lab we’ll explore a [dataset published by Wirbel et
 al. (2019)](https://www.nature.com/articles/s41591-019-0406-6). This is
