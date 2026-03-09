@@ -237,6 +237,17 @@ emuFit <- function(Y,
   }
   p <- ncol(X)
   
+  
+  # check for k-j dimensionality
+  if (!is.null(test_kj)){
+    if (any(test_kj$k > p)) {
+      stop("k exceeds the number of groups p")
+    }
+    if (any(test_kj$j > J)) {
+      stop("j exceeds the number of taxa J")
+    }
+  }
+  
   # check for zero-comparison parameters
   zero_comparison_res <- zero_comparison_check(X = X, Y = Y)
   
