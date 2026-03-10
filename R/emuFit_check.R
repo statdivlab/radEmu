@@ -303,9 +303,6 @@ ignoring argument 'cluster'.")
   if (any(test_kj$j > J)){
     stop("j exceeds the number of taxa J")
   }
-  if (any(test_kj$k < 1 || any(test_kj$j < 1))) {
-    stop("k and j must be positive integers")
-  }
   
   # check that test_kj is not null if running score tests
   if (run_score_tests) {
