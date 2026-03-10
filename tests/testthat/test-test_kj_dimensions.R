@@ -24,13 +24,33 @@ test_that("emuFit stops when test_kj indices are out of bounds", {
     "j exceeds the number of taxa J"
   )
   
-  # Case 3: No issue case should still work
+  # Case 3: Bad string k
+  expect_error(
+    emuFit(formula = ~ Group,
+           data    = wirbel_sample_small,
+           Y       = wirbel_otu_small,
+           test_kj = data.frame(k = "FakeVariable", j = 1)
+  ),
+  "Make sure that the values of `k` in `test_kj` are numeric or correspond to column names of the `X` matrix."
+  )
+  
+  # Case 4: No issue case should still work
   expect_silent(
     emuFit(
       formula = ~ Group,
       data    = wirbel_sample_small,
       Y       = wirbel_otu_small,
       test_kj = data.frame(k = 2, j = 47)
+    )
+  )
+  
+  # Case 5: No issue if valid string
+  expect_silent(
+    emuFit(
+      formula = ~ Group,
+      data    = wirbel_sample_small,
+      Y       = wirbel_otu_small,
+      test_kj = data.frame(k = "GroupCTR", j = 47)
     )
   )
 })
