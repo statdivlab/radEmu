@@ -43,8 +43,6 @@ devtools::install_github("statdivlab/radEmu")
 library(radEmu)
 ```
 
-We are currently only releasing `radEmu` via GitHub. If you'd like us to consider submitting to CRAN, please let us know by opening an issue.
-
 ## Use
 
 The vignettes demonstrate example usage of the main functions. Please [file an issue](https://github.com/statdivlab/radEmu/issues) if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a `phyloseq` object, and you want to estimate parameters for all taxa and run a test for the parameter associated with "Group" and taxon 1: 
