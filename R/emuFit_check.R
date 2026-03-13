@@ -295,6 +295,15 @@ ignoring argument 'cluster'.")
     }
   }
   
+  # final check for dimension validation
+  
+  if (any(test_kj$k > p)){
+    stop("k exceeds the number of groups p")
+  }
+  if (any(test_kj$j > J)){
+    stop("j exceeds the number of taxa J")
+  }
+  
   # check that test_kj is not null if running score tests
   if (run_score_tests) {
     if (is.null(test_kj)) {
