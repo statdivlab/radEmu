@@ -242,8 +242,6 @@ emuFit <- function(Y,
   
   X_cup <- X_cup_from_X_fast(X,J)
   
-  
-  
   #choose ref taxon for fitting constrained models / performing wald and score tests
   j_ref <- get_j_ref(Y)
   
