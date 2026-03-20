@@ -43,7 +43,7 @@ emuFit(
 )
 }
 \arguments{
-\item{Y}{an n x J matrix or dataframe of nonnegative observations, or a phyloseq object containing an otu table and sample data.}
+\item{Y}{an n x J matrix or dataframe of nonnegative observations, or a \code{phyloseq} or \code{TreeSummarizedExperiment} object containing an otu table and sample data.}
 
 \item{X}{an n x p design matrix (either provide \code{X} or \code{data} and \code{formula})}
 
@@ -197,23 +197,12 @@ including whether or not the algorithm converged, which can be helpful for debug
 Fit radEmu model
 }
 \examples{
-# data frame example
+# data frame example (for phyloseq and TreeSummarizedExperiment examples, see the vignettes)
 data(wirbel_sample_small)
 data(wirbel_otu_small)
 emuRes <- emuFit(formula = ~ Group, data = wirbel_sample_small, Y = wirbel_otu_small,
                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01) 
  # here we set large tolerances for the example to run quickly, 
  # but we recommend smaller tolerances in practice
-
-# TreeSummarizedExperiment example (only run this if you have TreeSummarizedExperiment installed)
-\donttest{
-library("TreeSummarizedExperiment")
-example("TreeSummarizedExperiment")
-assayNames(tse) <- "counts"
-emuRes <- emuFit(Y = tse, formula = ~ condition, assay_name = "counts", 
-                 test_kj = data.frame(k = 2, j = 1), tolerance = 0.01)
- # here we set large tolerances for the example to run quickly, 
- # but we recommend smaller tolerances in practice
-}
 
 }
