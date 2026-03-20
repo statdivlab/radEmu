@@ -129,7 +129,7 @@
 #'  # but we recommend smaller tolerances in practice
 #'
 #' # TreeSummarizedExperiment example (only run this if you have TreeSummarizedExperiment installed)
-#' \dontrun{
+#' \donttest{
 #' library("TreeSummarizedExperiment")
 #' example("TreeSummarizedExperiment")
 #' assayNames(tse) <- "counts"
