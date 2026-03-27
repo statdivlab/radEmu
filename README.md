@@ -35,7 +35,13 @@ Sadly we do not yet have a ~~logo~~ nice-looking logo. If you would like to desi
 
 ## Installation
 
-To download the radEmu package, use the code below.
+To download the stable release of radEmu (version 2.3.1) from CRAN, use the code below.
+
+``` r
+install.packages("radEmu")
+```
+
+To download the current development version of the radEmu package, use the code below.
 
 ``` r
 # install.packages("devtools")
