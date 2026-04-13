@@ -151,18 +151,17 @@ dataset. First, I need to check the cores on my computer to see a
 reasonable amount of cores to parallelize over. I tend to use one fewer
 core than the number of cores that I have available.
 
+A note for those knitting this vignette or reading this through online
+rendered documentation: the following code is set to not evaluate
+automatically. You can run it locally and explore the results by
+removing the `eval = FALSE` argument from the code chunks.
+
 ``` r
 ncores <- parallel::detectCores() - 1
 ncores
-#> [1] 3
-
-# if running this vignette in automatic R-CMD-check, reduce cores to 2
-if (identical(Sys.getenv("_R_CHECK_LIMIT_CORES_"), "TRUE")) {
-  ncores <- min(2, ncores)
-}
 ```
 
-Next, I will write a function that will be called in parallel. This
+Next, we will write a function that will be called in parallel. This
 function will fit the model under the null and calculate the robust
 score test statistics. Note that the output of this function is an
 `emuFit` object.

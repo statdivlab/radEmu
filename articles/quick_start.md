@@ -11,10 +11,11 @@ First, we will install `radEmu`, if we haven’t already.
 # remotes::install_github("statdivlab/radEmu")
 ```
 
-Next, we can load `radEmu`.
+Next, we can load `radEmu`, as well as `dplyr`.
 
 ``` r
 library(radEmu)
+library(dplyr)
 ```
 
 In this vignette we’ll explore a [dataset published by Wirbel et
@@ -39,14 +40,48 @@ dim(wirbel_otu)
 #> [1] 566 845
 ```
 
-We can see that we have $566$ samples and $845$ mOTUs. We will subset to
-samples from the Chinese study.
+We can see that we have $566$ samples and $845$ mOTUs.
+
+While in general we would fit a model to all mOTUs, we are going to
+subset to some specific genera for the purposes of this tutorial. Let’s
+look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and
+*Fusobacterium* for now.
 
 ``` r
-wirbel_sample_ch <- wirbel_sample[wirbel_sample$Country == "CHI", ]
-wirbel_otu_ch <- wirbel_otu[rownames(wirbel_sample_ch), ]
-to_rm <- which(colSums(wirbel_otu_ch) == 0)
-wirbel_otu_ch <- wirbel_otu_ch[, -to_rm]
+mOTU_names <- colnames(wirbel_otu)
+chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
+mOTU_name_df <- data.frame(name = mOTU_names) %>% 
+  mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") %>%
+                      stringr::str_remove("uncultured ")) %>%
+  mutate(genus_name = stringr::word(base_name, 1))
+restricted_mOTU_names <- mOTU_name_df %>%
+  filter(genus_name %in% chosen_genera) %>%
+  pull(name)
+```
+
+Again, while we would generally fit a model using all of our samples,
+for this tutorial we are only going to consider data from a case-control
+study from China.
+
+``` r
+ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
+```
+
+Next, we want to confirm that all samples have at least one non-zero
+count across the categories we’ve chosen and that all categories have at
+least one non-zero count across the samples we’ve chosen.
+
+``` r
+small_Y <- wirbel_otu[ch_study_obs, restricted_mOTU_names]
+sum(rowSums(small_Y) == 0) # no samples have a count sum of 0 
+#> [1] 0
+sum(colSums(small_Y) == 0) # one category has a count sum of 0
+#> [1] 1
+
+category_to_rm <- which(colSums(small_Y) == 0)
+small_Y <- small_Y[, -category_to_rm]
+sum(colSums(small_Y) == 0)
+#> [1] 0
 ```
 
 ## Differential abundance analysis with radEmu
@@ -57,12 +92,10 @@ function! This will take 1-2 minutes to run, so we suggest you start
 running it and then read below about the arguments!
 
 ``` r
-mod <- emuFit(Y = wirbel_otu_ch, formula = ~ Group + Gender, data = wirbel_sample_ch,
-              test_kj = data.frame(k = 2, j = 1), verbose = TRUE)
-#> Estimating parameters
-#> Performing Wald tests and constructing CIs.
-#> Running score test 1 of 1 (row of B k = 2; column of B j = 1).
-#> Score test 1 of 1 (row of B k = 2; column of B j = 1) has completed in approximately 69 seconds.
+mod <- emuFit(data = wirbel_sample[ch_study_obs, ],
+              Y = small_Y,
+              formula = ~ Group + Gender, 
+              test_kj = data.frame(k = 2, j = 1))
 ```
 
 Some of the important arguments for
@@ -102,39 +135,39 @@ results are in the `coef` part of the `emuFit` object.
 
 ``` r
 head(mod$coef)
-#>   covariate                                            category category_num
-#> 1  GroupCRC          Streptococcus anginosus [ref_mOTU_v2_0004]            1
-#> 2  GroupCRC           Enterobacteriaceae sp. [ref_mOTU_v2_0036]            2
-#> 3  GroupCRC                  Citrobacter sp. [ref_mOTU_v2_0076]            3
-#> 4  GroupCRC Klebsiella michiganensis/oxytoca [ref_mOTU_v2_0079]            4
-#> 5  GroupCRC            Enterococcus faecalis [ref_mOTU_v2_0116]            5
-#> 6  GroupCRC         Lactobacillus salivarius [ref_mOTU_v2_0125]            6
-#>      estimate        se      lower     upper score_stat       pval
-#> 1  1.23098896 0.5112357  0.2289855 2.2329925    2.89652 0.08877102
-#> 2 -0.35705361 0.4792791 -1.2964233 0.5823161         NA         NA
-#> 3 -0.02530219 0.7645786 -1.5238487 1.4732444         NA         NA
-#> 4  0.87675897 1.1872869 -1.4502806 3.2037986         NA         NA
-#> 5  0.32201218 0.4147375 -0.4908584 1.1348828         NA         NA
-#> 6  2.27550157 0.6843873  0.9341271 3.6168760         NA         NA
+#>   covariate                                                category
+#> 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]
+#> 2  GroupCRC  Fusobacterium nucleatum s. animalis [ref_mOTU_v2_0776]
+#> 3  GroupCRC Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777]
+#> 4  GroupCRC         Faecalibacterium prausnitzii [ref_mOTU_v2_1379]
+#> 5  GroupCRC                  Eubacterium siraeum [ref_mOTU_v2_1387]
+#> 6  GroupCRC                      Eubacterium sp. [ref_mOTU_v2_1395]
+#>   category_num    estimate        se      lower     upper score_stat       pval
+#> 1            1  1.49138209 0.8716988 -0.2171162 3.1998804    4.33152 0.03741283
+#> 2            2  2.27272171 0.8101394  0.6848777 3.8605657         NA         NA
+#> 3            3  3.02032947 1.0143668  1.0322070 5.0084519         NA         NA
+#> 4            4 -0.35942098 0.3434753 -1.0326202 0.3137782         NA         NA
+#> 5            5  0.03955907 0.4622464 -0.8664272 0.9455454         NA         NA
+#> 6            6  1.19138324 0.9106672 -0.5934917 2.9762582         NA         NA
 ```
 
-The first taxon in our model is *Streptococcus anginosus*, which has a
-log fold-difference estimate of $1.23$. We will interpret this to mean
-that we expect that *Streptococcus anginosus* is
-$exp(1.23) \approx 3.42$ times more abundant in cases of colorectal
+The first taxon in our model is *Fusobacterium nucleatum s. vincentii*,
+which has a log fold-difference estimate of $1.49$. We will interpret
+this to mean that we expect that *Fusobacterium nucleatum s. vincentii*
+is $exp(1.49) \approx 4.44$ times more abundant in cases of colorectal
 cancer compared to controls of the same gender, when compared to the
 typical fold-differences in abundances of the taxa in this analysis.
 
 We could similarly interpret the log fold-differences for each taxon in
 our analysis.
 
-For *Streptococcus anginosus* we have a robust score test p-value of
-$0.09$. This means that we do not have enough evidence to reject the
-null hypothesis that the fold-difference in abundance of *Streptococcus
-anginosus* between cases and controls is the same as the typical
-fold-difference in abundance between cases and controls across all taxa
-in this analysis. When we say \`\`typical” here we mean approximately
-the median fold-difference across taxa.
+For *Fusobacterium nucleatum s. vincentii* we have a robust score test
+p-value of $0.04$. This means that we do have enough evidence to reject
+the null hypothesis that the fold-difference in abundance of
+*Fusobacterium nucleatum s. vincentii* between cases and controls is the
+same as the typical fold-difference in abundance between cases and
+controls across all taxa in this analysis. When we say \`\`typical” here
+we mean approximately the median fold-difference across taxa.
 
 Now you are ready to start using `radEmu`! We recommend our other
 vignettes for a deeper look using `radEmu`, including for `phyloseq` or

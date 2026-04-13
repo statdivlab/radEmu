@@ -63,16 +63,21 @@ to design us one, please let Amy know!
 
 ## Installation
 
-To download the radEmu package, use the code below.
+To download the stable release of radEmu (version 2.3.1) from CRAN, use
+the code below.
+
+``` r
+install.packages("radEmu")
+```
+
+To download the current development version of the radEmu package, use
+the code below.
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("statdivlab/radEmu")
 library(radEmu)
 ```
-
-We are currently only releasing `radEmu` via GitHub. If you’d like us to
-consider submitting to CRAN, please let us know by opening an issue.
 
 ## Use
 

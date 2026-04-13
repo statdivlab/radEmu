@@ -78,7 +78,7 @@ quickly.
 J <- 10; n <- 60
 # generate design matrix 
 set.seed(10)
-X <- cbind(1, rnorm(n))
+X <- cbind(1, rep(0:1, each = n / 2))
 cov_dat <- data.frame(cov = X[, 2])
 # cluster membership 
 cluster <- rep(1:4, each = n/4)
@@ -134,12 +134,18 @@ ef_cluster <- emuFit(formula = ~ cov,
                      data = cov_dat, 
                      Y = Y,
                      cluster = cluster_named, 
-                     test_kj = data.frame(k = 2, j = 3))
-#> Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.
+                     test_kj = data.frame(k = 2, j = 3),
+                     match_row_names = FALSE)
+
+ef_cluster$coef[3, ]
+#>   covariate   category category_num estimate        se   lower    upper
+#> 3       cov category_3            3 4.534209 0.4675388 3.61785 5.450568
+#>   score_stat      pval
+#> 3   2.874715 0.0899809
 ```
 
-You can check out the full object, but our estimate is 4.2 and a p-value
-for testing that this parameter equals zero is 0.03. Not too shabby,
+You can check out the full object, but our estimate is 4.5 and a p-value
+for testing that this parameter equals zero is 0.09. Not too shabby,
 especially considering that about half of our observations are zero, and
 we have a lot of noise in our data (arising from a negative binomial
 simulation scheme).
@@ -152,12 +158,17 @@ we are saying that we have more independent observations.
 ef_no_cluster <- emuFit(formula = ~ cov,
                         data = cov_dat, 
                         Y = Y,
-                        test_kj = data.frame(k = 2, j = 3))
-#> Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.
+                        test_kj = data.frame(k = 2, j = 3),
+                        match_row_names = FALSE)
+ef_no_cluster$coef[3, ]
+#>   covariate   category category_num estimate        se    lower    upper
+#> 3       cov category_3            3 4.534209 0.3235296 3.900103 5.168316
+#>   score_stat         pval
+#> 3   17.29419 3.201648e-05
 ```
 
 When we ignore clustering, we get an estimate of the log fold difference
-in category 3 across values of our covariate of 4.2 and a p-value of
-0.005. So we can see that our estimates are the same whether or not we
-account for cluster, but our p-values are different (because we are
-pretending that we have more evidence in the absence of clustering).
+in category 3 across values of our covariate of 4.5 and a p-value of 0.
+So we can see that our estimates are the same whether or not we account
+for cluster, but our p-values are different (because we are pretending
+that we have more evidence in the absence of clustering).
