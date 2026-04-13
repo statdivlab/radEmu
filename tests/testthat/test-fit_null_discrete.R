@@ -2,7 +2,7 @@
 test_that("new discrete is correct", {
   
   # set.seed(1)
-  n <- 20
+  n <- 16
   J <- 15
   p <- 5
   beta <- matrix(rnorm(p*J, mean = 2, sd=1), ncol = J)
