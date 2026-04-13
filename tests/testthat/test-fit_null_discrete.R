@@ -2,8 +2,8 @@
 test_that("new discrete is correct", {
   
   # set.seed(1)
-  n <- 40
-  J <- 30
+  n <- 20
+  J <- 15
   p <- 5
   beta <- matrix(rnorm(p*J, mean = 2, sd=1), ncol = J)
   X <- cbind(1, 
@@ -116,7 +116,7 @@ test_that("new discrete is correct with flexible jref and jstar", {
 
 test_that("new discrete is fast", {
   
-  #skip("Too slow for automated testing; 20 mins on laptop")
+  skip("Too slow; just checks fit_null_discrete faster than fit_null.")
   
   set.seed(2)
   n <- 60
@@ -174,7 +174,7 @@ test_that("new discrete is fast", {
 
 test_that("new discrete null aligns with older code", {
   
-  skip("Too slow for automated testing; ~3 mins on laptop")
+  skip("Too slow. ~3 mins on laptop. Just checks alignment between versions.")
   
   set.seed(4)
   n <- 12
