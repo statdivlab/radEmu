@@ -66,7 +66,7 @@ To start, let's generate a toy example (10 categories, 60 samples) in which ther
 J <- 10; n <- 60
 # generate design matrix 
 set.seed(10)
-X <- cbind(1, rnorm(n))
+X <- cbind(1, rep(0:1, each = n / 2))
 cov_dat <- data.frame(cov = X[, 2])
 # cluster membership 
 cluster <- rep(1:4, each = n/4)
@@ -114,7 +114,10 @@ ef_cluster <- emuFit(formula = ~ cov,
                      data = cov_dat, 
                      Y = Y,
                      cluster = cluster_named, 
-                     test_kj = data.frame(k = 2, j = 3))
+                     test_kj = data.frame(k = 2, j = 3),
+                     match_row_names = FALSE)
+
+ef_cluster$coef[3, ]
 ```
 
 You can check out the full object, but our estimate is `r round(ef_cluster$coef$estimate[3], 1)` and a p-value for testing that this parameter equals zero is `r round(ef_cluster$coef$pval[3], 3)`. Not too shabby, especially considering that about half of our observations are zero, and we have a lot of noise in our data (arising from a negative binomial simulation scheme). 
@@ -125,7 +128,9 @@ Let's also compare that to a situation where we mistakenly ignore clustering. In
 ef_no_cluster <- emuFit(formula = ~ cov,
                         data = cov_dat, 
                         Y = Y,
-                        test_kj = data.frame(k = 2, j = 3))
+                        test_kj = data.frame(k = 2, j = 3),
+                        match_row_names = FALSE)
+ef_no_cluster$coef[3, ]
 ```
 
 When we ignore clustering, we get an estimate of the log fold difference in category 3 across values of our covariate of `r round(ef_no_cluster$coef$estimate[3], 1)` and a p-value of `r round(ef_no_cluster$coef$pval[3], 3)`. So we can see that our estimates are the same whether or not we account for cluster, but our p-values are different (because we are pretending that we have more evidence in the absence of clustering).

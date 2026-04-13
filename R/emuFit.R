@@ -1,6 +1,6 @@
 #' Fit radEmu model
 #'
-#' @param Y an n x J matrix or dataframe of nonnegative observations, or a phyloseq object containing an otu table and sample data.
+#' @param Y an n x J matrix or dataframe of nonnegative observations, or a `phyloseq` or `TreeSummarizedExperiment` object containing an otu table and sample data.
 #' @param X an n x p design matrix (either provide \code{X} or \code{data} and \code{formula})
 #' @param formula a one-sided formula specifying the form of the mean model to be fit (used with \code{data})
 #' @param data an n x p data frame containing variables given in \code{formula}
@@ -120,24 +120,13 @@
 #' @import MASS
 #' 
 #' @examples
-#' # data frame example
+#' # data frame example (for phyloseq and TreeSummarizedExperiment examples, see the vignettes)
 #' data(wirbel_sample_small)
 #' data(wirbel_otu_small)
 #' emuRes <- emuFit(formula = ~ Group, data = wirbel_sample_small, Y = wirbel_otu_small,
 #'                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01) 
 #'  # here we set large tolerances for the example to run quickly, 
 #'  # but we recommend smaller tolerances in practice
-#'
-#' # TreeSummarizedExperiment example (only run this if you have TreeSummarizedExperiment installed)
-#' \dontrun{
-#' library("TreeSummarizedExperiment")
-#' example("TreeSummarizedExperiment")
-#' assayNames(tse) <- "counts"
-#' emuRes <- emuFit(Y = tse, formula = ~ condition, assay_name = "counts", 
-#'                  test_kj = data.frame(k = 2, j = 1), tolerance = 0.01)
-#'  # here we set large tolerances for the example to run quickly, 
-#'  # but we recommend smaller tolerances in practice
-#' }
 #'
 #' @export
 #'
