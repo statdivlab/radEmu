@@ -39,6 +39,7 @@ test_that("emuFit takes formulas and actually fits a model", {
                            test_kj = data.frame(k = 2, j = 1:J))
   })
   
+  expect_output(print(fitted_model))
   expect_true(all(fitted_model$coef$pval != fitted_model$coef$wald_p))
   expect_true(all(fitted_model$coef$wald_p>0 & fitted_model$coef$wald_p<1))
   expect_true(all(fitted_model$coef$pval>0 & fitted_model$coef$pval<1))
