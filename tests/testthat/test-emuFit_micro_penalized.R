@@ -150,6 +150,9 @@ less efficient implementation (and that both substantially differ from MLE", {
 })
 
 test_that("penalized fit uses B if given, and therefore fit is quicker", {
+  
+  skip("don't test timing automatically")
+  
   set.seed(4323)
   X <- cbind(1,rnorm(10))
   J <- 10
