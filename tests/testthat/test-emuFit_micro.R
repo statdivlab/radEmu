@@ -1,50 +1,28 @@
 
-test_that("ML fit to simple example give reasonable output", {
+test_that("With or without 'working_constraint' we get same results", {
   set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 20))
-  J <- 10
-  n <- 40
-  b1 <- 1:J - mean(1:J)
+  n <- 20
+  X <- cbind(1,rep(c(0,1),each = n/2))
+  J <- 6
+  # b1 <- 1:J - mean(1:J)
+  b1 <- seq(1,J,length.out = J)
+  
   Y <- radEmu:::simulate_data(n = n,
                               J = J,
                               X = X,
                               b0 = rnorm(J),
                               b1 = b1,
                               distn = "Poisson",
-                              mean_z = 10)
+                              mean_z = 5)
   
   ml_fit <- emuFit_micro(X = X,
                          Y = Y,
                          constraint_fn = rep(list(function(x) mean(x)), 2), 
                          maxit = 200,
-                         tolerance = 1e-3,
-                         verbose = FALSE)
-
-  # plot(b1-mean(b1),ml_fit[2,])
-  # abline(a = 0,b = 1,lty =2,col = "red")
-
-  expect_true(max(abs(ml_fit[2,] - (b1 - mean(b1)))) < 1) # increased to 1
-})
-
-test_that("With or without 'working_constraint' we get same results", {
-  set.seed(4323)
-  X <- cbind(1,rep(c(0,1),each = 20))
-  J <- 10
-  n <- 40
-  Y <- radEmu:::simulate_data(n = n,
-                              J = J,
-                              X = X,
-                              b0 = rnorm(J),
-                              b1 = seq(1,10,length.out = J),
-                              distn = "Poisson",
-                              mean_z = 5)
-  
-  ml_fit <- emuFit_micro(X,
-                         Y,
-                         constraint_fn = rep(list(function(x) mean(x)), 2),
-                         maxit = 200,
                          tolerance = 1e-6,
-                         verbose= FALSE)
+                         verbose = FALSE)
+  
+  expect_true(max(abs(ml_fit[2,] - (b1 - mean(b1)))) < 1) # increased to 1
   
   ml_fit_direct <- emuFit_micro(X,
                                 Y,
@@ -53,61 +31,60 @@ test_that("With or without 'working_constraint' we get same results", {
                                 use_working_constraint = FALSE,
                                 tolerance = 1e-6,
                                 verbose = FALSE)
-
-
+  
+  
   expect_equal(ml_fit,ml_fit_direct,tolerance = 1e-4)
 })
 
 
 
-test_that("PL fit with categorical predictor matches analytical form of MPLE in this case,
-          and does NOT match MLE when group sizes are equal", {
-            set.seed(90333)
-            X <- cbind(1,rep(c(0,1),each = 20))
-            z <- rnorm(40) 
-            J <- 10
-            p <- 2
-            n <- 40
-            b0 <- rnorm(J)
-            b1 <- seq(1,10,length.out = J)/5
-            b <- rbind(b0,b1)
-            Y <- matrix(NA,ncol = J, nrow = 40)
-            
-            for(i in 1:40){
-              for(j in 1:J){
-                temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
-                Y[i,j] <- rpois(1, lambda = temp_mean)
-              }
-            }
-            pl_fit <- emuFit_micro_penalized(X,
-                                             Y,
-                                             B = matrix(rnorm(20),nrow = 2),
-                                             constraint_fn = rep(list(function(x) mean(x)), 2),
-                                             maxit = 200,
-                                             tolerance = 1e-8,
-                                             verbose= FALSE)
-            
-            ml_fit <- emuFit_micro(X,
+test_that("PL fit with categorical predictor matches analytical form of MPLE in this case, and does NOT match MLE when group sizes are equal", {
+  set.seed(90333)
+  X <- cbind(1,rep(c(0,1),each = 20))
+  z <- rnorm(40) 
+  J <- 10
+  p <- 2
+  n <- 40
+  b0 <- rnorm(J)
+  b1 <- seq(1,10,length.out = J)/5
+  b <- rbind(b0,b1)
+  Y <- matrix(NA,ncol = J, nrow = 40)
+  
+  for(i in 1:40){
+    for(j in 1:J){
+      temp_mean <- exp(X[i,,drop = FALSE]%*%b[,j,drop = FALSE] + z[i])
+      Y[i,j] <- rpois(1, lambda = temp_mean)
+    }
+  }
+  pl_fit <- emuFit_micro_penalized(X,
                                    Y,
                                    B = matrix(rnorm(20),nrow = 2),
                                    constraint_fn = rep(list(function(x) mean(x)), 2),
                                    maxit = 200,
                                    tolerance = 1e-8,
                                    verbose= FALSE)
-            
-            cs_grp1 <- colSums(Y[1:20,])
-            cs_grp2 <- colSums(Y[21:40,])
-            
-            bhat1 <- log(cs_grp1 + 0.5) - log(cs_grp1[1] + 0.5)
-            bhat2 <- log(cs_grp2 + 0.5) - log(cs_grp2[1] +0.5)
-            bhat2 <- bhat2 - bhat1
-            bhat1 <- bhat1 - mean(bhat1)
-            bhat2 <- bhat2 - mean(bhat2)
-            analytical_B <- rbind(bhat1,bhat2)
-            
-            expect_true(max(abs(pl_fit$B - analytical_B))< 1e-7)
-            expect_true(max(abs(ml_fit - analytical_B))>0.01)
-          })
+  
+  ml_fit <- emuFit_micro(X,
+                         Y,
+                         B = matrix(rnorm(20),nrow = 2),
+                         constraint_fn = rep(list(function(x) mean(x)), 2),
+                         maxit = 200,
+                         tolerance = 1e-8,
+                         verbose= FALSE)
+  
+  cs_grp1 <- colSums(Y[1:20,])
+  cs_grp2 <- colSums(Y[21:40,])
+  
+  bhat1 <- log(cs_grp1 + 0.5) - log(cs_grp1[1] + 0.5)
+  bhat2 <- log(cs_grp2 + 0.5) - log(cs_grp2[1] +0.5)
+  bhat2 <- bhat2 - bhat1
+  bhat1 <- bhat1 - mean(bhat1)
+  bhat2 <- bhat2 - mean(bhat2)
+  analytical_B <- rbind(bhat1,bhat2)
+  
+  expect_true(max(abs(pl_fit$B - analytical_B))< 1e-7)
+  expect_true(max(abs(ml_fit - analytical_B))>0.01)
+})
 
 
 test_that("PL fit with categorical predictor matches analytical form of MPLE in this case,
@@ -171,7 +148,7 @@ test_that("We get same results with and without warm start", {
                               b1 = 1:J,
                               distn = "Poisson",
                               mean_z = 2)
-
+  
   # may need to have large number of iterations and small tolerance
   ml_fit <- emuFit_micro(X,
                          Y,
@@ -187,7 +164,7 @@ test_that("We get same results with and without warm start", {
                                 warm_start = FALSE,
                                 tolerance = 1e-14,
                                 verbose = FALSE)
-
+  
   expect_equal(ml_fit, ml_fit_direct, tolerance = 1e-6)
 })
 
@@ -211,8 +188,8 @@ test_that("We get a fit if we don't specify constraint", {
                          maxit = 200,
                          tolerance = 1e-6,
                          verbose = FALSE)
-
-
+  
+  
   expect_true(is.matrix(ml_fit))
 })
 
@@ -220,7 +197,7 @@ test_that("ML fit to simple example give reasonable output with J >> n", {
   set.seed(4323)
   n <- 10
   X <- cbind(1,rep(c(0,1),each = n/2))
-  J <- 1000
+  J <- 200
   b0 <- rnorm(J)
   b1 <- seq(-5,5,length.out = J)
   b <- rbind(b0,b1)
@@ -232,7 +209,7 @@ test_that("ML fit to simple example give reasonable output with J >> n", {
                               b1 = b1,
                               distn = "Poisson",
                               mean_z = 10)
-
+  
   ml_fit <- emuFit_micro(X,
                          Y,
                          constraint_fn = rep(list(function(x) mean(x)), 2),

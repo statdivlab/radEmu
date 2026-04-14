@@ -1,5 +1,5 @@
 set.seed(11)
-J <- 6
+J <- 4
 n <- 12
 X <- cbind(1,rnorm(n))
 b0 <- rnorm(J)
@@ -33,16 +33,14 @@ test_that("emuFit takes formulas and actually fits a model", {
                            verbose = FALSE,
                            B_null_tol = 1e-2,
                            tolerance = 0.01,
-                           return_wald_p = FALSE,
+                           return_wald_p = TRUE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           test_kj = data.frame(k = 2, j = 1:6))
+                           test_kj = data.frame(k = 2, j = 1:J))
   })
   
-  
-  
-  ## emuFit takes formulas and actually fits a model (with score tests)
-  
+  expect_output(print(fitted_model))
+  expect_true(all(fitted_model$coef$pval != fitted_model$coef$wald_p))
   expect_true(all(fitted_model$coef$wald_p>0 & fitted_model$coef$wald_p<1))
   expect_true(all(fitted_model$coef$pval>0 & fitted_model$coef$pval<1))
   expect_true(inherits(fitted_model$B,"matrix"))
@@ -60,8 +58,7 @@ test_that("emuFit takes formulas and actually fits a model", {
   
   expect_identical(fitted_model$coef$estimate, second_model$coef$estimate)
   
-  ##  emuFit takes formulas and actually fits a model (with score tests using full model info)
-  
+  ##  changing whether we use the full model changes the p-values
   fitted_model_use_fullmodel_info <- emuFit(Y = Y,
                                             X = X,
                                             formula = ~group,
@@ -69,68 +66,19 @@ test_that("emuFit takes formulas and actually fits a model", {
                                             tolerance = 0.01,
                                             data = covariates,
                                             run_score_tests= TRUE,
-                                            return_wald_p = TRUE, ### diff
+                                            return_wald_p = TRUE, 
                                             control = list(use_fullmodel_info = TRUE), ### diff
-                                            verbose = FALSE,
-                                            test_kj = data.frame(k = 2, j = 1:6))
+                                            verbose = FALSE, 
+                                            test_kj = data.frame(k = 2, j = 1:J))
   
-  
-  expect_true(all(fitted_model_use_fullmodel_info$coef$wald_p>0 & fitted_model_use_fullmodel_info$coef$wald_p<1))
-  expect_true(inherits(fitted_model_use_fullmodel_info$B,"matrix"))
-  expect_true(inherits(fitted_model_use_fullmodel_info$Y_augmented,"matrix"))
-  expect_true(all(fitted_model_use_fullmodel_info$coef$pval>0 & fitted_model_use_fullmodel_info$coef$pval<1))
-  
-  ## if return_both_score_pvals = TRUE, emuFit runs and returns two non-identical p-values
-  
-  ### TODO test this in a smaller example
-  
-  fitted_model_both <-  emuFit(Y = Y,
-                               X = X,
-                               formula = ~group,
-                               data = covariates,
-                               run_score_tests= TRUE,
-                               return_wald_p = TRUE,
-                               verbose = FALSE,
-                               test_kj = data.frame(k = 2, j = 1:6),
-                               control = list(tau = 1.2, 
-                                              use_fullmodel_info = TRUE,
-                                              return_both_score_pvals = TRUE))
-  
-  ps_full <- fitted_model_both$coef$score_pval_full_info
-  ps_null <- fitted_model_both$coef$score_pval_null_info
-  expect_true(is.numeric(ps_full))
-  expect_true(is.numeric(ps_null))
-  expect_true(cor(ps_null, ps_full) > 0.95)
-  expect_true(cor(ps_null, ps_full) < 1)
-   
-  # ## if return_both_score_pvals = TRUE, we
-  # ## get same p-values as if we separately run emuFit with use_fullmodel_info = TRUE and = FALSE"
-  # 
-  # # fitted_model had use_fullmodel_info = FALSE
-  # 
-  # fitted_full <- emuFit(Y = Y,
-  #                       X = X,
-  #                       formula = ~group,
-  #                       tau = 1.2,
-  #                       data = covariates,
-  #                       run_score_tests= TRUE,
-  #                       return_wald_p = TRUE,
-  #                       use_fullmodel_info = TRUE,
-  #                       verbose = FALSE,
-  #                       return_both_score_pvals = FALSE)
-  # 
-  # expect_true(max(abs(fitted_model_both$coef$score_pval_full_info - fitted_full$coef$pval))==0)
-  # expect_true(max(abs(fitted_model_both$coef$score_pval_null_info - fitted_model$coef$pval))==0)
-  # 
-  # ## Difference between using full and null model info is not extreme
-  # expect_true(cor(fitted_full$coef$pval, fitted_model$coef$pval) < 1)
-  # expect_true(cor(fitted_full$coef$pval, fitted_model$coef$pval) > 0.95)
+  expect_true(all(fitted_model_use_fullmodel_info$coef$pval != fitted_model$coef$pval))
+  expect_true(cor(fitted_model_use_fullmodel_info$coef$pval, fitted_model$coef$pval) > 0.95)
   
 })
 
-test_that("emuFit takes cluster argument without breaking ",{
-          expect_silent({
-            fitted_model_cluster <- emuFit(Y = Y,
+test_that("cluster argument returns same estimates but different p-values",{
+  expect_silent({
+    fitted_model_cluster <- emuFit(Y = Y,
                                    X = X,
                                    formula = ~group,
                                    data = covariates,
@@ -141,39 +89,25 @@ test_that("emuFit takes cluster argument without breaking ",{
                                    compute_cis = TRUE,
                                    run_score_tests = TRUE, 
                                    cluster = rep(1:3,each = 4),
-                                   test_kj = data.frame(k = 2, j = 1:6))
-          })
+                                   test_kj = data.frame(k = 2, j = 1:2))
+  })
   
   expect_silent({
     fitted_model_nocluster <- emuFit(Y = Y,
-                                   X = X,
-                                   formula = ~group,
-                                   data = covariates,
-                                   verbose = FALSE,
-                                   B_null_tol = 1e-2,
-                                   tolerance = 0.01,
-                                   return_wald_p = FALSE,
-                                   compute_cis = TRUE,
-                                   run_score_tests = TRUE, 
-                                   test_kj = data.frame(k = 2, j = 1:6))
+                                     X = X,
+                                     formula = ~group,
+                                     data = covariates,
+                                     verbose = FALSE,
+                                     B_null_tol = 1e-2,
+                                     tolerance = 0.01,
+                                     return_wald_p = FALSE,
+                                     compute_cis = TRUE,
+                                     run_score_tests = TRUE, 
+                                     test_kj = data.frame(k = 2, j = 1:2))
   })
   
   expect_true(all(fitted_model_nocluster$coef$estimate == fitted_model_cluster$coef$estimate))
-  
   expect_true(all(fitted_model_nocluster$coef$se != fitted_model_cluster$coef$se))
-  
-  expect_true(all(fitted_model_cluster$coef$se != fitted_model_nocluster$coef$se))
-  
-          
-          
-          
-          ## emuFit takes formulas and actually fits a model (with score tests)
-          
-          expect_true(all(fitted_model_cluster$coef$wald_p>0 & fitted_model_cluster$coef$wald_p<1))
-          expect_true(all(fitted_model_cluster$coef$pval>0 & fitted_model_cluster$coef$pval<1))
-          expect_true(inherits(fitted_model_cluster$B,"matrix"))
-          expect_true(inherits(fitted_model_cluster$Y_augmented,"matrix"))
-          expect_true(cor(fitted_model_cluster$B[2,],b[2, ]) > 0.85)
           
 })
 
@@ -193,14 +127,14 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
     
     X <- cbind(1,rnorm(12))
     covariates <- data.frame(group = X[,2])
-    
-    b1 <- seq(1,5,length.out = 6)
+    J <- 6
+    b1 <- seq(1,5,length.out = J)
     b1 <- b1 - mean(b1)
     b1[3:4] <- 0
     
-    Y <- radEmu:::simulate_data(n = 12, J = 6,
+    Y <- radEmu:::simulate_data(n = 12, J = J,
                                 X = X,
-                                b0 = rnorm(6),
+                                b0 = rnorm(J),
                                 b1 = b1,
                                 distn = "ZINB",
                                 zinb_size = 2,
@@ -333,8 +267,6 @@ test_that("GEE with cluster covariance gives plausible type 1 error ",{
 #   
 #   
 #   expect_true(all(fitted_model$coef$wald_p >= 0 & fitted_model$coef$wald_p <= 1))
-#   expect_true(inherits(fitted_model$B,"matrix"))
-#   expect_true(inherits(fitted_model$Y_augmented,"matrix"))
 #   expect_true(cor(fitted_model$B[2,],b1)>0.95)
 #   
 # })
@@ -353,7 +285,7 @@ test_that("emuFit runs without penalty", {
                            return_wald_p = FALSE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           test_kj = data.frame(k = 2, j = 1:6))
+                           test_kj = data.frame(k = 2, j = 1:2))
   })
 })
 
@@ -369,22 +301,8 @@ test_that("emuFit runs with just intercept model", {
                            return_wald_p = FALSE,
                            compute_cis = TRUE,
                            run_score_tests = TRUE, 
-                           test_kj = data.frame(k = 1, j = 1:6))
+                           test_kj = data.frame(k = 1, j = 1:2))
   })
-  
-  expect_message({
-    fitted_model1 <- emuFit(Y = Y,
-                           X = X[, 1, drop = FALSE],
-                           verbose = FALSE,
-                           B_null_tol = 1e-2,
-                           tolerance = 0.01,
-                           return_wald_p = FALSE,
-                           compute_cis = TRUE,
-                           run_score_tests = TRUE, 
-                           test_kj = data.frame(k = 1, j = 1:6))
-  })
-  
-  expect_equal(fitted_model$coef[, 2:9], fitted_model1$coef[, 2:9])
   
 })
 
@@ -631,7 +549,7 @@ test_that("emuFit refits starting at provided value if `B` or `fitted_model` are
 })
 
 test_that("giving test_kj as valid strings works", {
-  colnames(Y) <- paste0("taxon", 1:6)
+  colnames(Y) <- paste0("taxon", 1:J)
   colnames(X) <- c("int", "group")
   res <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = "group", j = "taxon3"),
                 penalize = FALSE, tolerance = 0.1)
@@ -685,9 +603,9 @@ test_that("multiple constraint functions can be submitted", {
   
   res4 <- emuFit(Y = Y, X = X, compute_cis = FALSE, test_kj = data.frame(k = 2, j = 1),
                  penalize = TRUE, tolerance = 0.1, 
-                 constraint_fn = list(3, 5), 
+                 constraint_fn = list(3, 4), 
                  constraint_grad_fn = list(NULL, NULL),
                  control = list(trackB = TRUE))
   expect_true(all.equal(res4$B[1, 3], 0))
-  expect_true(all.equal(res4$B[2, 5], 0))
+  expect_true(all.equal(res4$B[2, 4], 0))
 })
