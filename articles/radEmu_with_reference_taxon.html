@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Using radEmu with a reference taxon">
 </head>
@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">radEmu</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +70,7 @@
                         <h4 data-toc-skip class="author">Sarah Teichman
 and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2026-04-14</h4>
+            <h4 data-toc-skip class="date">2026-10-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/radEmu_with_reference_taxon.Rmd" class="external-link"><code>vignettes/radEmu_with_reference_taxon.Rmd</code></a></small>
       <div class="d-none name"><code>radEmu_with_reference_taxon.Rmd</code></div>
@@ -192,7 +192,7 @@ controls.</p>
 <p><img src="radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 <p>We can see that the log fold-difference estimates in this analysis
 range from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mo>−</mo><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\approx -2.5</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mi>−</mi><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\approx -2.5</annotation></semantics></math>
 to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>6.5</mn></mrow><annotation encoding="application/x-tex">\approx 6.5</annotation></semantics></math>.
 Furthermore, the median log fold-difference is
@@ -276,14 +276,14 @@ is now
 because we have set it as the reference taxon. Great. It did what it was
 told.</p>
 <p>The estimate for <em>F. nucleatum s. vincentii</em> is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>0.83</mn></mrow><annotation encoding="application/x-tex">-0.83</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>0.83</mn></mrow><annotation encoding="application/x-tex">-0.83</annotation></semantics></math>.
 The interpretation of this estimate <em>under Setting 1 or 2</em> is
 that the average abundance of <em>F. nucleatum s. vincentii</em> in
 cancer cases is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>0.83</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0.44</mn></mrow><annotation encoding="application/x-tex">exp(-0.83) = 0.44</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>0.83</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.44</mn></mrow><annotation encoding="application/x-tex">exp(-0.83) = 0.44</annotation></semantics></math>
 times that of non-cancer controls. Alternatively, its average abundance
 is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0.83</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>2.29</mn></mrow><annotation encoding="application/x-tex">exp(0.83) = 2.29</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mn>0.83</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>2.29</mn></mrow><annotation encoding="application/x-tex">exp(0.83) = 2.29</annotation></semantics></math>
 times greater in non-cancer controls compared to cases.</p>
 <p>How did this work? Because we assumed/knew information about one
 taxon, we could “pin down” the location of all estimates. Cool!</p>
@@ -291,7 +291,7 @@ taxon, we could “pin down” the location of all estimates. Cool!</p>
 different. In this setting, the fold-difference in average abundance of
 <em>F. nucleatum s. vincentii</em> in cancer cases compared to
 non-cancer controls is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>0.83</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0.44</mn></mrow><annotation encoding="application/x-tex">exp(-0.83) = 0.44</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>0.83</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.44</mn></mrow><annotation encoding="application/x-tex">exp(-0.83) = 0.44</annotation></semantics></math>
 times the fold-difference in average abundance of <em>F. nucleatum s.
 animalis</em> in cases compared to controls.</p>
 <p>Let’s look at the distribution of log fold-difference estimates.</p>
@@ -304,11 +304,11 @@ because the result of changing the identifiability constraint is to
 shift all estimates up or down by the same value, where this value is
 determined by the constraint. In this plot, the log fold-difference
 estimates range from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mo>−</mo><mn>4.5</mn></mrow><annotation encoding="application/x-tex">\approx -4.5</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mi>−</mi><mn>4.5</mn></mrow><annotation encoding="application/x-tex">\approx -4.5</annotation></semantics></math>
 to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">\approx 4</annotation></semantics></math>,
 and the median log fold-difference is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mo>−</mo><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\approx -2.5</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mi>−</mi><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\approx -2.5</annotation></semantics></math>.
 This shows that while the majority of taxa have ratios of average
 abundances of cases to controls that are smaller than that of <em>F.
 nucleatum s. animalis</em>, there are some taxa that have larger ratios
@@ -425,7 +425,7 @@ know!</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

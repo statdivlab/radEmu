@@ -3,6 +3,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 # 
@@ -12,6 +13,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite.
 
 ``` r
+
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -43,8 +45,7 @@ should be). **Therefore, we strongly recommend adjusting for cluster
 dependence if it arose in your sample collection!**
 
 Note that cluster dependence won’t change your estimates
-(${\widehat{\beta}}_{j}$’s), but it will (most likely) change your
-p-values.
+($`\hat{\beta}_j`$’s), but it will (most likely) change your p-values.
 
 Luckily, we have tools to account for cluster dependence implemented in
 `radEmu`! This argument is only implemented from `radEmu` v1.2.0.0
@@ -52,7 +53,7 @@ forward, so if you are having trouble using the `cluster` argument,
 check that you reinstalled `radEmu` recently.
 
 TLDR; the basic syntax is as follows. `my_clusters` is a vector of
-length $n$ (your number of samples), with observations from the same
+length $`n`$ (your number of samples), with observations from the same
 cluster having the same value in `my_clusters`
 (e.g. `my_clusters = c(1, 1, 2, 2, 3, 4)`).
 
@@ -75,6 +76,7 @@ more taxa and samples,** we just did this so that the vignette builds
 quickly.
 
 ``` r
+
 J <- 10; n <- 60
 # generate design matrix 
 set.seed(10)
@@ -114,6 +116,7 @@ Y <- radEmu:::simulate_data(n = n,
 Let’s just pause to look at the elements of `cluster`:
 
 ``` r
+
 table(cluster_named)
 #> cluster_named
 #> cage1 cage2 cage3 cage4 
@@ -125,11 +128,12 @@ whatever…) have `cage1` in their corresponding `cluster_named` variable.
 
 Let’s fit a model to this data! We know that the log-fold difference
 between in the abundance of category 3 when comparing samples that
-differ by 1 unit in $X$ is 3.5, so if we have good power, we will reject
-the null that $\beta_{X_{1},3} = 0$. We fit a model including cluster
-dependence as follows:
+differ by 1 unit in $`X`$ is 3.5, so if we have good power, we will
+reject the null that $`\beta_{X_1, 3} = 0`$. We fit a model including
+cluster dependence as follows:
 
 ``` r
+
 ef_cluster <- emuFit(formula = ~ cov,
                      data = cov_dat, 
                      Y = Y,
@@ -155,6 +159,7 @@ clustering. In this case, we expect to have a smaller p-value, because
 we are saying that we have more independent observations.
 
 ``` r
+
 ef_no_cluster <- emuFit(formula = ~ cov,
                         data = cov_dat, 
                         Y = Y,

@@ -39,6 +39,7 @@ emuFit(
   null_window = 5,
   null_diagnostic_plots = FALSE,
   remove_zero_comparison_pvals = 0.01,
+  estimates_only = FALSE,
   control = NULL,
   ...
 )
@@ -265,6 +266,13 @@ emuFit(
   zero-comparison parameter p-values will be set to NA. If a value
   between 0 and 1, all zero-comparison p-values below the value will be
   set to NA. Default is `0.01`.
+
+- estimates_only:
+
+  logical: return parameter estimates only? If `TRUE`, confidence
+  intervals and score tests are not computed (overriding `compute_cis`
+  and `run_score_tests`), and `test_kj` is not required. Default is
+  `FALSE`.
 
 - control:
 

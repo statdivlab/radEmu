@@ -87,7 +87,9 @@ emuFit_micro_penalized(
 
 - use_discrete:
 
-  If discrete design matrix, use fast discrete implementation.
+  logical: if the design matrix is discrete (it has exactly p distinct
+  rows), compute the penalized estimate and data augmentations in closed
+  form rather than iteratively. Default is TRUE.
 
 ## Value
 

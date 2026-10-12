@@ -67,6 +67,7 @@ To download the stable release of radEmu (version 2.3.1) from CRAN, use
 the code below.
 
 ``` r
+
 install.packages("radEmu")
 ```
 
@@ -74,6 +75,7 @@ To download the current development version of the radEmu package, use
 the code below.
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("statdivlab/radEmu")
 library(radEmu)
@@ -89,6 +91,7 @@ object, and you want to estimate parameters for all taxa and run a test
 for the parameter associated with “Group” and taxon 1:
 
 ``` r
+
 ch_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling, 
                  Y = my_phyloseq_object, 
                  test_kj = data.frame(k = 2, j = 1)) 
@@ -99,6 +102,7 @@ the following, in which you want to estimate parameters for all taxa and
 run tests for the parameters associated with “Group” for all taxa:
 
 ``` r
+
 all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
                   data = my_covariates_df, 
                   Y = my_abundances_df,

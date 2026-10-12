@@ -1,5 +1,17 @@
 # Changelog
 
+## radEmu 2.4.0.0
+
+This is a minor release with some speed-ups and additional flexibility.
+
+For designs with only discrete covariates, estimates are now computed in
+closed form rather than iteratively.
+
+There is also a new argument `estimates_only` in
+[`emuFit()`](https://statdivlab.github.io/radEmu/reference/emuFit.md):
+`estimates_only = TRUE` returns parameter estimates without confidence
+intervals or score tests.
+
 ## radEmu 2.3.0.0
 
 This is a minor release that updates the algorithms to estimate

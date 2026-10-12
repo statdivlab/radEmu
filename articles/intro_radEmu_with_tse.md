@@ -3,6 +3,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 #
@@ -12,6 +13,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite.
 
 ``` r
+
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -53,6 +55,7 @@ We will check if you have `TreeSummarizedExperiment` installed, and if
 you do not then you can read the following code but it will not be run.
 
 ``` r
+
 tse <- requireNamespace("TreeSummarizedExperiment", quietly = TRUE) == TRUE
 ```
 
@@ -62,6 +65,7 @@ Now that we have loaded the `TreeSummarizedExperiment` package, we will
 create our `TreeSummarizedExperiment` data object.
 
 ``` r
+
 library(TreeSummarizedExperiment)
 library(SummarizedExperiment)
 library(SingleCellExperiment)
@@ -69,6 +73,7 @@ setClassUnion("ExpData", c("matrix", "SummarizedExperiment"))
 ```
 
 ``` r
+
 data(wirbel_sample)
 data(wirbel_otu)
 data(wirbel_taxonomy)
@@ -99,6 +104,7 @@ wirbel_tse
 We’ll start by looking at the metadata.
 
 ``` r
+
 dim(colData(wirbel_tse))
 #> [1] 566  14
 head(colData(wirbel_tse))
@@ -137,12 +143,13 @@ head(colData(wirbel_tse))
 #> CCIS03473770ST.4.0      BEFORE
 ```
 
-We can see that this dataset includes $566$ observations and $14$
+We can see that this dataset includes $`566`$ observations and $`14`$
 variables.
 
 Now let’s look at the mOTU table.
 
 ``` r
+
 dim(assay(wirbel_tse, "Count"))
 #> [1] 845 566
 # let's check out a subset
@@ -167,16 +174,18 @@ assay(wirbel_tse, "Count")[1:5, 1:3]
 #> Enterococcus faecalis [ref_mOTU_v2_0116]                             6
 ```
 
-We can see that this table has $566$ samples (just like the metadata)
-and $845$ mOTUs. Let’s save these mOTU names in a vector.
+We can see that this table has $`566`$ samples (just like the metadata)
+and $`845`$ mOTUs. Let’s save these mOTU names in a vector.
 
 ``` r
+
 mOTU_names <- rownames(assay(wirbel_tse, "Count"))
 ```
 
 Finally, we can check out the taxonomy table.
 
 ``` r
+
 head(rowData(wirbel_tse))
 #> DataFrame with 6 rows and 7 columns
 #>                                                          domain         phylum
@@ -238,6 +247,7 @@ sample is from a case of colorectal cancer or a control. We will make
 control (“CTR”) the reference category:
 
 ``` r
+
 colData(wirbel_tse)$Group <- factor(colData(wirbel_tse)$Group, levels = c("CTR","CRC"))
 ```
 
@@ -247,6 +257,7 @@ look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and
 *Fusobacterium* for now.
 
 ``` r
+
 chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
 genera_rows <- rowData(wirbel_tse)$genus %in% chosen_genera
 wirbel_restrict <- wirbel_tse[genera_rows]
@@ -257,6 +268,7 @@ for this tutorial we are only going to consider data from a case-control
 study from China.
 
 ``` r
+
 sample_cols <- colData(wirbel_restrict)$Country == "CHI"
 wirbel_china <- wirbel_restrict[, sample_cols]
 ```
@@ -266,6 +278,7 @@ count across the categories we’ve chosen and that all categories have at
 least one non-zero count across the samples we’ve chosen.
 
 ``` r
+
 sum(colSums(assay(wirbel_china, "Count")) == 0) # no samples have a count sum of 0 
 #> [1] 0
 sum(rowSums(assay(wirbel_china, "Count")) == 0) # one category has a count sum of 0 
@@ -281,6 +294,7 @@ accept your data in various forms, and here we will show how to use it
 with a `TreeSummarizedExperiment` object as input.
 
 ``` r
+
 ch_fit <- emuFit(formula = ~ Group, 
                  Y = wirbel_china, 
                  assay_name = "Count",
@@ -294,6 +308,7 @@ Now, we can easily visualize our results using the `plot.emuFit`
 function!
 
 ``` r
+
 plot(ch_fit)$plots
 #> $p1
 ```

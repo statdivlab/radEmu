@@ -3,6 +3,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 # 
@@ -12,6 +13,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite.
 
 ``` r
+
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -22,6 +24,7 @@ library(radEmu)
 Finally, we will load the package `parallel`.
 
 ``` r
+
 library(parallel)
 ```
 
@@ -56,6 +59,7 @@ meta-analysis of case-controls comparing participants with and without
 colorectal cancer.
 
 ``` r
+
 # load in sample data
 data("wirbel_sample")
 # set group to be a factor with levels CTR for control and CRC for cancer
@@ -96,6 +100,7 @@ errors, but we will avoid running score tests by setting
 `run_score_tests = FALSE`.
 
 ``` r
+
 ch_fit <- emuFit(formula = ~ Group, 
                  data = wirbel_sample[ch_study_obs, ],
                  Y = small_Y,
@@ -117,6 +122,7 @@ re-estimating parameters in our model, we will provide `ch_fit` to the
 argument `fitted_model` and set `refit = FALSE`.
 
 ``` r
+
 mOTU_to_test <- which(str_detect(restricted_mOTU_names, "7116"))
 ch_fit$B %>% rownames
 #> [1] "(Intercept)" "GroupCRC"
@@ -140,11 +146,11 @@ output, we can see that we have a p-value of
 ## Running robust score tests in parallel
 
 Now, let’s run some tests in parallel. We will be parallelizing our code
-over $j$ in the argument `test_kj`. We will assume that you have one
+over $`j`$ in the argument `test_kj`. We will assume that you have one
 covariate that you want to test, corresponding with a specific column of
-your design matrix $k$. However, if you want to run tests for multiple
+your design matrix $`k`$. However, if you want to run tests for multiple
 columns of your design matrix, then you can parallelize over pairs of
-$k$ and $j$ in the argument $test_{k}j$.
+$`k`$ and $`j`$ in the argument $`test_kj`$.
 
 Let’s say that I want to run score tests for the first five mOTUs in our
 dataset. First, I need to check the cores on my computer to see a
@@ -157,6 +163,7 @@ automatically. You can run it locally and explore the results by
 removing the `eval = FALSE` argument from the code chunks.
 
 ``` r
+
 ncores <- parallel::detectCores() - 1
 ncores
 ```
@@ -167,6 +174,7 @@ score test statistics. Note that the output of this function is an
 `emuFit` object.
 
 ``` r
+
 emuTest <- function(category) {
   score_res <- emuFit(formula = ~ Group,
                        data = wirbel_sample[ch_study_obs, ],
@@ -183,6 +191,7 @@ Now, we can run our score tests in parallel. We’ll just do the first
 five. It may take a minute or so, depending on your machine.
 
 ``` r
+
 if (.Platform$OS.type != "windows" & !identical(Sys.getenv("GITHUB_ACTIONS"), "true")) {
   # run if we are on a Mac or Linux machine
   score_res <- mclapply(1:5,
@@ -200,6 +209,7 @@ laptop, I’m using more than five cores, so I can run all five tests at
 the same time). Each p-value can be pulled out of the list as follows:
 
 ``` r
+
 if (!is.null(score_res)) {
   c(score_res[[1]]$coef$pval[1], ## robust score test p-value for the first taxon
   score_res[[2]]$coef$pval[2]) ## robust score test p-value for the second taxon
@@ -210,6 +220,7 @@ To help organise this information, we can make a coefficient matrix that
 combines the information from each component in our list:
 
 ``` r
+
 if (!is.null(score_res)) {
   full_score <- sapply(1:length(score_res), 
                        function(x) score_res[[x]]$coef$score_stat[x])

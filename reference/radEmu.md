@@ -19,6 +19,9 @@ Useful links:
 
 Authors:
 
+- Amy D Willis <adwillis@uw.edu>
+  ([ORCID](https://orcid.org/0000-0002-2802-4317))
+
 - David Clausen
 
 - Sarah Teichman

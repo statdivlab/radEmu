@@ -3,6 +3,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 #
@@ -12,6 +13,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite.
 
 ``` r
+
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -53,6 +55,7 @@ you have `phyloseq` installed, and if you do not then you can read the
 following code but it will not be run.
 
 ``` r
+
 phy <- requireNamespace("phyloseq", quietly = TRUE) == TRUE
 ```
 
@@ -62,6 +65,7 @@ Now that we have loaded the `phyloseq` package, we will create our
 `phyloseq` data object.
 
 ``` r
+
 data(wirbel_sample)
 data(wirbel_otu)
 data(wirbel_taxonomy)
@@ -78,6 +82,7 @@ wirbel_phylo
 We’ll start by looking at the metadata.
 
 ``` r
+
 dim(phyloseq::sample_data(wirbel_phylo))
 #> [1] 566  14
 head(phyloseq::sample_data(wirbel_phylo))
@@ -104,12 +109,13 @@ head(phyloseq::sample_data(wirbel_phylo))
 #> CCIS03473770ST.4.0   -0.6706035   BEFORE
 ```
 
-We can see that this dataset includes $566$ observations and $14$
+We can see that this dataset includes $`566`$ observations and $`14`$
 variables.
 
 Now let’s load the mOTU table.
 
 ``` r
+
 dim(phyloseq::otu_table(wirbel_phylo))
 #> [1] 566 845
 # let's check out a subset
@@ -136,16 +142,18 @@ phyloseq::otu_table(wirbel_phylo)[1:5, 1:3]
 #> CCIS02856720ST.4.0                                  0
 ```
 
-We can see that this table has $566$ samples (just like the metadata)
-and $845$ mOTUs. Let’s save these mOTU names in a vector.
+We can see that this table has $`566`$ samples (just like the metadata)
+and $`845`$ mOTUs. Let’s save these mOTU names in a vector.
 
 ``` r
+
 mOTU_names <- colnames(phyloseq::otu_table(wirbel_phylo))
 ```
 
 Finally, we can check out the taxonomy table.
 
 ``` r
+
 head(phyloseq::tax_table(wirbel_phylo))
 #> Taxonomy Table:     [6 taxa by 7 taxonomic ranks]:
 #>                                                     domain     phylum          
@@ -201,6 +209,7 @@ sample is from a case of colorectal cancer or a control. We will make
 control (“CTR”) the reference category:
 
 ``` r
+
 phyloseq::sample_data(wirbel_phylo)$Group <- factor(phyloseq::sample_data(wirbel_phylo)$Group, levels = c("CTR","CRC"))
 ```
 
@@ -210,6 +219,7 @@ look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and
 *Fusobacterium* for now.
 
 ``` r
+
 chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
 wirbel_restrict <- phyloseq::subset_taxa(wirbel_phylo, genus %in% chosen_genera)
 ```
@@ -219,6 +229,7 @@ for this tutorial we are only going to consider data from a case-control
 study from China.
 
 ``` r
+
 wirbel_china <- phyloseq::subset_samples(wirbel_restrict, Country == "CHI")
 ```
 
@@ -227,6 +238,7 @@ count across the categories we’ve chosen and that all categories have at
 least one non-zero count across the samples we’ve chosen.
 
 ``` r
+
 sum(rowSums(phyloseq::otu_table(wirbel_china)) == 0) # no samples have a count sum of 0 
 #> [1] 0
 sum(colSums(phyloseq::otu_table(wirbel_china)) == 0) # one category has a count sum of 0 
@@ -242,6 +254,7 @@ accept your data in various forms, and here we will show how to use it
 with a `phyloseq` object as input.
 
 ``` r
+
 ch_fit <- emuFit(formula = ~ Group, 
                  Y = wirbel_china, 
                  run_score_tests = FALSE) 
@@ -254,6 +267,7 @@ Now, we can easily visualize our results using the `plot.emuFit`
 function!
 
 ``` r
+
 plot(ch_fit)$plots
 #> $p1
 ```

@@ -3,6 +3,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 # 
@@ -12,6 +13,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite.
 
 ``` r
+
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -44,6 +46,7 @@ in this vignette.
 We’ll start by looking at the metadata.
 
 ``` r
+
 data("wirbel_sample")
 dim(wirbel_sample)
 #> [1] 566  14
@@ -71,11 +74,12 @@ head(wirbel_sample)
 #> CCIS03473770ST.4.0   -0.6706035   BEFORE
 ```
 
-We can see that this dataset includes $566$ observations and $14$
+We can see that this dataset includes $`566`$ observations and $`14`$
 variables. Let’s see how many observations we have among cases (“CRC”)
 and controls (“CTR”)
 
 ``` r
+
 wirbel_sample %>%
   group_by(Group) %>%
   summarize(count = n())
@@ -90,6 +94,7 @@ We have data from studies in 5 different countries. How much from each
 study, you ask? Let’s find out!
 
 ``` r
+
 wirbel_sample %>%
   group_by(Country) %>%
   summarize(count = n())
@@ -107,6 +112,7 @@ Let’s see how many cases and controls were enrolled in each study as
 well.
 
 ``` r
+
 wirbel_sample %>%
   group_by(Country, Group) %>%
   summarize(n = n())
@@ -135,6 +141,7 @@ wirbel_sample %>%
 Now let’s load the mOTU table.
 
 ``` r
+
 data("wirbel_otu")
 dim(wirbel_otu)
 #> [1] 566 845
@@ -160,10 +167,11 @@ wirbel_otu[1:5, 1:3]
 #> CCIS02856720ST.4.0                                  0
 ```
 
-We can see that this table has $566$ samples (just like the metadata)
-and $845$ mOTUs. Let’s save these mOTU names in a vector.
+We can see that this table has $`566`$ samples (just like the metadata)
+and $`845`$ mOTUs. Let’s save these mOTU names in a vector.
 
 ``` r
+
 mOTU_names <- colnames(wirbel_otu)
 ```
 
@@ -176,6 +184,7 @@ sample is from a case of colorectal cancer or a control. We will make
 control (“CTR”) the reference category:
 
 ``` r
+
 wirbel_sample$Group <- factor(wirbel_sample$Group, levels = c("CTR","CRC"))
 ```
 
@@ -185,6 +194,7 @@ look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and
 *Fusobacterium* for now.
 
 ``` r
+
 chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
 mOTU_name_df <- data.frame(name = mOTU_names) %>% 
   mutate(base_name = stringr::str_remove(mOTU_names, "unknown ") %>%
@@ -200,6 +210,7 @@ for this tutorial we are only going to consider data from a case-control
 study from China.
 
 ``` r
+
 ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
 ```
 
@@ -208,6 +219,7 @@ count across the categories we’ve chosen and that all categories have at
 least one non-zero count across the samples we’ve chosen.
 
 ``` r
+
 small_Y <- wirbel_otu[ch_study_obs, restricted_mOTU_names]
 sum(rowSums(small_Y) == 0) # no samples have a count sum of 0 
 #> [1] 0
@@ -247,6 +259,7 @@ and some optional arguments include
   can require some compute time.
 
 ``` r
+
 ch_fit <- emuFit(formula = ~ Group, 
                  data = wirbel_sample[ch_study_obs, ],
                  Y = small_Y,
@@ -256,6 +269,7 @@ ch_fit <- emuFit(formula = ~ Group,
 Let’s check out what this object looks like!
 
 ``` r
+
 ch_fit
 #> 
 #> Call:
@@ -315,6 +329,7 @@ plots, we will explicitly extract the plots using the `$` operator to
 get the `plots` component.
 
 ``` r
+
 plot(ch_fit)$plots
 #> $p1
 ```
@@ -326,6 +341,7 @@ y-axis. We can create a data frame that maps the full taxa names in our
 data to simplified labels and plot using those instead, as shown below.
 
 ``` r
+
 #create data frame that has simplified names for taxa
 taxa_names <- data.frame("category" = ch_fit$coef$category) %>%
   mutate(cat_small = stringr::str_remove(paste0("mOTU_", 
@@ -370,6 +386,7 @@ values that it’s already found:
   required when `run_score_tests = TRUE`.
 
 ``` r
+
 taxa_to_test <- c(which(str_detect(restricted_mOTU_names, "0777")), 
                   which(str_detect(restricted_mOTU_names, "7116")))
 design <- make_design_matrix(formula = ~ Group, data = wirbel_sample[ch_study_obs, ])
@@ -389,6 +406,7 @@ two_robust_score_tests <- emuFit(formula = ~ Group,
 Let’s take a look at the test output.
 
 ``` r
+
 two_robust_score_tests$coef[taxa_to_test, c("covariate", "category", "estimate", "pval")]
 #>    covariate                                                category estimate
 #> 3   GroupCRC Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777] 3.086405
@@ -404,6 +422,7 @@ of 0.3. Does this make sense? Let’s investigate further by looking at
 the Eubacterium mOTU counts by Group.
 
 ``` r
+
 data.frame(counts = wirbel_otu[ch_study_obs, "unknown Eubacterium [meta_mOTU_v2_7116]"],
            group = wirbel_sample$Group[ch_study_obs]) %>%
   mutate(eubact_present = counts > 0) %>%
@@ -425,6 +444,7 @@ large p-value. Good job, `emuFit`!
 Now let’s look at *F. nucleatum*.
 
 ``` r
+
 data.frame(counts = wirbel_otu[ch_study_obs, 
                                "Fusobacterium nucleatum s. nucleatum [ref_mOTU_v2_0777]"],
            group = wirbel_sample$Group[ch_study_obs]) %>%
@@ -450,6 +470,7 @@ will take a longer amount of time to run. The code below will not run in
 the vignette, but feel free to run it on your own.
 
 ``` r
+
 test_all <- emuFit(formula = ~ Group, 
                    data = wirbel_sample[ch_study_obs, ],
                    B = ch_fit$B,
@@ -471,6 +492,7 @@ undergoing colonoscopy or after. That’s what we did in our manuscript!
 Code to fit this model is below.
 
 ``` r
+
 all_fit <- emuFit(formula = ~ Group + Study + Gender +
                     Age_spline.1 + Age_spline.2 + 
                     BMI_spline.1 + BMI_spline.2 + Sampling,
@@ -484,6 +506,7 @@ we did using B-splines. If you’re interested in doing something similar,
 you could adapt the code below.
 
 ``` r
+
 age_spline <- splines2::bSpline(wirbel_sample$Age, degree = 1, knots = median(wirbel_sample$Age))
 age_spline[,1] <- (age_spline[,1] - mean(age_spline[,1]))/sd(age_spline[,1])
 age_spline[,2] <- (age_spline[,2] - mean(age_spline[,2]))/sd(age_spline[,2])

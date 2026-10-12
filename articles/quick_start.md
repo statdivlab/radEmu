@@ -5,6 +5,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 # 
@@ -14,6 +15,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu`, as well as `dplyr`.
 
 ``` r
+
 library(radEmu)
 library(dplyr)
 ```
@@ -30,6 +32,7 @@ Wirbel et al. published two pieces of data we’ll focus on:
 - a mOTU (metagenomic OTU) table
 
 ``` r
+
 data("wirbel_sample")
 # encode control as the baseline level
 wirbel_sample$Group <- factor(wirbel_sample$Group, levels = c("CTR","CRC"))
@@ -40,7 +43,7 @@ dim(wirbel_otu)
 #> [1] 566 845
 ```
 
-We can see that we have $566$ samples and $845$ mOTUs.
+We can see that we have $`566`$ samples and $`845`$ mOTUs.
 
 While in general we would fit a model to all mOTUs, we are going to
 subset to some specific genera for the purposes of this tutorial. Let’s
@@ -48,6 +51,7 @@ look at *Eubacterium*, *Porphyromonas*, *Faecalibacteria*, and
 *Fusobacterium* for now.
 
 ``` r
+
 mOTU_names <- colnames(wirbel_otu)
 chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
 mOTU_name_df <- data.frame(name = mOTU_names) %>% 
@@ -64,6 +68,7 @@ for this tutorial we are only going to consider data from a case-control
 study from China.
 
 ``` r
+
 ch_study_obs <- which(wirbel_sample$Country %in% c("CHI"))
 ```
 
@@ -72,6 +77,7 @@ count across the categories we’ve chosen and that all categories have at
 least one non-zero count across the samples we’ve chosen.
 
 ``` r
+
 small_Y <- wirbel_otu[ch_study_obs, restricted_mOTU_names]
 sum(rowSums(small_Y) == 0) # no samples have a count sum of 0 
 #> [1] 0
@@ -92,6 +98,7 @@ function! This will take 1-2 minutes to run, so we suggest you start
 running it and then read below about the arguments!
 
 ``` r
+
 mod <- emuFit(data = wirbel_sample[ch_study_obs, ],
               Y = small_Y,
               formula = ~ Group + Gender, 
@@ -134,6 +141,7 @@ taxon, we can look at the results! The parameter estimates and any test
 results are in the `coef` part of the `emuFit` object.
 
 ``` r
+
 head(mod$coef)
 #>   covariate                                                category
 #> 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]
@@ -152,9 +160,9 @@ head(mod$coef)
 ```
 
 The first taxon in our model is *Fusobacterium nucleatum s. vincentii*,
-which has a log fold-difference estimate of $1.49$. We will interpret
+which has a log fold-difference estimate of $`1.49`$. We will interpret
 this to mean that we expect that *Fusobacterium nucleatum s. vincentii*
-is $exp(1.49) \approx 4.44$ times more abundant in cases of colorectal
+is $`exp(1.49) \approx 4.44`$ times more abundant in cases of colorectal
 cancer compared to controls of the same gender, when compared to the
 typical fold-differences in abundances of the taxa in this analysis.
 
@@ -162,8 +170,8 @@ We could similarly interpret the log fold-differences for each taxon in
 our analysis.
 
 For *Fusobacterium nucleatum s. vincentii* we have a robust score test
-p-value of $0.04$. This means that we do have enough evidence to reject
-the null hypothesis that the fold-difference in abundance of
+p-value of $`0.04`$. This means that we do have enough evidence to
+reject the null hypothesis that the fold-difference in abundance of
 *Fusobacterium nucleatum s. vincentii* between cases and controls is the
 same as the typical fold-difference in abundance between cases and
 controls across all taxa in this analysis. When we say \`\`typical” here

@@ -3,6 +3,7 @@
 First, we will install `radEmu`, if we haven’t already.
 
 ``` r
+
 # if (!require("remotes", quietly = TRUE))
 #     install.packages("remotes")
 # 
@@ -12,6 +13,7 @@ First, we will install `radEmu`, if we haven’t already.
 Next, we can load `radEmu` as well as the `tidyverse` package suite.
 
 ``` r
+
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -40,6 +42,7 @@ al. (2019)](https://www.nature.com/articles/s41591-019-0406-6), see
 “intro_radEmu.Rmd” for more information about this data.
 
 ``` r
+
 data("wirbel_sample")
 data("wirbel_otu")
 mOTU_names <- colnames(wirbel_otu)
@@ -50,6 +53,7 @@ covariate data to use with `emuFit`. Again, see “intro_radEmu.Rmd” for
 an explanation of each of the steps in the code below.
 
 ``` r
+
 wirbel_sample$Group <- factor(wirbel_sample$Group, levels = c("CTR","CRC"))
 
 chosen_genera <- c("Eubacterium", "Faecalibacterium", "Fusobacterium", "Porphyromonas")
@@ -84,6 +88,7 @@ uses the “typical” log fold-difference across taxa as the
 identifiability constraint.
 
 ``` r
+
 ch_fit_default <- emuFit(formula = ~ Group, 
                          data = wirbel_sample[ch_study_obs, ],
                          Y = small_Y,
@@ -93,6 +98,7 @@ ch_fit_default <- emuFit(formula = ~ Group,
 Let’s look at the first few estimates.
 
 ``` r
+
 head(ch_fit_default$coef)
 #>   covariate                                                category
 #> 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]
@@ -111,22 +117,23 @@ head(ch_fit_default$coef)
 ```
 
 The first taxon reported is *F. nucleatum s. vincentii*, and it has an
-“estimate” of $1.49$. This means that the abundance of *F. nucleatum s.
-vincentii* is, on average, $e^{1.49} = 4.4$ times greater in colorectal
-cancer cases compared to controls compared to the typical
+“estimate” of $`1.49`$. This means that the abundance of *F. nucleatum
+s. vincentii* is, on average, $`e^{1.49}=4.4`$ times greater in
+colorectal cancer cases compared to controls compared to the typical
 fold-difference of taxa in cases compared to controls.
 
 Let’s look at the distribution of log fold-difference estimates.
 
 ``` r
+
 ch_fit_default$coef %>% ggplot(aes(x = estimate)) + geom_boxplot() + theme_bw() 
 ```
 
 ![](radEmu_with_reference_taxon_files/figure-html/unnamed-chunk-7-1.png)
 
 We can see that the log fold-difference estimates in this analysis range
-from $\approx - 2.5$ to $\approx 6.5$. Furthermore, the median log
-fold-difference is $\approx 0$, which is a consequence of the default
+from $`\approx -2.5`$ to $`\approx 6.5`$. Furthermore, the median log
+fold-difference is $`\approx 0`$, which is a consequence of the default
 identifability constraint… and why we need to add “compared to the
 typical fold-difference of taxa in cases compared to controls” in the
 above interpretation. (Yes, it’s annoying… but it’s necessary to avoid
@@ -156,6 +163,7 @@ Let’s suppose you’re in Setting 1 or 2, and that *F. nucleatum s.
 animalis* is that taxon.
 
 ``` r
+
 ref_taxon <- which(stringr::str_detect(colnames(small_Y), "Fusobacterium nucleatum s. animalis"))
 ref_taxon # the index of F. nucleatum s. animalis in our Y matrix
 #> [1] 2
@@ -171,6 +179,7 @@ we can use the function
 [`make_reference_constraints()`](https://statdivlab.github.io/radEmu/reference/make_reference_constraints.md).
 
 ``` r
+
 # use `make_design_matrix` to find p, the number of columns in our design matrix
 head(make_design_matrix(formula = ~ Group, data = wirbel_sample[ch_study_obs, ])) # p = 2
 #>            (Intercept) GroupCRC
@@ -187,6 +196,7 @@ We will pass on the outputs of `make_reference_constraints` in to
 [`emuFit()`](https://statdivlab.github.io/radEmu/reference/emuFit.md).
 
 ``` r
+
 ch_fit_ref <- emuFit(formula = ~ Group, 
                      data = wirbel_sample[ch_study_obs, ],
                      Y = small_Y,
@@ -198,6 +208,7 @@ ch_fit_ref <- emuFit(formula = ~ Group,
 Again, let’s look at the first few estimates.
 
 ``` r
+
 head(ch_fit_ref$coef)
 #>   covariate                                                category
 #> 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]
@@ -215,16 +226,16 @@ head(ch_fit_ref$coef)
 #> 6            6 -1.1836475 1.1804984 -3.497382  1.13008683         NA   NA
 ```
 
-First, note that the estimate for *F. nucleatum s. animalis* is now $0$,
-because we have set it as the reference taxon. Great. It did what it was
-told.
+First, note that the estimate for *F. nucleatum s. animalis* is now
+$`0`$, because we have set it as the reference taxon. Great. It did what
+it was told.
 
-The estimate for *F. nucleatum s. vincentii* is $- 0.83$. The
+The estimate for *F. nucleatum s. vincentii* is $`-0.83`$. The
 interpretation of this estimate *under Setting 1 or 2* is that the
 average abundance of *F. nucleatum s. vincentii* in cancer cases is
-$exp( - 0.83) = 0.44$ times that of non-cancer controls. Alternatively,
-its average abundance is $exp(0.83) = 2.29$ times greater in non-cancer
-controls compared to cases.
+$`exp(-0.83) = 0.44`$ times that of non-cancer controls. Alternatively,
+its average abundance is $`exp(0.83) = 2.29`$ times greater in
+non-cancer controls compared to cases.
 
 How did this work? Because we assumed/knew information about one taxon,
 we could “pin down” the location of all estimates. Cool!
@@ -232,12 +243,13 @@ we could “pin down” the location of all estimates. Cool!
 If we were instead in Setting 3, our interpretation would be slightly
 different. In this setting, the fold-difference in average abundance of
 *F. nucleatum s. vincentii* in cancer cases compared to non-cancer
-controls is $exp( - 0.83) = 0.44$ times the fold-difference in average
+controls is $`exp(-0.83) = 0.44`$ times the fold-difference in average
 abundance of *F. nucleatum s. animalis* in cases compared to controls.
 
 Let’s look at the distribution of log fold-difference estimates.
 
 ``` r
+
 ch_fit_ref$coef %>% ggplot(aes(x = estimate)) + geom_boxplot() + theme_bw() 
 ```
 
@@ -248,12 +260,12 @@ distribution of estimates when using the default constraint. This is
 because the result of changing the identifiability constraint is to
 shift all estimates up or down by the same value, where this value is
 determined by the constraint. In this plot, the log fold-difference
-estimates range from $\approx - 4.5$ to $\approx 4$, and the median log
-fold-difference is $\approx - 2.5$. This shows that while the majority
-of taxa have ratios of average abundances of cases to controls that are
-smaller than that of *F. nucleatum s. animalis*, there are some taxa
-that have larger ratios and are even more enriched in cases compared to
-controls than our chosen reference taxon.
+estimates range from $`\approx -4.5`$ to $`\approx 4`$, and the median
+log fold-difference is $`\approx -2.5`$. This shows that while the
+majority of taxa have ratios of average abundances of cases to controls
+that are smaller than that of *F. nucleatum s. animalis*, there are some
+taxa that have larger ratios and are even more enriched in cases
+compared to controls than our chosen reference taxon.
 
 ## Hypothesis testing
 
@@ -262,6 +274,7 @@ vincentii* using both identifiability constraints. First consider the
 default constraint. We will run a robust score test.
 
 ``` r
+
 ch_test_default <- emuFit(formula = ~ Group, 
                          data = wirbel_sample[ch_study_obs, ],
                          Y = small_Y,
@@ -277,6 +290,7 @@ ch_test_default <- emuFit(formula = ~ Group,
 Now let’s look at the results.
 
 ``` r
+
 head(ch_test_default$coef)
 #>   covariate                                                category
 #> 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]
@@ -294,8 +308,8 @@ head(ch_test_default$coef)
 #> 6            6  1.12952355 0.9562677 -0.7447267 3.0037738         NA         NA
 ```
 
-We have a p-value of $0.039$. This means that with an alpha level of
-$0.05$, we reject the null hypothesis that the expected log
+We have a p-value of $`0.039`$. This means that with an alpha level of
+$`0.05`$, we reject the null hypothesis that the expected log
 fold-difference in abundance of *F. nucleatum s. vincentii* in cases
 compared to controls is equal to the typical log fold-difference in
 abundance of cases to controls across all taxa in the analysis. We
@@ -305,6 +319,7 @@ to controls, relative to the typical taxon in the analysis.
 Now, instead consider a test using our reference taxon constraint.
 
 ``` r
+
 ch_test_ref <- emuFit(formula = ~ Group, 
                       data = wirbel_sample[ch_study_obs, ],
                       Y = small_Y,
@@ -323,6 +338,7 @@ ch_test_ref <- emuFit(formula = ~ Group,
 Now let’s look at the results.
 
 ``` r
+
 head(ch_test_ref$coef)
 #>   covariate                                                category
 #> 1  GroupCRC Fusobacterium nucleatum s. vincentii [ref_mOTU_v2_0754]
@@ -340,7 +356,7 @@ head(ch_test_ref$coef)
 #> 6            6 -1.1836475 1.1804984 -3.497382  1.13008683         NA        NA
 ```
 
-Here, the p-value is $0.292$. Therefore, we fail to reject the null
+Here, the p-value is $`0.292`$. Therefore, we fail to reject the null
 hypothesis that the expected log fold-difference in the abundance of *F.
 nucleatum s. vincentii* in cases compared to controls is equal to the
 expected log fold-difference in the abundance of *F. nucleatum s.
