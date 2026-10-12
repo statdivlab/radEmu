@@ -38,6 +38,7 @@ emuFit(
   null_window = 5,
   null_diagnostic_plots = FALSE,
   remove_zero_comparison_pvals = 0.01,
+  estimates_only = FALSE,
   control = NULL,
   ...
 )
@@ -156,6 +157,10 @@ small p-values and are not thought to have scientifically interesting signals. W
 If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
 If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA.
 Default is \code{0.01}.}
+
+\item{estimates_only}{logical: return parameter estimates only? If \code{TRUE}, confidence intervals
+and score tests are not computed (overriding \code{compute_cis} and \code{run_score_tests}), and
+\code{test_kj} is not required. Default is \code{FALSE}.}
 
 \item{control}{A list of control parameters, to have more control over estimation and hypothesis testing. See \code{control_fn} for details.}
 

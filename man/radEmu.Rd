@@ -21,6 +21,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Amy D Willis \email{adwillis@uw.edu} (\href{https://orcid.org/0000-0002-2802-4317}{ORCID})
   \item David Clausen
   \item Sarah Teichman
 }

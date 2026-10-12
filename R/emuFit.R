@@ -80,7 +80,10 @@
 #' small p-values and are not thought to have scientifically interesting signals. We recommend removing them before analyzing data further. 
 #' If TRUE, all zero-comparison parameter p-values will be set to NA. If FALSE no zero-comparison parameter p-values will be set to NA.
 #' If a value between 0 and 1, all zero-comparison p-values below the value will be set to NA. 
-#' Default is \code{0.01}. 
+#' Default is \code{0.01}.
+#' @param estimates_only logical: return parameter estimates only? If \code{TRUE}, confidence intervals
+#' and score tests are not computed (overriding \code{compute_cis} and \code{run_score_tests}), and
+#' \code{test_kj} is not required. Default is \code{FALSE}.
 #' @param control A list of control parameters, to have more control over estimation and hypothesis testing. See \code{control_fn} for details.
 #' @param ... Additional arguments. Arguments matching the names of \code{control_fn()} options are forwarded to that function and override
 #' defaults. Unknown arguments are ignored with a warning.
@@ -163,6 +166,7 @@ emuFit <- function(Y,
                    null_window = 5,
                    null_diagnostic_plots = FALSE, 
                    remove_zero_comparison_pvals = 0.01,
+                   estimates_only = FALSE,
                    control = NULL,
                    ...) {
   
@@ -189,6 +193,15 @@ emuFit <- function(Y,
     control <- control_fn(control_dots)
   } else {
     control <- control_fn(utils::modifyList(control, control_dots))
+  }
+  
+  if (estimates_only) {
+    if ((!missing(run_score_tests) && run_score_tests) |
+        (!missing(compute_cis) && compute_cis)) {
+      warning("`estimates_only = TRUE`: confidence intervals and score tests will not be computed.")
+    }
+    compute_cis <- FALSE
+    run_score_tests <- FALSE
   }
   
   # run checks on arguments in function emuFit_check
@@ -229,7 +242,12 @@ emuFit <- function(Y,
   # check for zero-comparison parameters
   zero_comparison_res <- zero_comparison_check(X = X, Y = Y)
   
-  X_cup <- X_cup_from_X_fast(X,J)
+  # expanded design matrix, needed for confidence intervals and score tests
+  # (emuFit_micro_penalized constructs it when needed for estimation)
+  X_cup <- NULL
+  if (compute_cis | run_score_tests) {
+    X_cup <- X_cup_from_X_fast(X,J)
+  }
   
   #choose ref taxon for fitting constrained models / performing wald and score tests
   j_ref <- get_j_ref(Y)
@@ -305,9 +323,19 @@ emuFit <- function(Y,
     } else {
       fitted_B <- B
       if (penalize) {
-        G <- get_G_for_augmentations_fast(X, J, n, X_cup)
-        Y_test <- Y_augmented <- Y + 
-          get_augmentations(X = X, G = G, Y = Y, B = fitted_B)
+        groups <- discrete_groups(X)
+        if (nrow(groups$distinct_X) == p) {
+          # discrete design: augmentations in closed form
+          Y_test <- Y_augmented <- Y +
+            get_augmentations_discrete(X = X, Y = Y, B = fitted_B, groups = groups)
+        } else {
+          if (is.null(X_cup)) {
+            X_cup <- X_cup_from_X_fast(X,J)
+          }
+          G <- get_G_for_augmentations_fast(X, J, n, X_cup)
+          Y_test <- Y_augmented <- Y +
+            get_augmentations(X = X, G = G, Y = Y, B = fitted_B)
+        }
       } else {
         Y_augmented <- NULL
         Y_test <- Y
@@ -322,25 +350,22 @@ emuFit <- function(Y,
   
   if (p == 1) {
     message("You are running an intercept-only model. In this model the intercept beta_0^j is an unidentifiable combination of intercept for category j and the detection efficiency of category j. Therefore this parameter is not interpretable.")
-    
     coefficients <- expand.grid(1:J, 1)
     coefficients <- data.frame(j = coefficients[ , 1],
                                k = coefficients[ ,2])
     coefficients$estimate <- fitted_B[1, ]
-    coefficients$lower <- NA
-    coefficients$upper <- NA
-    coefficients$pval <- coefficients$score_stat <- NA
   } else {
     coefficients <- expand.grid(1:J, 2:p)
     coefficients <- data.frame(j = coefficients[ , 1],
                                k = coefficients[ ,2])
     coefficients$estimate <- do.call(c, lapply(2:p, function(k) fitted_B[k,]))
-    coefficients$lower <- NA
-    coefficients$upper <- NA
-    coefficients$pval <- coefficients$score_stat <- NA
   }
+  coefficients$se <- NA
+  coefficients$lower <- NA
+  coefficients$upper <- NA
+  coefficients$pval <- coefficients$score_stat <- NA
   
-  if (compute_cis) {
+  if (compute_cis | return_wald_p) {
     if (verbose %in% c(TRUE, "development")) {
       message("Performing Wald tests and constructing CIs.")
     }
@@ -372,13 +397,10 @@ emuFit <- function(Y,
   }
   
   if (return_wald_p) {
-    if (!compute_cis) {
-      warning("Wald p-values cannot be returned if compute_cis = FALSE.")
-    } else {
-      coefficients$wald_p <- coefficients$pval}
+    coefficients$wald_p <- coefficients$pval
   }
   
-  coefficients$pval <- NA
+  coefficients$pval <- NA # AW: why?
   
   if (is.null(test_kj)) {
     test_kj <- coefficients
@@ -396,7 +418,7 @@ emuFit <- function(Y,
     if(control$use_both_cov){
       I_inv <- Matrix::solve(just_wald_things$I[-indexes_to_remove,-indexes_to_remove],  method = "cholmod_solve")
     } else{
-    I_inv <- NULL
+      I_inv <- NULL
     }
   }
   
@@ -453,9 +475,9 @@ emuFit <- function(Y,
           # check if symmetric or symmetric subset
           v3 <- rnorm(J)
           if (isTRUE(all.equal(constraint_fn[[k]](v3), mean(v3)))) {
-              constraint_type <- "discrete:mean"
+            constraint_type <- "discrete:mean"
           } else if (any(grepl("pseudohuber_median", deparse(body(constraint_fn[[k]]))))) {
-              constraint_type <- "discrete:pseudohuber"
+            constraint_type <- "discrete:pseudohuber"
           } else {
             constraint_type <- "other"
           }
@@ -525,14 +547,14 @@ emuFit <- function(Y,
       # using augmented lagrangian algorithm, so we don't care about constraint_type
       for (k in unique(test_kj$k)) {
         attr(constraint_fn[[k]], "constraint_type") <- "other"
-       }
+      }
     }
     
     for(test_ind in 1:nrow(test_kj)) {
       
       if (verbose %in% c(TRUE, "development")) {
         message(paste("Running score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
-                    test_kj$j[test_ind],").",sep = ""))
+                      test_kj$j[test_ind],").",sep = ""))
         start <- proc.time()
       }
       
@@ -668,7 +690,7 @@ emuFit <- function(Y,
           time <- paste0(hour, " hours")
         }
         message(paste("Score test ", test_ind, " of ", nrow(test_kj)," (row of B k = ", test_kj$k[test_ind], "; column of B j = ",
-                    test_kj$j[test_ind],") has completed in approximately ", time, ".",sep = ""))
+                      test_kj$j[test_ind],") has completed in approximately ", time, ".",sep = ""))
         start <- proc.time()
         
       }
@@ -677,12 +699,7 @@ emuFit <- function(Y,
   
   if (!is.null(colnames(X))) {
     if (length(unique(colnames(X))) == ncol(X)) {
-      k_to_covariates <- data.frame(k = 1:p,
-                                    covariate = colnames(X))
-      
-      coefficients$covariate <- do.call(c,
-                                        lapply(  coefficients$k,
-                                                 function(d) k_to_covariates$covariate[k_to_covariates$k ==d]))
+      coefficients$covariate <- colnames(X)[coefficients$k]
     } else {
       coefficients$covariate <- NA
     }
@@ -691,30 +708,17 @@ emuFit <- function(Y,
   }
   
   if (!is.null(colnames(Y))) {
-    j_to_categories <- data.frame(j = 1:J,
-                                  category = colnames(Y))
-    coefficients$category <- do.call(c,
-                                     lapply(coefficients$j,
-                                            function(d) j_to_categories$category[
-                                              j_to_categories$j ==d
-                                            ]))
+    coefficients$category <- colnames(Y)[coefficients$j]
   } else {
     coefficients$category <- NA
   }
   
-  if (!compute_cis) {
-    coef_df <-
-          cbind(data.frame(covariate = coefficients$covariate,
-                           category = coefficients$category,
-                           category_num = coefficients$j),
-                coefficients[ , c("estimate","lower","upper")])
-  } else {
-    coef_df <-
-      cbind(data.frame(covariate = coefficients$covariate,
-                       category = coefficients$category,
-                       category_num = coefficients$j),
-            coefficients[ , c("estimate","se", "lower","upper")])
-  }
+  coef_df <-
+    cbind(data.frame(covariate = coefficients$covariate,
+                     category = coefficients$category,
+                     category_num = coefficients$j),
+          coefficients[ , c("estimate","se", "lower","upper")])
+  
   if (control$use_both_cov) {
     coef_df <- cbind(coef_df, coefficients[ , c("score_stat","pval","score_fullcov_p")])
   } else {

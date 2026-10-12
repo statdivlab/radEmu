@@ -56,7 +56,9 @@ during optimization. Default is NULL, in which case this column is chosen based
 on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 Y_j_ref greater than zero).}
 
-\item{use_discrete}{If discrete design matrix, use fast discrete implementation.}
+\item{use_discrete}{logical: if the design matrix is discrete (it has exactly p distinct
+rows), compute the penalized estimate and data augmentations in closed form rather than
+iteratively. Default is TRUE.}
 }
 \value{
 A p x J matrix containing regression coefficients (under constraint

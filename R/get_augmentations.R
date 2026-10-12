@@ -55,11 +55,7 @@ get_augmentations <- function(X,
       Matrix::rowSums(Matrix::Diagonal(x = exp(log_means[(i - 1)*J + 1:J, ])) %*% (G_i^2) )/2
 
   }
-
-
-
+  
   return(augmentations)
-
-
 
 }

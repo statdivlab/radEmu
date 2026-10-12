@@ -23,8 +23,10 @@
 #' during optimization. Default is NULL, in which case this column is chosen based
 #' on characteristics of Y (i.e., j_ref chosen to maximize number of entries of
 #' Y_j_ref greater than zero).
-#' @param use_discrete If discrete design matrix, use fast discrete implementation.
-#' 
+#' @param use_discrete logical: if the design matrix is discrete (it has exactly p distinct
+#' rows), compute the penalized estimate and data augmentations in closed form rather than
+#' iteratively. Default is TRUE.
+#'
 #' @return A p x J matrix containing regression coefficients (under constraint
 #' g(B_k) = 0)
 #'
@@ -55,6 +57,46 @@ emuFit_micro_penalized <-
     }
     converged <- FALSE
     counter <- 0
+
+    #for discrete designs, the penalized estimate is available in closed form:
+    #the unpenalized discrete estimate from covariate-pattern-by-category totals
+    #with 1/2 added to each total. 
+    groups <- discrete_groups(X)
+    
+    if (use_discrete & nrow(groups$distinct_X) == p) {
+      
+      if (qr(groups$distinct_X)$rank < p) {
+        
+        stop(
+          "Design matrix X inputted for the model is rank-deficient, preventing proper model fitting.
+  This might be due to multicollinearity, overparameterization, or redundant factor levels included in covariates.
+  Consider removing highly correlated covariates or adjusting factor levels to ensure a full-rank design. \n"
+        )
+      }
+      if (is.null(constraint_fn)) {
+        constraint_fn <- rep(list(function(x) pseudohuber_median(x, 0.1)), p)
+      }
+      totals <- rowsum(Y, groups$group, reorder = TRUE)
+      if (anyNA(totals)) { # integer overflow
+        totals <- rowsum(1 * Y, groups$group, reorder = TRUE)
+      }
+      B <- emuFit_micro_discrete(X = groups$distinct_X,
+                                 Y = totals + 0.5,
+                                 j_ref = j_ref)
+      B[B < -max_abs_B] <- -max_abs_B
+      B[B > max_abs_B] <- max_abs_B
+      for (k in 1:p) {
+        B[k, ] <- B[k, ] - constraint_fn[[k]](B[k, ])
+      }
+      Y_augmented <- Y + get_augmentations_discrete(X = X, Y = Y, B = B,
+                                                    groups = groups)
+      return(list(
+        "Y_augmented" = Y_augmented,
+        "B" = B,
+        "convergence" = TRUE
+      ))
+    }
+
     #get design matrix we'll use for computing augmentations
 
     if (verbose) {

@@ -1,3 +1,11 @@
+# radEmu 2.4.0.0
+
+This is a minor release with some speed-ups and additional flexibility. 
+
+For designs with only discrete covariates, estimates are now computed in closed form rather than iteratively. 
+
+There is also a new argument `estimates_only` in `emuFit()`: `estimates_only = TRUE` returns parameter estimates without confidence intervals or score tests. 
+
 # radEmu 2.3.0.0
 
 This is a minor release that updates the algorithms to estimate parameters under the alternate and null hypotheses for designs with only discrete covariates. These new algorithms are faster and more stable in most cases. Initial code was developed with assistance from ChatGPT, although final code and responsibility remain with the package owners.
