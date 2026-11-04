@@ -298,9 +298,20 @@ score_test <- function(
       null_diagnostic_plots = null_diagnostic_plots
     ))
    
-    if (inherits(constrained_fit, "try-error")) {
-      accept_try <- FALSE
-    } else {
+    # If this attempt errored, nothing is updated here: `accept_try` stays
+    # `FALSE`, so the loop retries (until `ntries` is reached). Errors are
+    # handled once, after the loop, based on the final `constrained_fit`.
+    #
+    # NOTE: `tau` and `inner_maxit` only change in the non-converged branch
+    # below, and `fit_null()` is deterministic, so once an attempt errors, every
+    # remaining attempt gets identical inputs and errors the same way.
+    #
+    # Even so, do NOT "simplify" this by returning NULL (or breaking) on the
+    # first error. That gives the same result today only because of that
+    # determinism. If retries ever change something after an error (e.g.,
+    # adjusting `tau`), or `fit_null()` gains randomness, an early exit would
+    # silently skip retries that could succeed.
+    if (!inherits(constrained_fit, "try-error")) {
       if (
         (constrained_fit$converged)
       ) {
@@ -320,7 +331,39 @@ retrying with smaller penalty scaling parameter tau and larger inner_maxit."
       accept_try <- TRUE
     }
   }
-  
+
+  # The final attempt errored, so there is no null fit to compute a score
+  # statistic from. `emuFit` treats a NULL result as "this test could not be
+  # run".
+  #
+  # NOTE: Because errors repeat deterministically (see the retry loop above), a
+  # final try-error means one of two things:
+  #
+  # 1. Every attempt errored, so no B was ever produced and NULL is the only
+  #    option; or
+  # 2. One or more earlier attempts (in the loop above, or in the other
+  #    algorithms before it) finished without converging, producing a usable
+  #    B, and then an attempt with the adjusted tau / inner_maxit errored and
+  #    overwrote it in `constrained_fit`.
+  #
+  # In case 2, the earlier B is discarded. Yet when no fit converges at all, a
+  # non-converged fit is still used to compute the test (see the
+  # !good_enough_fit warning below), so reusing the most recent non-errored fit
+  # here is probably the intended behavior. Previously these cases crashed, so
+  # that fit was never used anyway; addressing this is left for later.
+  if (inherits(constrained_fit, "try-error")) {
+    warning(
+      "Optimization for null fit with k = ",
+      k_constr,
+      " and j = ",
+      j_constr,
+      " failed with an error (",
+      conditionMessage(attr(constrained_fit, "condition")),
+      "). This score test cannot be run."
+    )
+    return(NULL)
+  }
+
   if (!good_enough_fit) {
     
     warning(

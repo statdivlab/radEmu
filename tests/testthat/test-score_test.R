@@ -106,6 +106,105 @@ we do *not* get same results if we use incorrect info", {
     expect_true(score_stat_with_other_mat !=score_test_as_is$score_stat)
 
 })
+
+# Small data set for the "fit_null errors" tests below. The values don't matter,
+# since those tests only check how a failing `fit_null()` is handled.
+make_fit_null_error_data <- function() {
+  set.seed(1)
+  n <- 10
+  J <- 5
+  X <- cbind(1, rep(0:1, each = n / 2))
+  Y <- matrix(rpois(n * J, 5), n, J)
+  list(X = X, Y = Y, J = J)
+}
+
+# `score_test()` wraps `fit_null()` in a non-silent `try()`, which prints each
+# caught error with `cat()` to `getOption("try.outFile")` (stderr by default).
+# That isn't a message or warning, so `suppressMessages()` and
+# `suppressWarnings()` can't silence it. Send that output to the null device
+# while `expr` runs. Warnings still propagate, so `expect_warning()` works.
+without_try_output <- function(expr) {
+  old <- options(try.outFile = nullfile())
+  on.exit(options(old))
+  expr
+}
+
+test_that("if fit_null errors on every attempt, score_test warns and returns NULL", {
+  local_mocked_bindings(
+    fit_null = function(...) stop("injected fit_null failure")
+  )
+  
+  dat <- make_fit_null_error_data()
+  X <- dat$X
+  Y <- dat$Y
+  J <- dat$J
+
+  # `fit_null()` is mocked, but the full (unconstrained) fit doesn't use it.
+  fit <- suppressMessages(
+    emuFit(Y = Y, X = X, run_score_tests = FALSE, verbose = FALSE)
+  )
+
+  # `constraint_fn` has no "constraint_type" attribute, so `score_test()` treats
+  # it as "other" and goes straight to the `fit_null()` retry loop. It needs one
+  # entry per row of B (p = 2) because it is indexed by `k_constr`.
+  expect_warning(
+    res <- without_try_output(suppressMessages(score_test(
+      B = fit$B,
+      Y = fit$Y_augmented,
+      X = X,
+      X_cup = X_cup_from_X_fast(X, J),
+      k_constr = 2,
+      j_constr = 1,
+      j_ref = J,
+      ntries = 2,
+      constraint_fn = rep(list(mean), 2),
+      constraint_grad_fn = rep(
+        list(function(x) rep(1 / length(x), length(x))),
+        2
+      )
+    ))),
+    "failed with an error \\(injected fit_null failure\\)"
+  )
+  
+  expect_null(res)
+})
+
+test_that("if fit_null errors on every attempt, emuFit reports NA and marks the tests as failed", {
+  local_mocked_bindings(
+    fit_null = function(...) stop("injected fit_null failure")
+  )
+  
+  dat <- make_fit_null_error_data()
+  X <- dat$X
+  Y <- dat$Y
+
+  # The mocked `fit_null()` is only reached when constraint_type is "other",
+  # which is what `null_fit_alg = "augmented_lagrangian"` sets. With J = 5,
+  # emuFit already forces augmented Lagrangian (it does so whenever J < 20), so
+  # the argument is technically redundant. It's kept explicit so the test still
+  # works if J is raised: for J >= 20, this X (intercept + one binary covariate)
+  # would make emuFit pick the "discrete" algorithm, which calls
+  # `fit_null_discrete()` and might never reach `fit_null()`.
+  #
+  # `ntries = 2` (default 4) just makes the test faster; every attempt fails.
+  full <- without_try_output(suppressWarnings(suppressMessages(emuFit(
+    Y = Y,
+    X = X,
+    test_kj = data.frame(k = 2, j = 1:2),
+    null_fit_alg = "augmented_lagrangian",
+    control = list(ntries = 2),
+    verbose = FALSE
+  ))))
+  
+  expect_true(all(is.na(full$coef$score_stat[1:2])))
+  expect_true(all(is.na(full$coef$pval[1:2])))
+  expect_equal(
+    full$score_test_hyperparams$converged,
+    rep("failed with error", 2)
+  )
+  expect_equal(full$null_estimation_unconverged$j, 1:2)
+})
+
 # test_that("simple negative binomial example fits reasonably fast and returns reasonable output", {
 #   
 #   set.seed(343234)
