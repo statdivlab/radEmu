@@ -970,3 +970,129 @@ test_that("test wirbel data, n = 126, J = 430, p = 2", {
 #   # sandwich takes 50 seconds, discrete takes 49 seconds
 #   # ll and score stats are very similar
 # })
+
+describe("numerical failure handling in fit_null_discrete_micro_fs", {
+  # The input really doesn't matter here. It just has to be "valid" in that it
+  # is not rejected by all the checks of the function.
+  #
+  # p = 2 groups
+  # J = 4 categories (micro_fs needs J >= 3).
+  # X is p x (p - 1) (intercept removed).
+  #
+  Y <- rbind(c(10, 20, 30, 40), c(40, 30, 20, 10))
+  X <- matrix(c(0, 1), ncol = 1)
+
+  it("does not report a failure with reasonable constraint functions", {
+    result <- fit_null_discrete_micro_fs(
+      Y = Y,
+      X = X,
+      k_constr = 2,
+      j_constr = 1,
+      # fit_null_discrete_micro_fs drops the reference column, so
+      # append it back to match fit_null_discrete's constraint = "mean"
+      # (check out fit_null_discrete to see a similar thing happening).
+      constraint_fn = function(x) mean(c(x, 0)),
+      # The +1 accounts for the extra 0 appended in constraint_fn.
+      constraint_grad_fn = function(x) rep(1 / (length(x) + 1), length(x))
+    )
+    expect_false(result$failed)
+  })
+
+  it("reports a failure when forcing a line search fails", {
+    result <- fit_null_discrete_micro_fs(
+      Y = Y,
+      X = X,
+      k_constr = 2,
+      j_constr = 1,
+      # The constraint is 0 at the all-zero starting point, so everything is
+      # okay at the start. Any trial step moves stuff off zero, causing this
+      # function to return NA, so the log-likelihood is non-finite and will
+      # reject, causing the fit to stop.
+      constraint_fn = function(x) if (all(x == 0)) 0 else NA_real_,
+      constraint_grad_fn = function(x) rep(1 / (length(x) + 1), length(x))
+    )
+    expect_true(result$failed)
+    expect_equal(result$iter, 0)
+  })
+
+  it("reports a failure when the ridge solve fails", {
+    ridge_fail <- fit_null_discrete_micro_fs(
+      Y = Y,
+      X = X,
+      k_constr = 2,
+      j_constr = 1,
+      # Append the reference's implicit 0, as in the first test above.
+      constraint_fn = function(x) mean(c(x, 0)),
+      # This Inf value should eventually propagate down into the `solve` call
+      # that happens in the adaptive ridge solve section of the code, and cause
+      # a failure.
+      constraint_grad_fn = function(x) rep(Inf, length(x))
+    )
+    expect_true(ridge_fail$failed)
+    expect_equal(ridge_fail$iter, 0)
+  })
+
+  describe("reporting non-convergence on micro_fs failures", {
+    # Simple two-group design with no zero counts, this should always be fine.
+    set.seed(1)
+    n <- 12
+    J <- 5
+    X <- cbind(1, rep(c(0, 1), each = n / 2))
+    Y <- matrix(rpois(n * J, lambda = 20), ncol = J) + 1
+
+    describe("when fit_null_discrete_micro_fs does NOT report a failure", {
+      it("is not reported as a non-convergence by fit_null_discrete", {
+        # This is basically a control: fit_null_discrete_micro_fs is unmocked,
+        # and the data is all fine.
+        result <- fit_null_discrete(
+          Y = Y,
+          X = X,
+          k_constr = 2,
+          j_constr = 2,
+          j_ref = J
+        )
+        expect_true(result$converged)
+      })
+    })
+
+    describe("when fit_null_discrete_micro_fs DOES report a failure", {
+      it("is reported as non-convergence by fit_null_discrete", {
+        # fit_null_discrete builds its own constraint function from `constraint`
+        # ("mean" or "pseudohuber"), so the broken constraints like above can't
+        # be passed in through it. That means to test how it turns
+        # fit_null_discrete_micro_fs's `failed` flag into `converged`, we need
+        # to mock fit_null_discrete_micro_fs.
+        #
+        # The mock calls the real micro_fs and then sets `failed = TRUE`. B,
+        # iteration count and it_df are all real, so everything
+        # fit_null_discrete does afterwards should work as usual; only the flag
+        # is forced. local_mocked_bindings undoes the mock when this test
+        # finishes.
+        real_micro_fs <- fit_null_discrete_micro_fs
+
+        local_mocked_bindings(
+          fit_null_discrete_micro_fs = function(...) {
+            out <- real_micro_fs(...)
+            out$failed <- TRUE
+            out
+          }
+        )
+
+        result <- fit_null_discrete(
+          Y = Y,
+          X = X,
+          k_constr = 2,
+          j_constr = 2,
+          j_ref = J,
+          maxit = 5000
+        )
+
+        # This is the case the old `iter < maxit` check got wrong...the
+        # iteration limit wasn't reached, but the fit failed, so it must not be
+        # reported as converged.
+        expect_lt(result$niter, 5000)
+        expect_false(result$converged)
+      })
+    })
+  })
+})

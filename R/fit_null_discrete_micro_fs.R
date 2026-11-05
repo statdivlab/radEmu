@@ -65,7 +65,11 @@ fit_null_discrete_micro_fs <- function(Y, X,
     param_hist[[1]] <- record(0L)
   }
   
-  ll_old <- loglik_fun(alpha, beta); final_iter <- 0L
+  ll_old <- loglik_fun(alpha, beta)
+  final_iter <- 0L
+  # Will flip to TRUE if we stopped early (before convergence) because of a
+  # numerical failure.
+  failed <- FALSE
   
   for (iter in 1:maxit) {
     
@@ -176,7 +180,7 @@ fit_null_discrete_micro_fs <- function(Y, X,
       st <- tryCatch(solve(Ir, s_theta), error = function(e) NA_real_)
       if (all(is.finite(st))) { step_theta <- st; solved <- TRUE; break }
     }
-    if (!solved) { final_iter <- iter - 1L; break }
+    if (!solved) { failed <- TRUE; final_iter <- iter - 1L; break }
     
     # Step capping
     sn <- sqrt(sum(step_theta^2))
@@ -219,7 +223,7 @@ fit_null_discrete_micro_fs <- function(Y, X,
       }
       step_scale <- step_scale * ls_rho
     }
-    if (!accepted) { final_iter <- iter - 1L; break }
+    if (!accepted) { failed <- TRUE; final_iter <- iter - 1L; break }
     
     
     
@@ -242,6 +246,7 @@ fit_null_discrete_micro_fs <- function(Y, X,
   list(B = B,                 
        logLik = ll_old,
        iter   = final_iter,
+       failed = failed,
        history = history,
        it_df = it_df)
 }
