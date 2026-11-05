@@ -20,7 +20,7 @@ If you are a **microbial ecologist** or **bioinformatician**, some of the things
         - Instead, `radEmu` estimates differences in abundance across taxa 
 - Amongst existing methods, `radEmu` is *most similar in flavor* to ALDEx2 and ANCOM (and ANCOM relatives), but doesn't require priors, log-ratio transformations (and thus pseudocounts), nor a reference taxon! 
 - `radEmu` can adjust for relevant covariates, including precision variables and confounders
-- `radEmu` achieves all of the above by jointly modeling all taxa (i.e., it's not a taxon-by-taxon model like corncob). This makes it harder to parallelize, but fortunately *testing* can be parallelized easily. (There's is an example in the preprint's [supplementary material](https://github.com/statdivlab/radEmu_supplementary), but let us know if you want a tutorial on *how*!) On a standard desktop, `radEmu` can handle 1000 taxa, 800 samples and 12 covariates. You may want to get a 35-minute coffee break while it runs, though. 
+- `radEmu` achieves all of the above by jointly modeling all taxa (i.e., it's not a taxon-by-taxon model like corncob). This makes it harder to parallelize, but fortunately *testing* can be parallelized easily. (There's is an example in the [supplementary material](https://github.com/statdivlab/radEmu_supplementary), but let us know if you want a tutorial on *how*!) On a standard desktop, `radEmu` can handle 1000 taxa, 800 samples and 12 covariates. You may want to get a 35-minute coffee break while it runs, though. 
 - `radEmu` is publicly available in open-source software... right here!
 
 If you are a **statistician**, some of the things that you may like about `radEmu` include
@@ -28,7 +28,7 @@ If you are a **statistician**, some of the things that you may like about `radEm
 - A clearly defined and interpretable target estimand
 - Fast algorithms for estimation under alternative and null hypotheses
 - Type 1 error rate control even under pathological distribution misspecification *and* small sample sizes... at the same time!
-    - Check out the [preprint](https://arxiv.org/abs/2402.05231) for details! Our model isn't built to cater to zero-inflated Negative Binominally distributed data, but it still did awesome!
+    - Check out the [manuscript](https://doi.org/10.1093/biomet/asag009) for details! Our model isn't built to cater to zero-inflated Negative Binominally distributed data, but it still did awesome!
     - Note that the robust score tests have better error rate control than the robust Wald tests (they are a bit slower)
 
 Sadly we do not yet have a ~~logo~~ nice-looking logo. If you would like to design us one, please let Amy know! 
