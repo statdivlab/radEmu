@@ -44,8 +44,8 @@ install.packages("radEmu")
 To download the current development version of the radEmu package, use the code below.
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("statdivlab/radEmu")
+# install.packages("pak")
+pak::pak("statdivlab/radEmu")
 library(radEmu)
 ```
 
