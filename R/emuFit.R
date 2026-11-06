@@ -602,6 +602,9 @@ emuFit <- function(Y,
                                 null_window = null_window)
       
       if (is.null(test_result)) {
+        # Null estimation errored on every attempt, so mark down the reason why
+        # it didn't converge.
+        score_test_hyperparams$converged[test_ind] <- "failed with error"
         if (control$return_nullB) {
           nullB_list[[test_ind]] <- NA
         }
@@ -832,5 +835,3 @@ emuFit <- function(Y,
   
   return(structure(results, class = "emuFit"))
 }
-
-
