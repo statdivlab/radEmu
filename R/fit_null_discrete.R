@@ -130,7 +130,7 @@ fit_null_discrete <- function(
     "loglik" = ll_new,
     "it_df" = out$it_df,
     "Bs" = out$history,
-    "converged" = (out$iter < maxit)
+    "converged" = (!out$failed && out$iter < maxit)
   ))
   
 }
