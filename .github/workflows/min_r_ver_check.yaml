@@ -1,0 +1,101 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [main, mooreryan/min-r-ver-check]
+  pull_request:
+  workflow_dispatch:
+
+name: min-R-version-check
+
+permissions: read-all
+
+jobs:
+  only-build-install:
+    runs-on: ${{ matrix.config.os }}
+
+    name: only build install ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: ubuntu-latest,   r: 'release'}
+          - {os: ubuntu-latest,   r: '4.1'}
+          - {os: ubuntu-latest,   r: '4.0'}
+          - {os: ubuntu-latest,   r: '3.6'}
+          - {os: ubuntu-latest,   r: '3.5'}
+          - {os: ubuntu-latest,   r: '3.4'}
+          - {os: ubuntu-latest,   r: '3.3'}
+          - {os: ubuntu-latest,   r: '3.2'}
+          - {os: ubuntu-latest,   r: '3.1'}
+          - {os: ubuntu-latest,   r: '3.0'}
+          - {os: ubuntu-latest,   r: '2.10'}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+
+      # Only hard deps (Depends, Imports, LinkingTo); no Suggests.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"hard"'
+
+      - name: Build package
+        run: R CMD build --no-build-vignettes --no-manual .
+
+      - name: Install package
+        run: R CMD INSTALL radEmu_*.tar.gz
+
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+
+    name: R CMD CHECK ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: ubuntu-latest,   r: 'release'}
+          - {os: ubuntu-latest,   r: '4.1'}
+          - {os: ubuntu-latest,   r: '4.0'}
+          - {os: ubuntu-latest,   r: '3.6'}
+          - {os: ubuntu-latest,   r: '3.5'}
+          - {os: ubuntu-latest,   r: '3.4'}
+          - {os: ubuntu-latest,   r: '3.3'}
+          - {os: ubuntu-latest,   r: '3.2'}
+          - {os: ubuntu-latest,   r: '3.1'}
+          - {os: ubuntu-latest,   r: '3.0'}
+          - {os: ubuntu-latest,   r: '2.10'}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
