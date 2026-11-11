@@ -2,3 +2,20 @@ url: https://statdivlab.github.io/radEmu/
 template:
   bootstrap: 5
 
+articles:
+- title: Getting Started
+  navbar: Getting Started
+  contents:
+  - quick_start
+  - intro_radEmu 
+- title: Interop
+  navbar: Interop
+  contents:
+  - intro_radEmu_with_phyloseq
+  - intro_radEmu_with_tse
+- title: Other Topics
+  navbar: Other Topics
+  contents:
+  - parallel_radEmu
+  - radEmu_clustered_data
+  - radEmu_with_reference_taxon
