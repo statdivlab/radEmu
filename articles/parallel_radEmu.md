@@ -4,10 +4,11 @@ First, we will install `radEmu`, if we haven’t already.
 
 ``` r
 
-# if (!require("remotes", quietly = TRUE))
-#     install.packages("remotes")
+# if (!require("pak", quietly = TRUE)) {
+#   install.packages("pak")
+# }
 # 
-# remotes::install_github("statdivlab/radEmu")
+# pak::pak("statdivlab/radEmu")
 ```
 
 Next, we can load `radEmu` as well as the `tidyverse` package suite.

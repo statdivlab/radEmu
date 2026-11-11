@@ -38,7 +38,7 @@ the things that you may like about `radEmu` include
 - `radEmu` achieves all of the above by jointly modeling all taxa (i.e.,
   it’s not a taxon-by-taxon model like corncob). This makes it harder to
   parallelize, but fortunately *testing* can be parallelized easily.
-  (There’s is an example in the preprint’s [supplementary
+  (There’s is an example in the [supplementary
   material](https://github.com/statdivlab/radEmu_supplementary), but let
   us know if you want a tutorial on *how*!) On a standard desktop,
   `radEmu` can handle 1000 taxa, 800 samples and 12 covariates. You may
@@ -52,9 +52,9 @@ about `radEmu` include
 - Fast algorithms for estimation under alternative and null hypotheses
 - Type 1 error rate control even under pathological distribution
   misspecification *and* small sample sizes… at the same time!
-  - Check out the [preprint](https://arxiv.org/abs/2402.05231) for
-    details! Our model isn’t built to cater to zero-inflated Negative
-    Binominally distributed data, but it still did awesome!
+  - Check out the [manuscript](https://doi.org/10.1093/biomet/asag009)
+    for details! Our model isn’t built to cater to zero-inflated
+    Negative Binominally distributed data, but it still did awesome!
   - Note that the robust score tests have better error rate control than
     the robust Wald tests (they are a bit slower)
 
@@ -76,8 +76,8 @@ the code below.
 
 ``` r
 
-# install.packages("devtools")
-devtools::install_github("statdivlab/radEmu")
+# install.packages("pak")
+pak::pak("statdivlab/radEmu")
 library(radEmu)
 ```
 

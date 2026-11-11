@@ -69,7 +69,7 @@
                         <h4 data-toc-skip class="author">Sarah Teichman
 and Amy Willis</h4>
             
-            <h4 data-toc-skip class="date">2026-11-06</h4>
+            <h4 data-toc-skip class="date">2026-11-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/statdivlab/radEmu/blob/main/vignettes/radEmu_with_reference_taxon.Rmd" class="external-link"><code>vignettes/radEmu_with_reference_taxon.Rmd</code></a></small>
       <div class="d-none name"><code>radEmu_with_reference_taxon.Rmd</code></div>
@@ -80,10 +80,11 @@ and Amy Willis</h4>
 <p>First, we will install <code>radEmu</code>, if we haven’t
 already.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># if (!require("remotes", quietly = TRUE))</span></span>
-<span><span class="co">#     install.packages("remotes")</span></span>
+<code class="sourceCode R"><span><span class="co"># if (!require("pak", quietly = TRUE)) {</span></span>
+<span><span class="co">#   install.packages("pak")</span></span>
+<span><span class="co"># }</span></span>
 <span><span class="co"># </span></span>
-<span><span class="co"># remotes::install_github("statdivlab/radEmu")</span></span></code></pre></div>
+<span><span class="co"># pak::pak("statdivlab/radEmu")</span></span></code></pre></div>
 <p>Next, we can load <code>radEmu</code> as well as the
 <code>tidyverse</code> package suite.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">

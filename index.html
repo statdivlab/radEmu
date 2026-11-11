@@ -102,7 +102,7 @@
 <li>
 <code>radEmu</code> can adjust for relevant covariates, including precision variables and confounders</li>
 <li>
-<code>radEmu</code> achieves all of the above by jointly modeling all taxa (i.e., it’s not a taxon-by-taxon model like corncob). This makes it harder to parallelize, but fortunately <em>testing</em> can be parallelized easily. (There’s is an example in the preprint’s <a href="https://github.com/statdivlab/radEmu_supplementary" class="external-link">supplementary material</a>, but let us know if you want a tutorial on <em>how</em>!) On a standard desktop, <code>radEmu</code> can handle 1000 taxa, 800 samples and 12 covariates. You may want to get a 35-minute coffee break while it runs, though.</li>
+<code>radEmu</code> achieves all of the above by jointly modeling all taxa (i.e., it’s not a taxon-by-taxon model like corncob). This makes it harder to parallelize, but fortunately <em>testing</em> can be parallelized easily. (There’s is an example in the <a href="https://github.com/statdivlab/radEmu_supplementary" class="external-link">supplementary material</a>, but let us know if you want a tutorial on <em>how</em>!) On a standard desktop, <code>radEmu</code> can handle 1000 taxa, 800 samples and 12 covariates. You may want to get a 35-minute coffee break while it runs, though.</li>
 <li>
 <code>radEmu</code> is publicly available in open-source software… right here!</li>
 </ul>
@@ -112,7 +112,7 @@
 <li>Fast algorithms for estimation under alternative and null hypotheses</li>
 <li>Type 1 error rate control even under pathological distribution misspecification <em>and</em> small sample sizes… at the same time!
 <ul>
-<li>Check out the <a href="https://arxiv.org/abs/2402.05231" class="external-link">preprint</a> for details! Our model isn’t built to cater to zero-inflated Negative Binominally distributed data, but it still did awesome!</li>
+<li>Check out the <a href="https://doi.org/10.1093/biomet/asag009" class="external-link">manuscript</a> for details! Our model isn’t built to cater to zero-inflated Negative Binominally distributed data, but it still did awesome!</li>
 <li>Note that the robust score tests have better error rate control than the robust Wald tests (they are a bit slower)</li>
 </ul>
 </li>
@@ -126,8 +126,8 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"radEmu"</span><span class="op">)</span></span></code></pre></div>
 <p>To download the current development version of the radEmu package, use the code below.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"statdivlab/radEmu"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"statdivlab/radEmu"</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/statdivlab/radEmu" class="external-link">radEmu</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
