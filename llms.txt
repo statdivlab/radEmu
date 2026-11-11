@@ -83,9 +83,10 @@ library(radEmu)
 
 ## Use
 
-The vignettes demonstrate example usage of the main functions. Please
-[file an issue](https://github.com/statdivlab/radEmu/issues) if you have
-a request for a tutorial that is not currently included. The following
+The [vignettes](https://statdivlab.github.io/radEmu/articles/)
+demonstrate example usage of the main functions. Please [file an
+issue](https://github.com/statdivlab/radEmu/issues) if you have a
+request for a tutorial that is not currently included. The following
 code shows the easy-to-use syntax if your data is in a `phyloseq`
 object, and you want to estimate parameters for all taxa and run a test
 for the parameter associated with “Group” and taxon 1:
@@ -111,24 +112,23 @@ all_fit <- emuFit(formula = ~ Group + Study + Gender + Sampling,
 
 ## Documentation
 
-We additionally have a `pkgdown`
-[website](https://statdivlab.github.io/radEmu/) that contains pre-built
-versions of our function
-[documentation](https://statdivlab.github.io/radEmu/reference/index.html)
-and our vignettes (an introductory
-[vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu.html),
-an introductory
-[vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html)
-that uses `phyloseq` data, an introductory
-[vignette](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_tse.html)
-that uses `TreeSummarizedExperiment` data, a
-[vignette](https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html)
-for optionally specifying a reference taxon for an analysis, a
-[vignette](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html)
-for running `radEmu` tests in parallel for more efficient computation,
-and a
-[vignette](https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html)
-for running `radEmu` with clustered data).
+You can browse the [radEmu
+documentation](https://statdivlab.github.io/radEmu/) online, including:
+
+- The [function
+  docs](https://statdivlab.github.io/radEmu/reference/index.html)
+- An [introduction to
+  radEmu](https://statdivlab.github.io/radEmu/articles/intro_radEmu.html)
+- [Using radEmu with phyloseq
+  data](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html)
+- [Using radEmu with TreeSummarizedExperiment
+  data](https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_tse.html)
+- [Using radEmu with a reference
+  taxon](https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html)
+- [Running radEmu tests in
+  parallel](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html)
+- [Running radEmu with clustered
+  data](https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html)
 
 ## Citation
 

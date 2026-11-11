@@ -133,7 +133,7 @@
 <div class="section level2">
 <h2 id="use">Use<a class="anchor" aria-label="anchor" href="#use"></a>
 </h2>
-<p>The vignettes demonstrate example usage of the main functions. Please <a href="https://github.com/statdivlab/radEmu/issues" class="external-link">file an issue</a> if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a <code>phyloseq</code> object, and you want to estimate parameters for all taxa and run a test for the parameter associated with “Group” and taxon 1:</p>
+<p>The <a href="https://statdivlab.github.io/radEmu/articles/">vignettes</a> demonstrate example usage of the main functions. Please <a href="https://github.com/statdivlab/radEmu/issues" class="external-link">file an issue</a> if you have a request for a tutorial that is not currently included. The following code shows the easy-to-use syntax if your data is in a <code>phyloseq</code> object, and you want to estimate parameters for all taxa and run a test for the parameter associated with “Group” and taxon 1:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ch_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/emuFit.html">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">Group</span> <span class="op">+</span> <span class="va">Study</span> <span class="op">+</span> <span class="va">Gender</span> <span class="op">+</span> <span class="va">Sampling</span>, </span>
 <span>                 Y <span class="op">=</span> <span class="va">my_phyloseq_object</span>, </span>
@@ -148,7 +148,18 @@
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
-<p>We additionally have a <code>pkgdown</code> <a href="https://statdivlab.github.io/radEmu/">website</a> that contains pre-built versions of our function <a href="https://statdivlab.github.io/radEmu/reference/index.html">documentation</a> and our vignettes (an introductory <a href="https://statdivlab.github.io/radEmu/articles/intro_radEmu.html">vignette</a>, an introductory <a href="https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html">vignette</a> that uses <code>phyloseq</code> data, an introductory <a href="https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_tse.html">vignette</a> that uses <code>TreeSummarizedExperiment</code> data, a <a href="https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html">vignette</a> for optionally specifying a reference taxon for an analysis, a <a href="https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html">vignette</a> for running <code>radEmu</code> tests in parallel for more efficient computation, and a <a href="https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html">vignette</a> for running <code>radEmu</code> with clustered data).</p>
+<p>You can browse the <a href="https://statdivlab.github.io/radEmu/">radEmu documentation</a> online, including:</p>
+<ul>
+<li>The <a href="https://statdivlab.github.io/radEmu/reference/index.html">function docs</a>
+</li>
+<li>An <a href="https://statdivlab.github.io/radEmu/articles/intro_radEmu.html">introduction to radEmu</a>
+</li>
+<li><a href="https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_phyloseq.html">Using radEmu with phyloseq data</a></li>
+<li><a href="https://statdivlab.github.io/radEmu/articles/intro_radEmu_with_tse.html">Using radEmu with TreeSummarizedExperiment data</a></li>
+<li><a href="https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html">Using radEmu with a reference taxon</a></li>
+<li><a href="https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html">Running radEmu tests in parallel</a></li>
+<li><a href="https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html">Running radEmu with clustered data</a></li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -207,6 +218,7 @@
 <ul class="list-unstyled">
 <li><a href="https://github.com/statdivlab/radEmu/actions" class="external-link"><img src="https://github.com/statdivlab/radEmu/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://app.codecov.io/github/statdivlab/radEmu" class="external-link"><img src="https://codecov.io/github/statdivlab/radEmu/coverage.svg?branch=main" alt="codecov"></a></li>
+<li><a href="https://statdivlab.github.io/radEmu/"><img src="https://img.shields.io/badge/docs-vignettes%20%26%20reference-blue?logo=r&amp;logoColor=white" alt="Documentation"></a></li>
 </ul>
 </div>
 
