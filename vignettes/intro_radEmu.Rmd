@@ -36,6 +36,12 @@ library(stringr)
 library(radEmu)
 ```
 
+Also, manually set `count` to be the function from `dplyr`. We do this to ensure that `count` hasn't been masked by another package, e.g., `TreeSummarizedExperiment` or another bioconductor package.
+
+```{r}
+count <- dplyr::count
+```
+
 ## Introduction 
 
 In this lab we'll explore a [dataset published by Wirbel et al. (2019)](https://www.nature.com/articles/s41591-019-0406-6). This is a meta-analysis of case-control studies, meaning that Wirbel et al. collected raw sequencing data from studies other researchers conducted and re-analyzed it (in this case, they also collected some new data of their own).
