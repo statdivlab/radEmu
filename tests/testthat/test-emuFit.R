@@ -609,3 +609,122 @@ test_that("multiple constraint functions can be submitted", {
   expect_true(all.equal(res4$B[1, 3], 0))
   expect_true(all.equal(res4$B[2, 4], 0))
 })
+
+describe("row name matches & mismatches between X and Y", {
+  make_test_data <- function() {
+    set.seed(11)
+
+    n <- 10
+    J <- 20
+    X <- cbind(
+      1,
+      stats::rbinom(size = 1, n = n, prob = 0.5),
+      stats::rnorm(n, 0, 2)
+    )
+    B <- rbind(runif(J, 0, 3), matrix(0, ncol(X) - 1, J))
+    Y <- X %*% B
+    Y <- as.data.frame(Y)
+
+    list(X = X, Y = Y)
+  }
+
+  run_emuFit <- function(Y, X) {
+    emuFit(
+      Y = Y,
+      X = X,
+      run_score_tests = FALSE,
+      constraint_fn = 1,
+      constraint_grad_fn = 1,
+      constraint_param = 1
+    )
+  }
+
+  describe("when both X and Y are missing rownames", {
+    data <- make_test_data()
+    rownames(data$X) <- NULL
+    rownames(data$Y) <- NULL
+
+    it("shows the user a message about missing rows names in X", {
+      expect_message(
+        run_emuFit(Y = data$Y, X = data$X),
+        regexp = "Row names are missing from the covariate matrix X."
+      )
+    })
+
+    it("shows the user a message about missing rows names in Y", {
+      expect_message(
+        run_emuFit(Y = data$Y, X = data$X),
+        regexp = "Row names are missing from the response matrix Y."
+      )
+    })
+  })
+
+  describe("when X is missing rownames, but Y has them", {
+    data <- make_test_data()
+    rownames(data$X) <- NULL
+    rownames(data$Y) <- paste0("row_", seq_len(nrow(data$Y)))
+
+    it("shows the user a message about missing rows names in X", {
+      expect_message(
+        run_emuFit(Y = data$Y, X = data$X),
+        regexp = "Row names are missing from the covariate matrix X."
+      )
+    })
+  })
+
+  describe("when Y is missing rownames, but X has them", {
+    data <- make_test_data()
+    rownames(data$X) <- paste0("row_", seq_len(nrow(data$X)))
+    rownames(data$Y) <- NULL
+
+    it("shows the user a message about missing rows names in Y", {
+      expect_message(
+        run_emuFit(Y = data$Y, X = data$X),
+        regexp = "Row names are missing from the response matrix Y."
+      )
+    })
+  })
+
+  describe("when X and Y have no rownames in common", {
+    data <- make_test_data()
+    rownames(data$X) <- paste0("row_", seq_len(nrow(data$X)))
+    rownames(data$Y) <- toupper(rownames(data$X))
+
+    it("throws an error about X and Y having no rownames in common", {
+      expect_error(
+        run_emuFit(Y = data$Y, X = data$X),
+        regexp = "There were no rownames in common between X and Y"
+      )
+    })
+  })
+
+  describe("when rownames of X and Y overlap but are not identical", {
+    data <- make_test_data()
+    rownames(data$X) <- paste0("row_", seq_len(nrow(data$X)))
+    rownames(data$Y) <- rownames(data$X)
+    rownames(data$Y)[1] <- "ROW_1"
+
+    it("it shows the user a warning about subsetting", {
+      expect_warning(
+        run_emuFit(Y = data$Y, X = data$X),
+        regexp = paste0(
+          "will subset to common rows only, resulting in ",
+          nrow(data$X) - 1,
+          " samples"
+        )
+      )
+    })
+  })
+
+  describe("when X and Y have identical rownames", {
+    data <- make_test_data()
+    rownames(data$X) <- paste0("row_", seq_len(nrow(data$X)))
+    rownames(data$Y) <- rownames(data$X)
+
+    it("it does not show the user a message", {
+      expect_no_message(
+        run_emuFit(Y = data$Y, X = data$X)
+      )
+    })
+  })
+})

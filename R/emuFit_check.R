@@ -149,7 +149,8 @@ covariates in formula must be provided.")
       if(match_row_names){
         if(is.null(rownames(X))){
           message("Row names are missing from the covariate matrix X. We will assume the rows are in the same order as in the response matrix Y. You are responsible for ensuring the order of your observations is the same in both matrices.")
-        } else {
+        }
+        if(is.null(rownames(Y))){
           message("Row names are missing from the response matrix Y. We will assume the rows are in the same order as in the covariate matrix X. You are responsible for ensuring the order of your observations is the same in both matrices.")
         }
       }
@@ -171,7 +172,11 @@ covariates in formula must be provided.")
       
       # Find common row names
       common_names <- intersect(names_X, names_Y)
-      
+
+      if (length(common_names) == 0) {
+        stop("There were no rownames in common between X and Y. Please ensure that the row names of X and Y refer to the same samples before refitting the model.")
+      }
+
       if (length(common_names) < length(names_X) || length(common_names) < length(names_Y)) {
         warning(sprintf("According to the rownames, there are observations that are missing either in the covariate matrix (X) and/or the response matrix (Y). We will subset to common rows only, resulting in %d samples.", length(common_names))) 
         
