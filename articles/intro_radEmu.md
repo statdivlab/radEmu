@@ -22,6 +22,15 @@ library(stringr)
 library(radEmu)
 ```
 
+Also, manually set `count` to be the function from `dplyr`. We do this
+to ensure that `count` hasn’t been masked by another package, e.g.,
+`TreeSummarizedExperiment` or another bioconductor package.
+
+``` r
+
+count <- dplyr::count
+```
+
 ## Introduction
 
 In this lab we’ll explore a [dataset published by Wirbel et
@@ -335,7 +344,7 @@ plot(ch_fit)$plots
 #> $p1
 ```
 
-![](intro_radEmu_files/figure-html/unnamed-chunk-15-1.png)
+![](intro_radEmu_files/figure-html/unnamed-chunk-16-1.png)
 
 In the plot above, it is a bit difficult to read the taxa names on the
 y-axis. We can create a data frame that maps the full taxa names in our
@@ -355,7 +364,7 @@ plot(ch_fit, taxon_names = taxa_names)$plots
 #> $p1
 ```
 
-![](intro_radEmu_files/figure-html/unnamed-chunk-16-1.png)
+![](intro_radEmu_files/figure-html/unnamed-chunk-17-1.png)
 
 Interestingly, we estimate a meta-mOTU “unknown Eubacterium
 \[meta_mOTU_v2_7116\]” assigned to Eubacteria to have a much higher
